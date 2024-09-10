@@ -5,8 +5,12 @@ from playwright.sync_api import sync_playwright
 import os
 import atexit
 from dotenv import load_dotenv
+from flask_cors import CORS
+
+# http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
 app = Flask(__name__)
+CORS(app)
 
 # Ladda miljövariabler från .env-filen
 load_dotenv()

@@ -1,0 +1,148 @@
+---
+interface CarInfo {
+  car_model: string;
+  besbruk: number | string;
+  fskatt: number | string;
+}
+
+let regNumber = '';
+let errorMessage = '';
+let successMessage = '';
+let carInfo: CarInfo | null = null;
+---
+
+<section class="registration-section">
+  <label for="reg-number">Sök reg nummer:</label>
+  <input
+    type="text"
+    id="reg-number"
+    class="registration-input"
+    placeholder="ABC123"
+    maxlength="6"
+  />
+
+  <div class="error-message">{errorMessage}</div>
+  <div class="success-message">{successMessage}</div>
+  <div class="car-info">
+    {carInfo && (
+      <div>
+        <p><strong>Bilmodell:</strong> {carInfo.car_model}</p>
+        <p><strong>Bränsleförbrukning:</strong> {carInfo.besbruk ? `${carInfo.besbruk} l/100km` : "Ingen data"}</p>
+        <p><strong>Fordonsskatt:</strong> {carInfo.fskatt !== 'Error' ? `${carInfo.fskatt} SEK` : "Ingen data"}</p>
+      </div>
+    )}
+  </div>
+</section>
+
+<!-- Inbäddad JavaScript för att hantera input-händelser -->
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', function () {
+    const inputField = document.getElementById('reg-number');
+    
+    if (inputField) {
+      inputField.addEventListener('input', function (event) {
+        const regNumber = (event.target as HTMLInputElement).value;
+
+        // Kontrollera om vi har exakt 6 tecken
+        if (regNumber.length === 6) {
+          console.log(`Skickar request för registreringsnummer: ${regNumber}`);  // Loggar till terminalen
+
+          fetch(`http://127.0.0.1:5000/bilinfo?reg_plate=${regNumber}`)
+            .then(response => response.json())
+            .then((data: any) => {
+              const errorMessage = document.querySelector('.error-message');
+              const successMessage = document.querySelector('.success-message');
+              const carInfoDiv = document.querySelector('.car-info');
+
+              if (data.error) {
+                errorMessage.textContent = 'Fel vid sökning: ' + data.error;
+                successMessage.textContent = '';
+                carInfoDiv.innerHTML = '';
+              } else {
+                successMessage.textContent = 'Sökningen lyckades!';
+                errorMessage.textContent = '';
+
+                const carInfo: CarInfo = {
+                  car_model: data.car_model,
+                  besbruk: data.besbruk,
+                  fskatt: data.fskatt
+                };
+
+                carInfoDiv.innerHTML = `
+                  <p><strong>Bilmodell:</strong> ${carInfo.car_model}</p>
+                  <p><strong>Bränsleförbrukning:</strong> ${carInfo.besbruk ? `${carInfo.besbruk} l/100km` : "Ingen data"}</p>
+                  <p><strong>Fordonsskatt:</strong> ${carInfo.fskatt !== 'Error' ? `${carInfo.fskatt} SEK` : "Ingen data"}</p>
+                `;
+              }
+            })
+            .catch(error => {
+              const errorMessage = document.querySelector('.error-message');
+              const successMessage = document.querySelector('.success-message');
+              
+              errorMessage.textContent = 'Fel vid sökning. Försök igen senare.';
+              successMessage.textContent = '';
+              console.error('Fel vid sökning:', error);
+            });
+        } else {
+          const errorMessage = document.querySelector('.error-message');
+          const successMessage = document.querySelector('.success-message');
+          const carInfoDiv = document.querySelector('.car-info');
+          
+          errorMessage.textContent = 'Registreringsnumret måste ha exakt 6 tecken.';
+          successMessage.textContent = '';
+          carInfoDiv.innerHTML = '';
+        }
+      });
+    }
+  });
+</script>
+
+<style>
+  .registration-input {
+    width: 200px;
+    padding: 10px;
+    font-size: 24px;
+    text-align: center;
+    letter-spacing: 5px;
+    font-family: 'Arial', sans-serif;
+    color: black;
+    background-color: #fff;
+    border: 2px solid #000;
+    border-radius: 4px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    text-transform: uppercase;
+  }
+  
+  .registration-input::placeholder {
+    color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .registration-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 25px;
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+  }
+
+  .error-message {
+    color: red;
+    margin-top: 10px;
+    font-family: 'Arial', sans-serif;
+  }
+
+  .success-message {
+    color: green;
+    margin-top: 10px;
+    font-family: 'Arial', sans-serif;
+  }
+
+  .car-info {
+    margin-top: 15px;
+  }
+
+  .car-info p {
+    font-family: 'Arial', sans-serif;
+    font-size: 18px;
+  }
+</style>

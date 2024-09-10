@@ -1,0 +1,101 @@
+<header>
+    <div class="logga"></div>
+    <h1 class="namn">VAD KOSTAR BILEN</h1>
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+        <nav class="menu">
+            <a href="" class="">Hem</a>
+            <a href="" class="">Kontakt</a>
+            <a href="" class="">Om oss</a>
+        </nav>
+</header>
+<script src="../script/togglemenu.js"></script>
+
+<style>
+header {
+  width: 100%;
+  height: 74px;
+  background-color: hotpink;
+  display: flex;
+  position: relative; /* Lägger till relativ position för att hantera absolut positionering av knappen */
+
+  h1{
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+  }
+}
+
+.menu-icon {
+  display: none;
+  font-size: 30px;
+  cursor: pointer;
+  color: white;
+  margin-right: 5%; /* Minskade margin-right för att öka avståndet mellan loggan och knappen */
+  position: absolute;
+  top: 50%; /* Placera knappen i mitten av headern vertikalt */
+  transform: translateY(-50%); /* Justera för att centrera knappen vertikalt */
+  right: 5%; /* Placera knappen på höger sida */
+}
+
+.menu {
+  display: flex;
+  flex-direction: row; /* Visa menyelementen i en kolumn när menyn är öppen */
+  gap: 20px;
+  position: absolute;
+  top: 100%; /* Placera menyn under headern */
+  right: 0; /* Justera för att placera menyn till höger */
+  top: 0;
+  padding: 10px;
+  z-index: 10; /* Säkerställ att menyn visas ovanpå andra element */
+  margin-right: 2%;
+  transform: translateY(5%); /* Justera för att centrera knappen vertikalt */
+  
+}
+
+.menu a {
+  color: var(--w);
+  text-decoration: none;
+  padding: 10px 15px;
+  font-size: 1.5rem; /* Minskade fontstorleken för en bättre visuell balans */
+}
+
+.menu a:hover {
+  text-decoration: underline;
+}
+
+/* Stil för små skärmar */
+@media screen and (max-width: 1100px) {
+  .menu {
+    display: none;
+    width: 100%;
+    text-align: center;
+  }
+
+  .menu a {
+    padding: 15px;
+  }
+
+  .menu-icon {
+    display: block;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 10px;
+  }
+
+  .menu.show {
+    display: flex;
+    flex-direction: column;
+    margin: 74px 0 0 0;
+    width: 100%;
+    background-color: var(--main_color_gray);
+
+    .aktuellflik{
+      color: var(--selected);
+    }
+  }
+}
+</style>
