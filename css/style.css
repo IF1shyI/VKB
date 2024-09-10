@@ -1,0 +1,75 @@
+body{
+    margin: 0;
+    background-color: black;
+    color: #fff;
+}
+
+header{
+    height: 10%;
+    display: flex;
+    justify-content: center;
+    background-color: hotpink;
+}
+
+.index-säljtext{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+
+    mark{
+        font-size: 40px;
+        background-color: transparent;
+        color: #fff;
+    }
+}
+
+
+.select-vehicle{
+    display: flex;
+    justify-content: center;
+    .vehicle-select-box{
+
+    width: 50%;
+    height: 50%;
+    background-color: red;
+        p{
+            text-align: center;
+            font-size: 1lh;
+            font-family: 'Arial', sans-serif;
+            margin-bottom: 0;
+        }
+
+    .registration-section {
+        text-align: center;
+        margin: 50px 0;
+    }
+    
+    .registration-input {
+        width: 200px;
+        padding: 10px;
+        font-size: 24px;
+        text-align: center;
+        letter-spacing: 5px;
+        font-family: 'Arial', sans-serif;
+        color: black;
+        background-color: #fff;
+        border: 2px solid #000;
+        border-radius: 4px;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        text-transform: uppercase; /* Converts all input text to uppercase */
+    }
+    
+    .registration-input::placeholder {
+        color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .registration-section label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 25px;
+        font-family: 'Arial', sans-serif;
+        font-weight: bold;
+    }
+    
+    }
+}
