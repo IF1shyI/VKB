@@ -1,5 +1,5 @@
 <header>
-    <img src="../bilder/logga.svg" alt="logga.svg" class="logga">
+    <img src="/bilder/logga.svg" alt="logga.svg" class="logga">
     <h1 class="namn">VAD KOSTAR BILEN</h1>
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
         <nav class="menu">
@@ -25,6 +25,16 @@ header {
     left: 50%;
     transform: translate(-50%, -50%);
     margin: 0;
+  }
+
+  .logga{
+    position: absolute;
+
+    top: 50%;
+    left: 3%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    width: 4rem;
   }
 }
 
@@ -92,10 +102,10 @@ header {
     margin: 74px 0 0 0;
     width: 100%;
     background-color: var(--main_color_gray);
+  }
 
-    .aktuellflik{
-      color: var(--selected);
-    }
+  .logga{
+    display: none;
   }
 }
 </style>
