@@ -7,17 +7,12 @@
   placeholder="ABC123"
   maxlength="6"
 />
-<img src="/bilder/arrow_r.svg" alt="arrow" class=".sok-knapp" id="sok-knapp">
+<div onclick="Search()"><img src="/bilder/arrow_r.svg" alt="arrow" class=".sok-knapp" id="sok-knapp"></div>
 </div>
+<div id="loading-message">Hämtar all data...</div>
+<div id="car-info"></div>
 
-<script is:inline>
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('.sok-knapp').addEventListener('click', function() {
-        console.log('Image clicked!');
-    });
-});
-
-</script>
+<script src="/js/sok.js" is:inline></script>
 
 
 
@@ -77,9 +72,15 @@ document.addEventListener('DOMContentLoaded', () => {
     img:hover{
       opacity: 0.8;
     }
-  }
+  
     
     .registration-input::placeholder {
         color: rgba(0, 0, 0, 0.5);
     }
+
+    #loading-message {
+            display: none;
+            font-size: 1.2em;
+            color: #007bff;
+        }
 </style>
