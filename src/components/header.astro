@@ -1,23 +1,34 @@
+---
+// import "../css/style.css"; // Importera din CSS-fil i Astro-komponenten
+---
+
+
 <header>
     <img src="/bilder/logga.svg" alt="logga.svg" class="logga">
     <h1 class="namn">VAD KOSTAR BILEN</h1>
-    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    <div class="menu-icon" onclick="toggleMenu()"><img src="/bilder/meny_icon.svg" alt="meny.svg"></div>
         <nav class="menu">
             <a href="" class="">Hem</a>
             <a href="" class="">Kontakt</a>
             <a href="" class="">Om oss</a>
         </nav>
 </header>
-<script src="../script/togglemenu.js"></script>
+<script is:inline>
+  function toggleMenu() {
+  var menu = document.querySelector('.menu');
+  menu.classList.toggle('show');
+  }
+</script>
 
 <style>
 header {
   width: 100%;
-  height: 74px;
-  background-color: hotpink;
+  height: var(--header-sz);
+  background-color: var(--svart);
   display: flex;
   position: relative; /* Lägger till relativ position för att hantera absolut positionering av knappen */
 
+  font-family: var(--font);
   h1{
     position: absolute;
 
@@ -31,7 +42,7 @@ header {
     position: absolute;
 
     top: 50%;
-    left: 3%;
+    left: 5%;
     transform: translate(-50%, -50%);
     margin: 0;
     width: 4rem;
@@ -43,11 +54,10 @@ header {
   font-size: 30px;
   cursor: pointer;
   color: white;
-  margin-right: 5%; /* Minskade margin-right för att öka avståndet mellan loggan och knappen */
+  margin-right: var(--margin-s);
   position: absolute;
   top: 50%; /* Placera knappen i mitten av headern vertikalt */
   transform: translateY(-50%); /* Justera för att centrera knappen vertikalt */
-  right: 5%; /* Placera knappen på höger sida */
 }
 
 .menu {
@@ -57,27 +67,34 @@ header {
   position: absolute;
   top: 100%; /* Placera menyn under headern */
   right: 0; /* Justera för att placera menyn till höger */
-  top: 0;
-  padding: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 10; /* Säkerställ att menyn visas ovanpå andra element */
-  margin-right: 2%;
-  transform: translateY(5%); /* Justera för att centrera knappen vertikalt */
   
 }
 
 .menu a {
-  color: var(--w);
+  color: var(--vit);
   text-decoration: none;
-  padding: 10px 15px;
-  font-size: 1.5rem; /* Minskade fontstorleken för en bättre visuell balans */
+  margin-right: var(--margin-s);
+  font-size: 1.25rem;
+  font-weight: 500;
+
+  width: 150px;
+  height: var(--header-btn-sz);
+  background-color: var(--orange);
+  border-radius: 1rem;
+
+  text-align: center;
+
 }
 
 .menu a:hover {
-  text-decoration: underline;
+  background-color: var(--kontrast);
 }
 
 /* Stil för små skärmar */
-@media screen and (max-width: 1100px) {
+@media screen and (max-width: 1600px) {
   .menu {
     display: none;
     width: 100%;
@@ -99,9 +116,29 @@ header {
   .menu.show {
     display: flex;
     flex-direction: column;
-    margin: 74px 0 0 0;
-    width: 100%;
-    background-color: var(--main_color_gray);
+    align-items: center;
+
+    left: 50%;
+    top: var(--header-sz);
+    transform: translateX(-50%);
+
+    background-color: var(--svart);
+    padding-bottom: var(--margin-s);
+    padding-top: 5px;
+  }
+}
+
+@media screen and (max-width: 600px){
+  h1{
+    font-size: 1.25rem;
+    position: absolute;
+    text-align: center;
+
+    top: 50%;
+    left: 30%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    width: 60%;
   }
 
   .logga{

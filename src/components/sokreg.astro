@@ -1,9 +1,85 @@
 <label for="reg-number">Sök reg nummer:</label>
-<input
+<div class="input-wrapper">
+  <input
   type="text"
   id="reg-number"
   class="registration-input"
   placeholder="ABC123"
   maxlength="6"
 />
+<img src="/bilder/arrow_r.svg" alt="arrow" class=".sok-knapp" id="sok-knapp">
+</div>
 
+<script is:inline>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('.sok-knapp').addEventListener('click', function() {
+        console.log('Image clicked!');
+    });
+});
+
+</script>
+
+
+
+
+<style>
+
+  .input-wrapper{
+    position: relative;
+    width: var(--input-sok-sz);
+    aspect-ratio: 4/1;
+    padding-right: 4rem;
+    border-radius: 4px;
+
+    left: 50%;
+    transform: translateX(-50%);
+
+    overflow: hidden;
+  
+    box-shadow: 0 4px 8px 2px rgba(0, 0, 0, 0.2);
+    border: 2px solid #000;
+}
+
+
+    input{
+      width: var(--input-sok-sz);
+      height: 100%;
+
+      position: absolute;
+      left: 0;
+      top: 0;
+
+      font-size: 2rem;
+      font-weight: 600;
+
+      text-align: center;
+      letter-spacing: 5px;
+      font-family: var(--font);
+      text-transform: uppercase;
+      padding: 0;
+      border: 0;
+    }
+
+    img{
+      position: absolute;
+      left: var(--input-sok-sz);
+      background-image: var(--orange-btn-gradient);
+      top: 50%;
+      transform: translateY(-50%);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: right center;
+      height: 100%;
+      cursor: pointer;
+      z-index: 60;
+    }
+
+    img:hover{
+      opacity: 0.8;
+    }
+  }
+    
+    .registration-input::placeholder {
+        color: rgba(0, 0, 0, 0.5);
+    }
+</style>

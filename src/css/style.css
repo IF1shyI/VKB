@@ -1,7 +1,30 @@
-body{
+:root{
+    /* Margin */
+    --margin-xxs: .25rem;
+    --margin-xs: .5rem;
+    --margin-s: .75rem;
+    --margin-m: 1rem;
+    --margin-l: 1.25rem;
+    --margin-xl: 1.75rem;
+    --margin-xxl: 2.5rem;
+
+    /* Colors */
+    --svart: rgb(0, 0, 0);
+    --vit:rgb(255, 255, 255);
+    --grått-genomskinlig: rgba(0, 0, 0, 0.5);
+    --kontrast:rgb(18, 145, 255);
+    --orange:rgb(171, 89, 19);
+
+    /* Font */
+    --font:
+}
+
+
+/* body{
     margin: 0;
     background-color: black;
     color: #fff;
+    height: 100vh;
 }
 
 header{
@@ -57,9 +80,9 @@ header{
         border-radius: 4px;
         box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
         text-transform: uppercase; /* Converts all input text to uppercase */
-    }
+    /* } */
     
-    .registration-input::placeholder {
+    /* .registration-input::placeholder {
         color: rgba(0, 0, 0, 0.5);
     }
     
@@ -72,4 +95,4 @@ header{
     }
     
     }
-}
+} */
