@@ -41,8 +41,11 @@ async function Search() {
             
             // Visa informationen på sidan
             carInfoDiv.innerHTML = `
-                <p>${data.car_model ? data.car_model : 'Hittar inte bilmodell'}</p>
-                `;
+                <p>Registreringsnummer: ${data.reg_plate}</p>
+                <p>Bilmodell: ${data.car_model}</p>
+                <p>Bensinförbrukning: ${data.besbruk ? data.besbruk : 'Information saknas'}</p>
+                <p>Fordonsskatt: ${data.fskatt ? data.fskatt + ' SEK' : 'Information saknas'}</p>`
+                ;
 
             console.log("Data hämtad och visad");
         } catch (error) {
