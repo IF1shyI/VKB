@@ -1,3 +1,6 @@
+// Definiera "data" som en global variabel
+let data = {}; // Tomt objekt för att hålla bilinformationen
+
 // Lyssna på "keyup"-händelsen istället för "keydown"
 document.getElementById('reg-number').addEventListener('keyup', function (event) {
     const inputValue = event.target.value;
@@ -6,6 +9,15 @@ document.getElementById('reg-number').addEventListener('keyup', function (event)
     if (inputValue.length === 6 && event.key === 'Enter') {
         console.log("Enter nedtryckt och 6 tecken uppnått");
         Search(); // Anropa din Search-funktion
+    }
+});
+
+// Lyssna på "keyup"-händelsen i input-fältet för antal mil
+document.getElementById('milage-input').addEventListener('keyup', function (event) {
+    // Om användaren trycker på Enter-knappen
+    if (event.key === 'Enter') {
+        console.log("Enter nedtryckt börjar kalkylationer");
+        Calc(); // Anropa Calc-funktionen
     }
 });
 
@@ -34,7 +46,8 @@ async function Search() {
                 throw new Error(`Network response was not ok: ${response.statusText}`);
             }
 
-            const data = await response.json();
+            // Tilldela global variabel "data" med API-svaret
+            data = await response.json();
 
             // Logga data för felsökning
             console.log("Data från API:", data);
@@ -61,6 +74,7 @@ async function Search() {
         loadingMessage.style.display = 'none';
     }
 }
+
 
 function toggleStep() {
     console.log("Försöker toggla klass på elementet .step-two");
@@ -92,3 +106,84 @@ function toggleStep() {
         console.error("Element med klassen '.reg-num-label' hittades inte");
     }
 }
+
+
+async function Calc() {
+    // Hämta värdet från input-fältet
+    const inputValue = document.getElementById('milage-input').value;
+
+    // Kontrollera att det är ett positivt heltal och inte tomt
+    if (inputValue && !isNaN(inputValue) && inputValue > 0) {
+        const milage = parseFloat(inputValue); // Konvertera input till ett tal
+        
+        // Hämta bränslepriser från Flask API
+        const prices = await getFuelPrices();
+        
+        console.log("Priser:", prices);
+        console.log("Typ av dieselPrice:", typeof prices.dieselPrice);
+        console.log("Typ av petrolPrice:", typeof prices.petrolPrice);
+        // Hämtar och stripar till drivmedel (Diesel/Bensin)
+        const drivmedel = (data.drivmedel || '').split(",")[0].trim();
+        
+        // Logga data.besbruk för att se vad som faktiskt finns där
+        console.log("Bensinförbrukning (data.besbruk):", data.besbruk);
+
+        // Använd bilens förbrukning eller ett standardvärde om det saknas
+        const fuelConsumptionPerMile = (data.besbruk && !isNaN(data.besbruk)) ? parseFloat(data.besbruk) : 0.5;
+
+        // Kontrollera att fuelConsumptionPerMile är ett giltigt tal
+        console.log("Korrekt bensinförbrukning:", fuelConsumptionPerMile);
+
+        // Beräkna total bensinförbrukning
+        const totalFuelConsumed = milage * fuelConsumptionPerMile;
+
+        // Deklarera variabler för pris och kostnad
+        let bpris = 0;
+        let bkostnad = 0;
+
+        // Kontrollera drivmedel och hämta rätt pris
+        if (drivmedel === "Bensin") {
+            console.log("Drivmedel är Bensin");
+            bpris = prices.petrolPrice; // Använd direkt som numeriskt värde
+            bkostnad = totalFuelConsumed * bpris;
+        } else if (drivmedel === "Diesel") {
+            console.log("Drivmedel är Diesel");
+            bpris = prices.dieselPrice; // Använd direkt som numeriskt värde
+            bkostnad = totalFuelConsumed * bpris;
+        } else {
+            console.log("Okänt drivmedel");
+            alert("Drivmedlet är okänt.");
+            return; // Avsluta funktionen om drivmedlet är okänt
+        }
+
+        // Visa resultatet i "car-info"-diven
+        const carInfoDiv = document.getElementById('car-info');
+        carInfoDiv.innerHTML = `
+            <p>För ${milage} mil har bilen förbrukat ungefär ${totalFuelConsumed.toFixed(2)} liter ${drivmedel}.</p>
+            <p>Aktuellt ${drivmedel}pris: ${bpris.toFixed(2)} kr per liter</p>
+            <p>Kostnad för ${drivmedel}: ${bkostnad.toFixed(2)} kr</p>
+        `;
+    } else {
+        alert("Vänligen ange ett giltigt antal mil.");
+    }
+}
+
+
+
+
+
+async function getFuelPrices() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/fuel-prices');
+        if (!response.ok) {
+            throw new Error('Något gick fel vid hämtning av bränslepriser');
+        }
+        const prices = await response.json();
+        console.log('Bensinpris:', prices.petrolPrice);
+        console.log('Dieselpris:', prices.dieselPrice);
+        return prices;
+    } catch (error) {
+        console.error('Fel:', error);
+    }
+}
+

@@ -6,6 +6,7 @@ import os
 import atexit
 from dotenv import load_dotenv
 from flask_cors import CORS
+import requests
 
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
@@ -31,6 +32,7 @@ cache = Cache(
 SESSION_FILE = "session.json"  # Fil för att lagra sessionen
 global_besbruk = "Error"
 global_fskatt = "Error"
+drivmedel = "Error"
 
 
 def convert_currency_text_to_int(text):
@@ -115,6 +117,7 @@ def login_and_save_session(playwright):
 def get_car_info_with_playwright(reg_plate):
     global global_besbruk
     global global_fskatt
+    global drivmedel
     with sync_playwright() as p:
         # Kolla om sessionen redan är sparad
         if os.path.exists(SESSION_FILE):
@@ -162,6 +165,13 @@ def get_car_info_with_playwright(reg_plate):
                 fskatt_pre = skatt_pre.inner_text()
                 global_fskatt = convert_currency_text_to_int(fskatt_pre)
 
+        print("Hämtar drivmedel")
+        fskatt_class = page.query_selector_all(".idva_float")
+        for text in fskatt_class:
+            dmedel = text.inner_text()
+            if dmedel.startswith("Diesel") or dmedel.startswith("Bensin"):
+                drivmedel = dmedel
+                break
         # Stäng webbläsaren
         context.close()
 
@@ -208,8 +218,53 @@ def get_car_info():
                 "car_model": car_model,
                 "besbruk": global_besbruk,
                 "fskatt": global_fskatt,
+                "drivmedel": drivmedel,
             }
         )
+
+
+@app.route("/fuel-prices", methods=["GET"])
+def get_fuel_prices():
+    try:
+        # Starta Playwright-webbläsaren
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+
+            # Gå till Preem-sidan för drivmedelspriser
+            page.goto("https://www.preem.se/privat/drivmedel/drivmedelspriser/")
+
+            # Hämta bensinpris (95 oktan) och dieselpris från tabellen
+            petrol_price_text = (
+                page.locator("table")
+                .locator("text=95")
+                .first.locator("..")
+                .locator("td:nth-child(2)")
+                .inner_text()
+            )
+            diesel_price_text = (
+                page.locator("table")
+                .locator("text=Diesel")
+                .first.locator("..")
+                .locator("td:nth-child(2)")
+                .inner_text()
+            )
+
+            # Konvertera prissträngar till flyttal
+            petrol_price = float(
+                petrol_price_text.replace("kr/l", "").replace(",", ".").strip()
+            )
+            diesel_price = float(
+                diesel_price_text.replace("kr/l", "").replace(",", ".").strip()
+            )
+
+            browser.close()
+
+        # Returnera priserna som JSON
+        return jsonify({"petrolPrice": petrol_price, "dieselPrice": diesel_price})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # Funktion som körs när applikationen stängs av

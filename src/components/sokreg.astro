@@ -20,7 +20,7 @@
     class="milage-input"
     placeholder="1000"
     />
-    <div onclick="Search()"><img src="/bilder/arrow_r.svg" alt="arrow" class="sok-knapp" id="sok-knapp"></div>
+    <div onclick="Calc()"><img src="/bilder/arrow_r.svg" alt="arrow" class="sok-knapp" id="sok-knapp"></div>
   </div>
 </div>
 
@@ -100,8 +100,15 @@
 
     #loading-message {
             display: none;
-            font-size: 1.2em;
-            color: #007bff;
+            position: absolute;
+            top: 80%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            font-size: 2rem;
+
+            font-family: var(--font);
+            color: var(--kontrast);
         }
 
   .step-two {

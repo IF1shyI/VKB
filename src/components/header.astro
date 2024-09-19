@@ -4,7 +4,7 @@
 
 
 <header>
-    <img src="/bilder/logga.svg" alt="logga.svg" class="logga">
+    <a href=""><img src="/bilder/logga.svg" alt="logga.svg" class="logga"></a>
     <h1 class="namn">VAD KOSTAR BILEN</h1>
     <div class="menu-icon" onclick="toggleMenu()"><img src="/bilder/meny_icon.svg" alt="meny.svg"></div>
         <nav class="menu">
@@ -24,7 +24,8 @@
 header {
   width: 100%;
   height: var(--header-sz);
-  background-color: var(--svart);
+  /* background-color: var(--svart); */
+  background-color: transparent;
   display: flex;
   position: relative; /* Lägger till relativ position för att hantera absolut positionering av knappen */
 
