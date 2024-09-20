@@ -43,6 +43,7 @@ const { title } = Astro.props;
     --orange:rgb(171, 89, 19);
 	--orange:rgb(171, 90, 30);
 	--orange-btn-gradient: linear-gradient(to bottom right, rgb(171, 89, 19), rgb(255, 110, 50));
+	--green:#50C878;
 
     /* Font */
     --font: "Inter", sans-serif;
@@ -51,9 +52,10 @@ const { title } = Astro.props;
 	--header-sz: 4rem;
 	--header-btn-sz: calc(var(--header-sz)*0.5);
 	--input-sok-sz: 18rem;
+	--sz:2rem;
 }
 	html {
-		font-family: system-ui, sans-serif;
+		font-family: var(--font);
 		background: #13151a;
 	}
 	code {
@@ -66,5 +68,9 @@ const { title } = Astro.props;
 			Bitstream Vera Sans Mono,
 			Courier New,
 			monospace;
+	}
+
+	.hide{
+    display: none;
 	}
 </style>

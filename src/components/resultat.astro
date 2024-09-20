@@ -1,0 +1,72 @@
+<div class="result-container">
+    <h1>Total: <br><mark><div class="car-info" id="car-info"></div>1000 KR</mark></h1>
+    <div class="data-container">
+    <div class="data-ram">
+        <h3>Årsskatt</h3>
+        <div class="info">1234 KR</div>
+    </div>
+    <div class="data-ram">
+        <h3>Bensinkostnad</h3>
+        <div class="info">1234 KR</div>
+    </div>
+    <div class="data-ram">
+        <h3>Kostnad Diesel/Bensin</h3>
+        <div class="info">1234 KR</div>
+    </div>
+</div>
+</div>
+
+
+
+<style>
+    .result-container{
+        width: 100%;
+        height: 100%;
+        position: absolute;
+
+        top:var(--header-sz) ;
+        left: 0;
+        background-color: var(--svart);
+        
+
+        h1{
+            text-align: center;
+            font-size: calc(var(--sz)*2);
+
+            mark{
+                color: var(--green);
+                background-color: transparent;
+                font-size: calc(var(--sz)*3);
+            }
+        }
+    }
+    
+    .data-container{
+        display: flex;
+        height: fit-content;
+        width: 60%;
+        padding-left: 20%;
+        padding-right: 20%;
+
+        position: relative;
+
+        .data-ram{
+            width: fit-content;
+            aspect-ratio: 2/1;
+            
+            text-align: center;
+
+            h3{
+                border-bottom: 2px solid var(--vit);
+                padding-bottom: var(--margin-s);
+                font-size: var(--sz);
+                margin-bottom: calc(var(--sz)*0.3);
+            }
+
+            .info{
+                color: var(--green);
+                font-size: var(--sz);
+            }
+        }
+    }
+</style>

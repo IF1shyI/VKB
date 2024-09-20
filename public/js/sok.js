@@ -119,9 +119,6 @@ async function Calc() {
         // Hämta bränslepriser från Flask API
         const prices = await getFuelPrices();
         
-        console.log("Priser:", prices);
-        console.log("Typ av dieselPrice:", typeof prices.dieselPrice);
-        console.log("Typ av petrolPrice:", typeof prices.petrolPrice);
         // Hämtar och stripar till drivmedel (Diesel/Bensin)
         const drivmedel = (data.drivmedel || '').split(",")[0].trim();
         
@@ -163,6 +160,7 @@ async function Calc() {
             <p>Aktuellt ${drivmedel}pris: ${bpris.toFixed(2)} kr per liter</p>
             <p>Kostnad för ${drivmedel}: ${bkostnad.toFixed(2)} kr</p>
         `;
+        Results()
     } else {
         alert("Vänligen ange ett giltigt antal mil.");
     }
@@ -187,3 +185,33 @@ async function getFuelPrices() {
     }
 }
 
+async function Results() {
+    console.log("Försöker toggla klass på elementet .step-two");
+    const stepTwoElement = document.querySelector('.step-two');
+    
+    if (stepTwoElement) {
+        stepTwoElement.classList.toggle('show');
+        console.log("Klass togglades på .step-two");
+    } else {
+        console.error("Element med klassen 'step-two' hittades inte");
+    }
+    console.log("Försöker toggla klass på elementet .input-wrapper");
+    const stepTwo = document.querySelector('.input-wrapper');
+    
+    if (stepTwo) {
+        stepTwo.classList.toggle('hide');
+        console.log("Klass togglades på .input-wrapper");
+    } else {
+        console.error("Element med klassen 'input-wrapper' hittades inte");
+    }
+    console.log("Försöker toggla klass på elementet .reg-num-label");
+
+    const stepTwolable = document.querySelector('.reg-num-label');
+    
+    if (stepTwolable) {
+        stepTwolable.classList.toggle('hide');
+        console.log("Klass togglades på .reg-num-label");
+    } else {
+        console.error("Element med klassen '.reg-num-label' hittades inte");
+    }
+}
