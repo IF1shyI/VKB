@@ -128,7 +128,9 @@ async function Calc() {
         const prices = await getFuelPrices();
         
         // Hämtar och stripar till drivmedel (Diesel/Bensin)
-        const drivmedel = (data.drivmedel || '').split(",")[0].trim();
+        const drivmedel = (data.drivmedel || '')
+        .split(/[\|,]/)[0]  // Dela upp med både "|" och ","
+        .trim();  // Ta bort extra mellanslag
         
         // Logga data.besbruk för att se vad som faktiskt finns där
         console.log("Bensinförbrukning (data.besbruk):", data.besbruk);

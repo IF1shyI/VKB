@@ -1,0 +1,100 @@
+<div id="contactForm">
+    <h1 style="margin-bottom: 10px;">Kontakta Oss</h1>
+    <form id="contactFormElement" method="POST">
+        <input id="name" placeholder="Namn" type="text" required />
+        <input id="email" placeholder="Email" type="email" required />
+        <input id="subject" placeholder="Ämne" type="text" required />
+        <textarea id="message" placeholder="Meddelande"></textarea>
+        <button class="formBtn" type="submit">Skicka</button>
+    </form>
+
+</div>
+
+<div id="thankYouMessage" style="display: none;">
+    <h1>Tack för din feedback!</h1>
+</div>
+
+<script src="/js/contact.js" is:inline></script>  
+
+<style>
+    h1 {
+    margin: 0;
+    }
+    #contact {
+    margin: 4em auto;
+    width: 100px;
+    height: 30px;
+    line-height: 30px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid white;
+    }
+
+    #contact:hover {
+    background: #000000;
+    }
+    #contact:active {
+    background: #444;
+    }
+
+    #contactForm {
+
+    box-shadow: 0px 0px 15px 0px rgba(255, 255, 255, 0.3);
+    padding: 2em;
+    width: 50%;
+    text-align: center;
+    background: var(--grått-genomskinlig);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    border-radius: 16px;
+    }
+
+    input,
+    textarea {
+    outline: 0;
+    background: #f2f2f2;
+    width: 100%;
+    border: 0;
+    margin: 0 0 15px;
+    padding: 15px;
+    box-sizing: border-box;
+    font-size: 14px;
+    border-radius: 15px;
+    }
+    textarea {
+    height: 80px;
+    resize: none;
+    }
+
+    .formBtn {
+    outline: 0;
+    background: var(--orange);
+    width: 140px;
+    height: 30px;
+    border: 0;
+    color: #ffffff;
+    font-size: 1.2em;
+    border-radius: 15px;
+    -webkit-transition: all 0.3 ease;
+    transition: all 0.3 ease;
+    cursor: pointer;
+    }  
+    
+    #thankYouMessage {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+    }
+
+    #thankYouMessage.show {
+        opacity: 1;
+    }
+</style>
