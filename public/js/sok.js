@@ -56,7 +56,12 @@ async function Search() {
             carInfoDiv.innerHTML = `
                 <p>${data.car_model ? data.car_model : 'Hittar inte bilmodell'}</p>
                 `;
+            
 
+            const skatt = document.getElementById('skatt');
+            skatt.innerHTML = `
+                <p>${data.fskatt ? data.fskatt : 0}</p>
+            `;
             console.log("Data hämtad och visad");
         } catch (error) {
             // Hantera fel och visa ett meddelande
@@ -107,15 +112,18 @@ function toggleStep() {
     }
 }
 
-
+let bensinkostnad = 0;
 async function Calc() {
     // Hämta värdet från input-fältet
     const inputValue = document.getElementById('milage-input').value;
+    const loadingMessage = document.getElementById('loading-message');
 
     // Kontrollera att det är ett positivt heltal och inte tomt
     if (inputValue && !isNaN(inputValue) && inputValue > 0) {
         const milage = parseFloat(inputValue); // Konvertera input till ett tal
-        
+
+        loadingMessage.style.display = 'block';
+
         // Hämta bränslepriser från Flask API
         const prices = await getFuelPrices();
         
@@ -136,17 +144,31 @@ async function Calc() {
 
         // Deklarera variabler för pris och kostnad
         let bpris = 0;
-        let bkostnad = 0;
+        const drivmedelPris = document.getElementById('bkostnad')
+        const drivmedeltyp = document.getElementById('dmedeltyp')
+
 
         // Kontrollera drivmedel och hämta rätt pris
         if (drivmedel === "Bensin") {
             console.log("Drivmedel är Bensin");
             bpris = prices.petrolPrice; // Använd direkt som numeriskt värde
-            bkostnad = totalFuelConsumed * bpris;
+            bensinkostnad = totalFuelConsumed * bpris;
+            drivmedelPris.innerHTML = `
+            <p>${bpris.toFixed(2)}</p>
+            `;
+            drivmedeltyp.innerHTML = `
+            <p>Kostnad ${drivmedel}</p>
+            `;
         } else if (drivmedel === "Diesel") {
             console.log("Drivmedel är Diesel");
             bpris = prices.dieselPrice; // Använd direkt som numeriskt värde
-            bkostnad = totalFuelConsumed * bpris;
+            bensinkostnad = totalFuelConsumed * bpris;
+            drivmedelPris.innerHTML = `
+            <p>${bpris.toFixed(2)}</p>
+            `;
+            drivmedeltyp.innerHTML = `
+            <p>Kostnad ${drivmedel}</p>
+            `;
         } else {
             console.log("Okänt drivmedel");
             alert("Drivmedlet är okänt.");
@@ -154,12 +176,20 @@ async function Calc() {
         }
 
         // Visa resultatet i "car-info"-diven
-        const carInfoDiv = document.getElementById('car-info');
-        carInfoDiv.innerHTML = `
-            <p>För ${milage} mil har bilen förbrukat ungefär ${totalFuelConsumed.toFixed(2)} liter ${drivmedel}.</p>
-            <p>Aktuellt ${drivmedel}pris: ${bpris.toFixed(2)} kr per liter</p>
-            <p>Kostnad för ${drivmedel}: ${bkostnad.toFixed(2)} kr</p>
+        // const carInfoDiv = document.getElementById('car-info');
+        // carInfoDiv.innerHTML = `
+        //     <p>För ${milage} mil har bilen förbrukat ungefär ${totalFuelConsumed.toFixed(2)} liter ${drivmedel}.</p>
+        //     <p>Aktuellt ${drivmedel}pris: ${bpris.toFixed(2)} kr per liter</p>
+        //     <p>Kostnad för ${drivmedel}: ${bkostnad.toFixed(2)} kr</p>
+        // `;
+
+        const Bensinkostnad = document.getElementById('tot-bkostnad');
+        Bensinkostnad.innerHTML = `
+            <p>${bensinkostnad.toFixed(2)}</p>
         `;
+
+        loadingMessage.style.display = 'none'
+
         Results()
     } else {
         alert("Vänligen ange ett giltigt antal mil.");
@@ -186,32 +216,34 @@ async function getFuelPrices() {
 }
 
 async function Results() {
-    console.log("Försöker toggla klass på elementet .step-two");
-    const stepTwoElement = document.querySelector('.step-two');
-    
-    if (stepTwoElement) {
-        stepTwoElement.classList.toggle('show');
-        console.log("Klass togglades på .step-two");
-    } else {
-        console.error("Element med klassen 'step-two' hittades inte");
-    }
-    console.log("Försöker toggla klass på elementet .input-wrapper");
-    const stepTwo = document.querySelector('.input-wrapper');
-    
-    if (stepTwo) {
-        stepTwo.classList.toggle('hide');
-        console.log("Klass togglades på .input-wrapper");
-    } else {
-        console.error("Element med klassen 'input-wrapper' hittades inte");
-    }
-    console.log("Försöker toggla klass på elementet .reg-num-label");
 
-    const stepTwolable = document.querySelector('.reg-num-label');
+    const totpris = document.getElementById('tot-pris')
+
+    console.log(bensinkostnad, data.fskatt)
+    // Kontrollera att värdena är numeriska
+    const bkostnadNum = Number(bensinkostnad);
+    const fskattNum = Number(data.fskatt);
+
+    // Summera värdena
+    const totsum = bkostnadNum + fskattNum;
+
+    // Format med två decimaler och tusenavgränsare
+    const formattedSum = totsum.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // Sätt in resultatet i elementet "totpris"
+    totpris.innerHTML = `
+        ${formattedSum} KR
+    `;
+
+
+    console.log("Försöker visa resultat");
+    const resultatElement = document.querySelector('.result-container');
     
-    if (stepTwolable) {
-        stepTwolable.classList.toggle('hide');
-        console.log("Klass togglades på .reg-num-label");
+    if (resultatElement) {
+        resultatElement.classList.toggle('show');
+        console.log("Klass togglades på .result-container");
     } else {
-        console.error("Element med klassen '.reg-num-label' hittades inte");
+        console.error("Element med klassen 'result-container' hittades inte");
     }
+
 }

@@ -50,7 +50,7 @@ def convert_currency_text_to_int(text):
         value = int(text_without_currency)
     except ValueError:
         # Om konverteringen misslyckas, kan du hantera det på ett lämpligt sätt
-        value = "Hittade ej skatt"
+        value = 0
 
     return value
 
