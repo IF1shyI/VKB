@@ -1,0 +1,104 @@
+<footer>
+        <div class="footer-container">
+            <div class="footer-section contact">
+                <h2>Kontakt</h2>
+                <p>E-post: arvid.alund@gmail.com</p>
+                <p>Telefon: 070-000-00-00</p>
+                <p>Svedelius väg 7, 611 38 Nyköping</p>
+                <div class="socials">
+                    <a href="https://www.facebook.com/?locale=sv_SE"><img src="./Bilder/Facebook.svg" alt="Facebook"></a>
+                    <a href="https://x.com/home?lang=sv"><img src="./Bilder/Twitter.svg" alt="Twitter"></a>
+                    <a href="https://www.linkedin.com/feed/"><img src="./Bilder/Linkedin.svg" alt="LinkedIn"></a>
+                    <a href="https://www.instagram.com/"><img src="./Bilder/instagram.svg" alt="Instagram"></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Arvid Å. Alla rättigheter förbehållna.</p>
+        </div>
+    </footer>
+
+
+    <style>
+        footer {
+    background-color: var(--black);
+    color: #fff;
+    padding: 20px 0;
+    bottom: 0;
+    width: 100%;
+    margin-top: 40px;
+  
+    .footer-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+  
+      .footer-section {
+        flex: 1;
+        min-width: 200px;
+        margin: 20px 0;
+  
+        h2 {
+          margin-bottom: 15px;
+        }
+  
+        p,
+        ul {
+          font-size: 14px;
+          line-height: 1.6;
+        }
+  
+        ul {
+          list-style: none;
+          padding: 0;
+  
+          li {
+            margin-bottom: 10px;
+  
+            a {
+              color: #fff;
+              text-decoration: none;
+              transition: color 0.3s;
+  
+              &:hover {
+                color: #F18701;
+              }
+            }
+          }
+        }
+  
+        .socials a {
+          display: inline-block;
+          margin-right: 10px;
+          transition: opacity 0.3s;
+  
+          img {
+            width: 24px;
+            height: 24px;
+          }
+  
+          &:hover {
+            opacity: 0.7;
+          }
+        }
+      }
+    }
+  
+    .footer-bottom {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+  
+      p {
+        margin: 0;
+      }
+    }
+    .contact{
+      text-align: center;
+    }
+  }
+    </style>
