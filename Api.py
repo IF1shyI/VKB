@@ -6,7 +6,7 @@ import os
 import atexit
 from dotenv import load_dotenv
 from flask_cors import CORS
-import requests
+import datetime
 
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
@@ -272,6 +272,57 @@ def on_shutdown():
     if os.path.exists(SESSION_FILE):
         print("Raderar session.json eftersom applikationen stängs av...")
         os.remove(SESSION_FILE)
+
+
+@app.route("/submit-form", methods=["POST"])
+def submit_form():
+    try:
+        # Hämta data från förfrågan
+        data = request.get_json()
+        name = data.get("name")
+        email = data.get("email")
+        subject = data.get("subject")
+        message = data.get("message")
+
+        # Debug-loggning
+        print(f"Name: {name}, Email: {email}, Subject: {subject}")
+
+        # Skapa innehållet i Markdown-format
+        markdown_content = f"""
+# Kontaktforfragan
+
+**Namn**: {name}  
+**Email**: {email}  
+**Ämne**: {subject}  
+
+**Meddelande**:  
+{message}
+
+---
+
+Datum: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+"""
+
+        # Definiera filnamn och filväg
+        file_name = f"contact_{int(datetime.datetime.now().timestamp())}.md"
+        feedback_directory = os.path.join(os.getcwd(), "feedback")
+
+        # Skapa mappen "feedback" om den inte finns
+        os.makedirs(feedback_directory, exist_ok=True)
+
+        file_path = os.path.join(feedback_directory, file_name)
+
+        # Skriv markdown-innehållet till filen
+        with open(file_path, "w") as f:
+            f.write(markdown_content)
+
+        # Bekräfta skapad fil
+        print(f"Markdown-fil skapad: {file_path}")
+        return jsonify({"message": "Formulärdata mottaget och sparat."}), 200
+
+    except Exception as e:
+        print(f"Fel vid skapandet av Markdown-filen: {e}")
+        return jsonify({"error": "Serverfel. Kunde inte spara meddelandet."}), 500
 
 
 # Registrera funktionen för att köra vid avslut

@@ -156,7 +156,7 @@ async function Calc() {
             bpris = prices.petrolPrice; // Använd direkt som numeriskt värde
             bensinkostnad = totalFuelConsumed * bpris;
             drivmedelPris.innerHTML = `
-            <p>${bpris.toFixed(2)}</p>
+            <p>${bpris.toFixed(2)} kr/l</p>
             `;
             drivmedeltyp.innerHTML = `
             <p>Kostnad ${drivmedel}</p>
@@ -166,7 +166,7 @@ async function Calc() {
             bpris = prices.dieselPrice; // Använd direkt som numeriskt värde
             bensinkostnad = totalFuelConsumed * bpris;
             drivmedelPris.innerHTML = `
-            <p>${bpris.toFixed(2)}</p>
+            <p>${bpris.toFixed(2)} kr/l</p>
             `;
             drivmedeltyp.innerHTML = `
             <p>Kostnad ${drivmedel}</p>

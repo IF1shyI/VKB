@@ -84,11 +84,23 @@
     cursor: pointer;
     }  
     
+
+    input:user-valid{
+        outline-color: var(--green);
+    }
+
+    input:user-invalid{
+        outline-color:var(--red) ;
+    }
+
+
     #thankYouMessage {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+
+        font-size: var(--sz);
 
         opacity: 0;
         transition: opacity 1s ease-in-out;
