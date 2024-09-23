@@ -59,8 +59,14 @@ async function Search() {
             
 
             const skatt = document.getElementById('skatt');
+            let mskatt = 0;
+
+            console.log("Skatt", data.fskatt)
+            if (data.fskatt !== 0){
+                mskatt = data.fskatt / 12;
+            }
             skatt.innerHTML = `
-                <p>${data.fskatt ? data.fskatt : 0}</p>
+                <p>${mskatt.toFixed(2)}</p>
             `;
             console.log("Data hämtad och visad");
         } catch (error) {
