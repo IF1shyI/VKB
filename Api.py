@@ -7,6 +7,8 @@ import atexit
 from dotenv import load_dotenv
 from flask_cors import CORS
 import datetime
+import re
+import time
 
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
@@ -19,6 +21,8 @@ load_dotenv()
 # Hämta användarnamn och lösenord från miljövariabler
 USERNAME = os.getenv("USERN")
 PASSWORD = os.getenv("PASSWORD")
+
+global_car_model = "No model found"
 
 # Konfigurera cachen
 cache = Cache(
@@ -182,6 +186,8 @@ def get_car_info_with_playwright(reg_plate):
 @app.route("/bilinfo", methods=["GET"])
 @cache.cached(timeout=120, query_string=True)
 def get_car_info():
+    global global_car_model
+
     # Hämta registreringsnumret från query parameter
     reg_plate = request.args.get("reg_plate")
 
@@ -207,6 +213,8 @@ def get_car_info():
         if h1_tag and h1_tag.find("a")
         else "No model found"
     )
+
+    global_car_model = car_model
 
     # Om ingen Fordonsskatt hittas, returnera en grundläggande modellinfo
     if h1_tag and h1_tag.text.strip() == "Kaffepaus":
@@ -323,6 +331,67 @@ Datum: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     except Exception as e:
         print(f"Fel vid skapandet av Markdown-filen: {e}")
         return jsonify({"error": "Serverfel. Kunde inte spara meddelandet."}), 500
+
+
+@app.route("/insurance", methods=["GET"])
+def get_insurance():
+    try:
+        # Anropa funktionen för att hämta försäkringsdata
+        with sync_playwright() as p:
+            average_price = insurance(p)  # Skicka in playwright-instans
+
+        # Kontrollera om medelpriset är None
+        if average_price is None:
+            return jsonify({"error": "Could not calculate average price"}), 400
+
+        # Beräkna månadskostnaden
+        average_price_month = average_price / 12
+
+        # Returnera den beräknade månadskostnaden som JSON
+        return jsonify({"average_price_month": average_price_month})
+
+    except Exception as e:
+        # Fångar oväntade fel och returnerar ett felmeddelande
+        return jsonify({"error": str(e)}), 500
+
+
+def insurance(playwright):
+    browser = playwright.chromium.launch(headless=True)
+    context = browser.new_context()
+    page = context.new_page()
+
+    # Gå till inloggningssidan
+    page.goto("https://copilot.microsoft.com/?msockid=2703ee02556e635a1eb6fc6a54466276")
+
+    # Vänta på att textarea ska laddas
+    page.wait_for_selector("#searchbox")
+
+    # Skriv in text i textarea
+    page.fill(
+        "#searchbox",
+        f"Vad är det genomsnittliga priset för en helförsäkring för en {global_car_model} i svenska kronor? Svara endast med ett heltal utan några skiljetecken (t.ex. mellanslag eller kommatecken), och ge inga förklaringar eller annan text.",
+    )
+
+    # Tryck på Enter-tangenten
+    page.press("#searchbox", "Enter")
+
+    # Vänta på att elementet med klassen 'tooltip-target' ska laddas
+    time.sleep(5)
+
+    # Hämta texten från elementet med klassen 'tooltip-target'
+    average_price_ai = int(page.inner_text(".ac-textBlock"))
+
+    print("Svaret från AI:", average_price_ai)
+
+    # Stäng webbläsaren
+    context.close()
+    browser.close()
+
+    # Kontrollera att average_price inte är None innan du returnerar
+    if average_price_ai is not None:
+        return average_price_ai  # Returnera medelpriset som ett tal
+    else:
+        return None  # Hantera fallet där siffror inte kunde extraheras korrekt
 
 
 # Registrera funktionen för att köra vid avslut

@@ -2,12 +2,16 @@
     <h1>Total: <br><mark><div class="car-info" id="tot-pris"></div></mark></h1>
     <div class="data-container">
     <div class="data-ram">
-        <h3>Skatt per månad</h3>
-        <div class="info" id="skatt"></div>
+        <h3>Försäkring</h3>
+        <div class="info" id="insurance_display"></div>
     </div>
     <div class="data-ram">
         <h3>Bensinkostnad</h3>
         <div class="info" id="tot-bkostnad"></div>
+    </div>
+    <div class="data-ram">
+        <h3>Skatt per månad</h3>
+        <div class="info" id="skatt"></div>
     </div>
     <div class="data-ram">
         <h3 id="dmedeltyp"></h3>
@@ -48,6 +52,10 @@
         }
     }
     
+    #dmedeltyp p{
+        margin-bottom: 0;
+    }
+
     .data-container{
         display: flex;
         flex-wrap: wrap;

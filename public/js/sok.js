@@ -21,6 +21,8 @@ document.getElementById('milage-input').addEventListener('keyup', function (even
     }
 });
 
+let mskatt = 0;
+
 async function Search() {
     // Hämta värdet från input-fältet
     const inputValue = document.getElementById('reg-number').value;
@@ -59,7 +61,6 @@ async function Search() {
             
 
             const skatt = document.getElementById('skatt');
-            let mskatt = 0;
 
             console.log("Skatt", data.fskatt)
             if (data.fskatt !== 0){
@@ -132,7 +133,10 @@ async function Calc() {
 
         // Hämta bränslepriser från Flask API
         const prices = await getFuelPrices();
+
+        const insurance_cost =  await getInsurance();
         
+        console.log("Försäkringskostnad ",insurance_cost)
         // Hämtar och stripar till drivmedel (Diesel/Bensin)
         const drivmedel = (data.drivmedel || '')
         .split(/[\|,]/)[0]  // Dela upp med både "|" och ","
@@ -165,7 +169,7 @@ async function Calc() {
             <p>${bpris.toFixed(2)} kr/l</p>
             `;
             drivmedeltyp.innerHTML = `
-            <p>Kostnad ${drivmedel}</p>
+            <div>Kostnad ${drivmedel}</div>
             `;
         } else if (drivmedel === "Diesel") {
             console.log("Drivmedel är Diesel");
@@ -175,7 +179,7 @@ async function Calc() {
             <p>${bpris.toFixed(2)} kr/l</p>
             `;
             drivmedeltyp.innerHTML = `
-            <p>Kostnad ${drivmedel}</p>
+            <div>Kostnad ${drivmedel}</div>
             `;
         } else {
             console.log("Okänt drivmedel");
@@ -223,17 +227,48 @@ async function getFuelPrices() {
     }
 }
 
+let insuranceNumber
+
+let insuranceCost = 0;  // Definiera en global variabel för att spara försäkringskostnaden
+
+async function getInsurance() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/insurance');
+        if (!response.ok) {
+            throw new Error('Något gick fel vid hämtning av försäkringskostnader');
+        }
+
+        const insuranceData = await response.json();
+        // Se till att försäkringskostnaden kommer in som nummer
+        insuranceCost = Number(insuranceData.average_price_month);  // Spara försäkringskostnaden globalt
+
+        if (isNaN(insuranceCost)) {
+            throw new Error('Försäkringskostnaden är inte ett giltigt nummer');
+        }
+
+        // Visa försäkringskostnaden i UI
+        const insuranceCostMonth = document.getElementById('insurance_display');
+        insuranceCostMonth.innerHTML = `<p>${insuranceCost.toFixed(2)}</p>`;
+        
+    } catch (error) {
+        console.error('Fel:', error);
+    }
+}
+
 async function Results() {
+    const totpris = document.getElementById('tot-pris');
 
-    const totpris = document.getElementById('tot-pris')
-
-    console.log(bensinkostnad, data.fskatt)
     // Kontrollera att värdena är numeriska
     const bkostnadNum = Number(bensinkostnad);
-    const fskattNum = Number(data.fskatt);
+    const fskattNum = Number(data.fskatt / 12);
+
+    if (isNaN(bkostnadNum) || isNaN(fskattNum) || isNaN(insuranceCost)) {
+        console.error('Felaktiga värden: Kontrollera bensinkostnad, fordonsskatt eller försäkringskostnad');
+        return;
+    }
 
     // Summera värdena
-    const totsum = bkostnadNum + fskattNum;
+    const totsum = bkostnadNum + fskattNum + insuranceCost;
 
     // Format med två decimaler och tusenavgränsare
     const formattedSum = totsum.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -242,7 +277,6 @@ async function Results() {
     totpris.innerHTML = `
         ${formattedSum} KR
     `;
-
 
     console.log("Försöker visa resultat");
     const resultatElement = document.querySelector('.result-container');
@@ -253,5 +287,4 @@ async function Results() {
     } else {
         console.error("Element med klassen 'result-container' hittades inte");
     }
-
 }
