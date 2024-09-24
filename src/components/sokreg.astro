@@ -9,7 +9,7 @@
 />
 <div onclick="Search()"><img src="/bilder/arrow_r.svg" alt="arrow" class="sok-knapp" id="sok-knapp"></div>
 </div>
-<div id="loading-message">Hämtar data...</div>
+<div id="loading-message" class="loading">Hämtar data...</div>
 <div class="step-two">
   <div class="car-info" id="car-info"></div>
   <label class="mile-label" for="milage-input">Hur många mil per månad tänte du åka?:</label>
@@ -22,7 +22,11 @@
     />
     <div onclick="Calc()"><img src="/bilder/arrow_r.svg" alt="arrow" class="sok-knapp" id="sok-knapp"></div>
   </div>
-  <div id="loading-message">Hämtar data...</div>
+  <div id="loading-message" class="loading">Hämtar data...</div>
+  <div id="fuel-find" class="loading">Hämtar bränslepriser...</div>
+  <div id="ins-find" class="loading">Hämtar försäkring...</div>
+  <div id="maintenance-find" class="loading">Räknar på underhåll...</div>
+  <div id="nklar" class="loading">Nästan klar...</div>
 </div>
 
 
@@ -99,7 +103,7 @@
         color: rgba(0, 0, 0, 0.5);
     }
 
-    #loading-message {
+    .loading {
             display: none;
             position: absolute;
             top: 80%;

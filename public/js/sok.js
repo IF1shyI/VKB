@@ -22,12 +22,14 @@ document.getElementById('milage-input').addEventListener('keyup', function (even
 });
 
 let mskatt = 0;
+let totMaintenance = 0;
 
 async function Search() {
     // Hämta värdet från input-fältet
     const inputValue = document.getElementById('reg-number').value;
     const carInfoDiv = document.getElementById('car-info');
     const loadingMessage = document.getElementById('loading-message');
+    const bensinbrukval = document.getElementById('bbruk-display')
 
     console.log("Sökning startad för registreringsnummer:", inputValue);
 
@@ -57,6 +59,10 @@ async function Search() {
             // Visa informationen på sidan
             carInfoDiv.innerHTML = `
                 <p>${data.car_model ? data.car_model : 'Hittar inte bilmodell'}</p>
+                `;
+            
+            bensinbrukval.innerHTML = `
+                <p>${data.besbruk} l/100km</p>
                 `;
             
 
@@ -124,18 +130,34 @@ async function Calc() {
     // Hämta värdet från input-fältet
     const inputValue = document.getElementById('milage-input').value;
     const loadingMessage = document.getElementById('loading-message');
+    const FindingFuelMessage = document.getElementById('fuel-find');
+    const FindInsurance = document.getElementById('ins-find')
+    const AlmostDoneMessage = document.getElementById('nklar')
+    const maintenanceMessage = document.getElementById('maintenance-find')
 
     // Kontrollera att det är ett positivt heltal och inte tomt
     if (inputValue && !isNaN(inputValue) && inputValue > 0) {
         const milage = parseFloat(inputValue); // Konvertera input till ett tal
 
-        loadingMessage.style.display = 'block';
+        FindingFuelMessage.style.display = 'block';
 
         // Hämta bränslepriser från Flask API
         const prices = await getFuelPrices();
 
+        FindingFuelMessage.style.display = 'none';
+        FindInsurance.style.display = 'block';
+
         const insurance_cost =  await getInsurance();
         
+        FindInsurance.style.display = 'none'
+        maintenanceMessage.style.display = 'block';
+
+        const maintenance_cost = await getMaintenance();
+
+        maintenanceMessage.style.display = 'none';
+        AlmostDoneMessage.style.display = 'block'
+
+        console.log(maintenance_cost)
         console.log("Försäkringskostnad ",insurance_cost)
         // Hämtar och stripar till drivmedel (Diesel/Bensin)
         const drivmedel = (data.drivmedel || '')
@@ -187,20 +209,12 @@ async function Calc() {
             return; // Avsluta funktionen om drivmedlet är okänt
         }
 
-        // Visa resultatet i "car-info"-diven
-        // const carInfoDiv = document.getElementById('car-info');
-        // carInfoDiv.innerHTML = `
-        //     <p>För ${milage} mil har bilen förbrukat ungefär ${totalFuelConsumed.toFixed(2)} liter ${drivmedel}.</p>
-        //     <p>Aktuellt ${drivmedel}pris: ${bpris.toFixed(2)} kr per liter</p>
-        //     <p>Kostnad för ${drivmedel}: ${bkostnad.toFixed(2)} kr</p>
-        // `;
-
         const Bensinkostnad = document.getElementById('tot-bkostnad');
         Bensinkostnad.innerHTML = `
             <p>${bensinkostnad.toFixed(2)}</p>
         `;
 
-        loadingMessage.style.display = 'none'
+        AlmostDoneMessage.style.display = 'none'
 
         Results()
     } else {
@@ -255,6 +269,41 @@ async function getInsurance() {
     }
 }
 
+async function getMaintenance() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/maintenance');
+        if (!response.ok) {
+            throw new Error('Något gick fel vid hämtning av försäkringskostnader');
+        }
+
+        const maintenanceData = await response.json();
+        // Se till att försäkringskostnaden kommer in som nummer
+
+        if (isNaN(insuranceCost)) {
+            throw new Error('Försäkringskostnaden är inte ett giltigt nummer');
+        }
+
+        const serviceReparationer = maintenanceData['Service och reperationer'];
+        const däckbyteUnderhåll = maintenanceData['Däckbyte och underhåll'];
+
+        const totMaintenance = serviceReparationer + däckbyteUnderhåll;
+
+        console.log("Service ",serviceReparationer, däckbyteUnderhåll, totMaintenance)
+        // Visa försäkringskostnaden i UI
+        const maintenancecostMonth = document.getElementById('maintenance-display');
+        maintenancecostMonth.innerHTML = `<p>${totMaintenance}</p>`;
+
+        const maintenancecostService = document.getElementById('maintenance-display-service');
+        maintenancecostService.innerHTML = `<p>${serviceReparationer}</p>`;
+
+        const maintenancecostTire = document.getElementById('maintenance-display-tire');
+        maintenancecostTire.innerHTML = `<p>${däckbyteUnderhåll}</p>`;
+        
+    } catch (error) {
+        console.error('Fel:', error);
+    }
+}
+
 async function Results() {
     const totpris = document.getElementById('tot-pris');
 
@@ -268,7 +317,7 @@ async function Results() {
     }
 
     // Summera värdena
-    const totsum = bkostnadNum + fskattNum + insuranceCost;
+    const totsum = bkostnadNum + fskattNum + insuranceCost + totMaintenance;
 
     // Format med två decimaler och tusenavgränsare
     const formattedSum = totsum.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

@@ -394,6 +394,90 @@ def insurance(playwright):
         return None  # Hantera fallet där siffror inte kunde extraheras korrekt
 
 
+@app.route("/maintenance", methods=["GET"])
+def get_maintenance():
+    try:
+        # Anropa funktionen för att hämta försäkringsdata
+        with sync_playwright() as p:
+            maintenance_data = maintenance(p)  # Skicka in playwright-instans
+
+        # Kontrollera om medelpriset är None
+        if maintenance_data is None:
+            return jsonify({"error": "Could not calculate average price"}), 400
+        # Skapa en JSON-struktur där varje del separeras
+
+        # Kontrollera att data är en lista med tuples
+        if not isinstance(maintenance_data, list) or not all(
+            isinstance(item, tuple) and len(item) == 2 for item in maintenance_data
+        ):
+            return jsonify({"error": "Invalid maintenance data format"}), 400
+
+        response_data = {}
+
+        for item in maintenance_data:
+            print("Item: ", item)
+            category = item[0]  # T.ex. 'Service och reperationer'
+            yearly_cost = item[1]  # T.ex. 666.67
+            monthly_cost = (
+                yearly_cost / 12
+            )  # Dela årsbeloppet med 12 för att få månadskostnad
+
+            # Lägg till månadskostnaden till svaret
+            response_data[category] = round(monthly_cost, 2)
+
+        # Returnera som JSON
+        return jsonify(response_data)
+
+    except Exception as e:
+        # Fångar oväntade fel och returnerar ett felmeddelande
+        return jsonify({"error": str(e)}), 500
+
+
+def maintenance(playwright):
+    browser = playwright.chromium.launch(headless=True)
+    context = browser.new_context()
+    page = context.new_page()
+
+    # Gå till inloggningssidan
+    page.goto("https://copilot.microsoft.com/?msockid=2703ee02556e635a1eb6fc6a54466276")
+
+    # Vänta på att textarea ska laddas
+    page.wait_for_selector("#searchbox")
+
+    # Skriv in text i textarea
+    page.fill(
+        "#searchbox",
+        f"vad är det genomsnitliga priset för underhåll på en {global_car_model} i svenska kronor? Svara endast med ett heltal utan några skiljetecken (t.ex. mellanslag eller kommatecken), och ge inga förklaringar eller annan text. Dela upp svaret i 'Service och reperationer'', 'Däckbyte och underhåll'",
+    )
+
+    # Tryck på Enter-tangenten
+    page.press("#searchbox", "Enter")
+
+    # Vänta på att elementet med klassen 'tooltip-target' ska laddas
+    time.sleep(8)
+
+    # Hämta texten från elementet med klassen 'tooltip-target'
+    maintenancecost = page.inner_text(".ac-textBlock")
+
+    print("Svaret från AI:", maintenancecost)
+
+    # Stäng webbläsaren
+    context.close()
+    browser.close()
+
+    matches = re.findall(r"([a-zA-ZåäöÅÄÖ\s]+):\s*(\d+)", maintenancecost)
+
+    # Konvertera till lista
+    resultat_lista = [(item[0].strip(), int(item[1])) for item in matches]
+
+    print(resultat_lista)
+    # Kontrollera att average_price inte är None innan du returnerar
+    if resultat_lista is not None:
+        return resultat_lista  # Returnera medelpriset som ett tal
+    else:
+        return None  # Hantera fallet där siffror inte kunde extraheras korrekt
+
+
 # Registrera funktionen för att köra vid avslut
 atexit.register(on_shutdown)
 
