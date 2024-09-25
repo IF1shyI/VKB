@@ -139,6 +139,7 @@ async function Calc() {
     if (inputValue && !isNaN(inputValue) && inputValue > 0) {
         const milage = parseFloat(inputValue); // Konvertera input till ett tal
 
+        console.log("Nu har milage ett värde:", milage)
         FindingFuelMessage.style.display = 'block';
 
         // Hämta bränslepriser från Flask API
@@ -175,6 +176,8 @@ async function Calc() {
 
         // Beräkna total bensinförbrukning
         const totalFuelConsumed = milage * fuelConsumptionPerMile;
+
+        Co2_Emission(milage)
 
         // Deklarera variabler för pris och kostnad
         let bpris = 0;
@@ -336,4 +339,14 @@ async function Results() {
     } else {
         console.error("Element med klassen 'result-container' hittades inte");
     }
+}
+
+async function Co2_Emission(milage){
+    driving_distance_km = milage  * 10
+    console.log("mil:", milage," co2 bruk:", data.Co2_bruk)
+
+    total_emisson = driving_distance_km * data.Co2_bruk
+
+    const Emisson = document.getElementById('emission-display');
+    Emisson.innerHTML = `${total_emisson / 1000} kg`;
 }

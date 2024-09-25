@@ -1,5 +1,7 @@
 <div class="result-container">
-    <h1>Total: <br><mark><div class="car-info" id="tot-pris"></div></mark></h1>
+    <h1 class="info-head">Total: <br><mark><div class="car-info" id="tot-pris"></div></mark></h1>
+
+    <h2 class="info-head">Co2 utsläpp: <br><mark><div class="car-info" id="emission-display"></div></mark></h2>
     <div class="data-container">
     <div class="data-ram">
         <h3>Försäkring</h3>
@@ -56,15 +58,28 @@
         left: 0;
         background-color: var(--svart);
 
-        h1{
+        .info-head{
             text-align: center;
-            font-size: calc(var(--sz)*2);
 
             mark{
-                color: var(--green);
                 background-color: transparent;
-                font-size: calc(var(--sz)*3);
             }
+
+        }
+        h1{
+                font-size: calc(var(--sz)*2);
+                mark{
+                    color: var(--green);
+                    font-size: calc(var(--sz)*3);
+                }
+            }
+
+        h2{
+            font-size: calc(var(--sz));
+            mark{
+                    color: var(--red);
+                    font-size: calc(var(--sz)*1.5);
+                }
         }
     }
     

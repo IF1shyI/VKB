@@ -37,6 +37,7 @@ SESSION_FILE = "session.json"  # Fil för att lagra sessionen
 global_besbruk = "Error"
 global_fskatt = "Error"
 drivmedel = "Error"
+co2 = "Error"
 
 
 def convert_currency_text_to_int(text):
@@ -68,6 +69,7 @@ def convert_text_to_float(text):
 
     # Ersätta eventuella kommatecken om de finns
     text_without_liter = text_without_liter.replace(",", ".")
+    text_without_liter = text_without_liter.replace(" ", "")
     print(text_without_liter)
     try:
         value = float(text_without_liter)
@@ -122,6 +124,7 @@ def get_car_info_with_playwright(reg_plate):
     global global_besbruk
     global global_fskatt
     global drivmedel
+    global co2
     with sync_playwright() as p:
         # Kolla om sessionen redan är sparad
         if os.path.exists(SESSION_FILE):
@@ -176,9 +179,26 @@ def get_car_info_with_playwright(reg_plate):
             if dmedel.startswith("Diesel") or dmedel.startswith("Bensin"):
                 drivmedel = dmedel
                 break
+
+        print("Hämtar co2 utsläpp")
+        co2_class = page.query_selector_all(".idva_float")
+        for text in co2_class:
+            co2_name = text.inner_text()
+            print(co2_name)
+            if co2_name.endswith("g/km"):
+                co2 = int(
+                    co2_name.replace("\u00a0", "")
+                    .replace("g/km", "")
+                    .replace(",", ".")
+                    .replace(" ", "")
+                    .strip()
+                )
+                break
+
         # Stäng webbläsaren
         context.close()
 
+        print(co2)
         return page_content
 
 
@@ -227,6 +247,7 @@ def get_car_info():
                 "besbruk": global_besbruk,
                 "fskatt": global_fskatt,
                 "drivmedel": drivmedel,
+                "Co2_bruk": co2,
             }
         )
 
