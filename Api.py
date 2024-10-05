@@ -82,41 +82,44 @@ def convert_text_to_float(text):
 
 # Funktion för att logga in och spara sessionen
 def login_and_save_session(playwright):
-    browser = playwright.chromium.launch(
-        headless=True
-    )  # Sätt till True om du vill köra i bakgrunden
-    context = browser.new_context()
+    if USERNAME != None or PASSWORD != None:
+        browser = playwright.chromium.launch(
+            headless=True
+        )  # Sätt till True om du vill köra i bakgrunden
+        context = browser.new_context()
 
-    page = context.new_page()
+        page = context.new_page()
 
-    # Gå till inloggningssidan
-    page.goto("https://auth.car.info/sv-se?cachereset")
+        # Gå till inloggningssidan
+        page.goto("https://auth.car.info/sv-se?cachereset")
 
-    # Klicka för att använda användarnamn och lösenord
-    page.get_by_role("button", name="--> Användarnamn och lösenord").click()
+        # Klicka för att använda användarnamn och lösenord
+        page.get_by_role("button", name="--> Användarnamn och lösenord").click()
 
-    # Fyll i användarnamn och lösenord
-    page.get_by_placeholder("Användarnamn eller E-post").fill(USERNAME)
-    page.get_by_placeholder("Lösenord").fill(PASSWORD)
+        # Fyll i användarnamn och lösenord
+        page.get_by_placeholder("Användarnamn eller E-post").fill(USERNAME)
+        page.get_by_placeholder("Lösenord").fill(PASSWORD)
 
-    # Klicka på "Logga in"-knappen
-    page.get_by_role("button", name="Logga in").click()
+        # Klicka på "Logga in"-knappen
+        page.get_by_role("button", name="Logga in").click()
 
-    # Vänta på att inloggningen ska lyckas (letar efter "Logga ut"-knappen)
-    page.wait_for_selector("text=Arvid Ålund", timeout=10000)
+        # Vänta på att inloggningen ska lyckas (letar efter "Logga ut"-knappen)
+        page.wait_for_selector("text=Arvid Ålund", timeout=10000)
 
-    # Kontrollera att inloggningen lyckades
-    if page.is_visible("text=Arvid Ålund"):
-        print("Inloggningen lyckades!")
+        # Kontrollera att inloggningen lyckades
+        if page.is_visible("text=Arvid Ålund"):
+            print("Inloggningen lyckades!")
 
-        # Spara sessionen till en fil
-        context.storage_state(path=SESSION_FILE)
+            # Spara sessionen till en fil
+            context.storage_state(path=SESSION_FILE)
+        else:
+            print("Inloggningen misslyckades!")
+
+        # Stäng webbläsaren
+        context.close()
+        browser.close()
     else:
-        print("Inloggningen misslyckades!")
-
-    # Stäng webbläsaren
-    context.close()
-    browser.close()
+        print("Inga inloggningsdetaljer")
 
 
 # Funktion för att hämta bilinformation med Playwright, använder sparad session om den finns

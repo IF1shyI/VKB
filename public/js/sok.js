@@ -22,7 +22,7 @@ document.getElementById('milage-input').addEventListener('keyup', function (even
 });
 
 let mskatt = 0;
-let totMaintenance = 0;
+let totMaintenance;
 
 async function Search() {
     // Hämta värdet från input-fältet
@@ -60,11 +60,10 @@ async function Search() {
             carInfoDiv.innerHTML = `
                 <p>${data.car_model ? data.car_model : 'Hittar inte bilmodell'}</p>
                 `;
-            
-            bensinbrukval.innerHTML = `
-                <p>${data.besbruk} l/100km</p>
-                `;
-            
+
+            const fuelConsumptionPerMile = (data.besbruk && !isNaN(data.besbruk)) ? parseFloat(data.besbruk) : 5;
+
+            bensinbrukval.innerHTML = `<p>${fuelConsumptionPerMile} l/100km</p>`;
 
             const skatt = document.getElementById('skatt');
 
@@ -289,19 +288,21 @@ async function getMaintenance() {
         const serviceReparationer = maintenanceData['Service och reperationer'];
         const däckbyteUnderhåll = maintenanceData['Däckbyte och underhåll'];
 
-        const totMaintenance = serviceReparationer + däckbyteUnderhåll;
+        // const totMaintenance = serviceReparationer + däckbyteUnderhåll;
+
+        totMaintenance = Number(serviceReparationer + däckbyteUnderhåll);
 
         console.log("Service ",serviceReparationer, däckbyteUnderhåll, totMaintenance)
         // Visa försäkringskostnaden i UI
         const maintenancecostMonth = document.getElementById('maintenance-display');
-        maintenancecostMonth.innerHTML = `<p>${totMaintenance}</p>`;
+        maintenancecostMonth.innerHTML = `<p>${totMaintenance.toFixed(2)}</p>`;
 
         const maintenancecostService = document.getElementById('maintenance-display-service');
-        maintenancecostService.innerHTML = `<p>${serviceReparationer}</p>`;
+        maintenancecostService.innerHTML = `<p>${serviceReparationer.toFixed(2)}</p>`;
 
         const maintenancecostTire = document.getElementById('maintenance-display-tire');
-        maintenancecostTire.innerHTML = `<p>${däckbyteUnderhåll}</p>`;
-        
+        maintenancecostTire.innerHTML = `<p>${däckbyteUnderhåll.toFixed(2)}</p>`;
+    
     } catch (error) {
         console.error('Fel:', error);
     }
@@ -321,6 +322,8 @@ async function Results() {
 
     // Summera värdena
     const totsum = bkostnadNum + fskattNum + insuranceCost + totMaintenance;
+
+    console.log("bkostnad:",bkostnadNum, "skatt:",fskattNum, "Insurance:",insuranceCost, "Maintenance:",totMaintenance)
 
     // Format med två decimaler och tusenavgränsare
     const formattedSum = totsum.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
