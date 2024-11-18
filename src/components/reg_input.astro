@@ -4,7 +4,7 @@ import Sok from "./sokreg.astro";
 ---
 
 <div class="image-container">
-  <img src="/bilder/car_image.webp" alt="En beskrivning av bilden">
+  <img src="/bilder/car_image.webp" alt="En beskrivning av bilden" />
   <h1>Ta reda på din <br /> <mark>Månadskostnad</mark> <br />redan idag</h1>
   <section class="select-vehicle">
     <div class="vehicle-select-box">
@@ -13,32 +13,32 @@ import Sok from "./sokreg.astro";
       </section>
     </div>
   </section>
-    </div>
+</div>
 
 <style>
-.image-container {
-            position: relative;
-            width: 100%;
-            height: 466px;
-            min-height: 300px;
-        }
+  .image-container {
+    position: relative;
+    width: 100%;
+    height: 466px;
+    min-height: 300px;
+  }
 
-        .image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+  .image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-        .image-container::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--svart-genomskinlig);
-        }
-h1{
+  .image-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--svart-genomskinlig);
+  }
+  h1 {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -47,16 +47,21 @@ h1{
     left: 50%;
     top: 25%;
     transform: translate(-50%, -50%);
-    color: #fff; 
-    mark{
-        font-size: 40px;
-        background-color: transparent;
-        color: var(--vitt);
-        font-weight: 800;
+    color: #fff;
+    mark {
+      font-size: 40px;
+      background-color: transparent;
+      color: var(--guld);
+      font-weight: 800;
+      text-shadow:
+        0px 0px 5px var(--gra),
+        0px 0px 10px var(--gra),
+        0px 0px 15px var(--gra),
+        0px 0px 20px var(--gra);
     }
-}
+  }
 
-.select-vehicle{
+  .select-vehicle {
     display: flex;
     justify-content: center;
     position: absolute;
@@ -66,33 +71,30 @@ h1{
     transform: translate(-50%, -50%);
 
     width: 80%;
-    .vehicle-select-box{
+    .vehicle-select-box {
+      width: 35rem;
+      height: 18rem;
+      background-color: var(--grått-genomskinlig);
+      border-radius: var(--margin-l);
+      p {
+        text-align: center;
+        font-size: 1lh;
+        font-family: var(--font);
+        margin-bottom: 0;
+      }
 
-    width: 35rem;
-    height: 18rem;
-    background-color: var(--grått-genomskinlig);
-    border-radius: var(--margin-l);
-        p{
-            text-align: center;
-            font-size: 1lh;
-            font-family: var(--font);
-            margin-bottom: 0;
-        }
-
-    .registration-section {
+      .registration-section {
         text-align: center;
         position: relative;
         height: 18rem;
-    }
-    
-    .registration-section label {
+      }
+
+      .registration-section label {
         margin-bottom: 10px;
         font-size: 25px;
-        font-family: 'Arial', sans-serif;
+        font-family: "Arial", sans-serif;
         font-weight: bold;
+      }
     }
-    
-    }
-}
+  }
 </style>
-

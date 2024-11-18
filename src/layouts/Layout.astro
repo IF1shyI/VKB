@@ -1,6 +1,6 @@
 ---
 interface Props {
-	title: string;
+  title: string;
 }
 
 const { title } = Astro.props;
@@ -8,27 +8,33 @@ const { title } = Astro.props;
 
 <!doctype html>
 <html lang="sv">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="description" content="Astro description" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/bilder/logga.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-		<title>{title}</title>
-	</head>
-	<body>
-		<slot />
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Astro description" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/bilder/logga.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
 </html>
 <style is:global>
-	:root{
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+  :root {
     /* Margin */
-    --margin-xxs: .25rem;
-    --margin-xs: .5rem;
-    --margin-s: .75rem;
+    --margin-xxs: 0.25rem;
+    --margin-xs: 0.5rem;
+    --margin-s: 0.75rem;
     --margin-m: 1rem;
     --margin-l: 1.25rem;
     --margin-xl: 1.75rem;
@@ -36,48 +42,54 @@ const { title } = Astro.props;
 
     /* Colors */
     --svart: rgb(0, 0, 0);
-    --vit:rgb(255, 255, 255);
+    --vit: rgb(255, 255, 255);
     --svart-genomskinlig: rgba(0, 0, 0, 0.5);
-	--grått-genomskinlig:rgb(160, 160, 160, 0.5);
-    --kontrast:rgb(18, 145, 255);
-    --orange:rgb(171, 89, 19);
-	--orange-btn-gradient: linear-gradient(to bottom right, rgb(171, 89, 19), rgb(255, 110, 50));
-	--green:#50C878;
-	--red:#FF0000;
+    --grått-genomskinlig: rgb(160, 160, 160, 0.5);
+    --kontrast: rgb(18, 145, 255);
+    --orange: #171618;
+    --orange-btn-gradient: linear-gradient(
+      to bottom right,
+      rgb(171, 89, 19),
+      rgb(255, 110, 50)
+    );
+    --guld: #cd9a48;
+    --green: #50c878;
+    --red: #ff0000;
+    --gra: #2e2d2f;
 
     /* Font */
     --font: "Inter", sans-serif;
 
-	/* Size */
-	--header-sz: 4rem;
-	--header-btn-sz: calc(var(--header-sz)*0.5);
-	--input-sok-sz: 18rem;
-	--sz:2rem;
-}
-	html {
-		font-family: var(--font);
-		background: var(--svart);
-	}
-	code {
-		font-family:
-			Menlo,
-			Monaco,
-			Lucida Console,
-			Liberation Mono,
-			DejaVu Sans Mono,
-			Bitstream Vera Sans Mono,
-			Courier New,
-			monospace;
-	}
+    /* Size */
+    --header-sz: 4rem;
+    --header-btn-sz: calc(var(--header-sz) * 0.5);
+    --input-sok-sz: 18rem;
+    --sz: 2rem;
+  }
+  html {
+    font-family: var(--font);
+    background: var(--svart);
+  }
+  code {
+    font-family:
+      Menlo,
+      Monaco,
+      Lucida Console,
+      Liberation Mono,
+      DejaVu Sans Mono,
+      Bitstream Vera Sans Mono,
+      Courier New,
+      monospace;
+  }
 
-	.hide{
+  .hide {
     display: none;
-	}
+  }
 
-	body{
+  body {
     margin: 0;
     background-color: black;
     color: #fff;
     height: 100vh;
-}
+  }
 </style>

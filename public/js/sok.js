@@ -281,10 +281,6 @@ async function getMaintenance() {
         const maintenanceData = await response.json();
         // Se till att försäkringskostnaden kommer in som nummer
 
-        if (isNaN(insuranceCost)) {
-            throw new Error('Försäkringskostnaden är inte ett giltigt nummer');
-        }
-
         const serviceReparationer = maintenanceData['Service och reperationer'];
         const däckbyteUnderhåll = maintenanceData['Däckbyte och underhåll'];
 
@@ -352,4 +348,18 @@ async function Co2_Emission(milage){
 
     const Emisson = document.getElementById('emission-display');
     Emisson.innerHTML = `${total_emisson / 1000} kg`;
+}
+
+async function Tips() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/tips');
+        if (!response.ok) {
+            throw new Error('Något gick fel vid hämtning av försäkringskostnader');
+        }
+
+        
+    
+    } catch (error) {
+        console.error('Fel:', error);
+    }
 }

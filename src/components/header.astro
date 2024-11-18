@@ -2,148 +2,150 @@
 // import "../css/style.css"; // Importera din CSS-fil i Astro-komponenten
 ---
 
-
 <header>
-    <a href="/"><img src="/bilder/logga.svg" alt="logga.svg" class="logga"></a>
-    <h1 class="namn">VAD KOSTAR BILEN</h1>
-    <div class="menu-icon" onclick="toggleMenu()"><img src="/bilder/meny_icon.svg" alt="meny.svg"></div>
-        <nav class="menu">
-            <a href="/" class="">Hem</a>
-            <a href="/kontakt" class="">Kontakt</a>
-            <a href="/about" class="">Om oss</a>
-        </nav>
+  <a href="/"><img src="/bilder/logga.svg" alt="logga.svg" class="logga" /></a>
+  <h1 class="namn">VAD KOSTAR BILEN</h1>
+  <div class="menu-icon" onclick="toggleMenu()">
+    <img src="/bilder/meny_icon.svg" alt="meny.svg" />
+  </div>
+  <nav class="menu">
+    <button onclick="window.location.href='/'">Hem</button>
+    <button onclick="window.location.href='/kontakt'">Kontakt</button>
+    <button onclick="window.location.href='/about'">Om oss</button>
+  </nav>
 </header>
 <script is:inline>
   function toggleMenu() {
-  var menu = document.querySelector('.menu');
-  menu.classList.toggle('show');
+    var menu = document.querySelector(".menu");
+    menu.classList.toggle("show");
   }
 </script>
 
 <style>
-header {
-  width: 100%;
-  height: var(--header-sz);
-  /* background-color: var(--svart); */
-  background-color: transparent;
-  display: flex;
-  position: relative; /* Lägger till relativ position för att hantera absolut positionering av knappen */
-
-  font-family: var(--font);
-  h1{
-    position: absolute;
-
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0;
-  }
-
-  .logga{
-    position: absolute;
-
-    top: 50%;
-    left: 5%;
-    transform: translate(-50%, -50%);
-    margin: 0;
-    width: 4rem;
-  }
-}
-
-.menu-icon {
-  display: none;
-  font-size: 30px;
-  cursor: pointer;
-  color: white;
-  margin-right: var(--margin-s);
-  position: absolute;
-  top: 50%; /* Placera knappen i mitten av headern vertikalt */
-  transform: translateY(-50%); /* Justera för att centrera knappen vertikalt */
-}
-
-.menu {
-  display: flex;
-  flex-direction: row; /* Visa menyelementen i en kolumn när menyn är öppen */
-  gap: 20px;
-  position: absolute;
-  top: 100%; /* Placera menyn under headern */
-  right: 0; /* Justera för att placera menyn till höger */
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10; /* Säkerställ att menyn visas ovanpå andra element */
-  
-}
-
-.menu a {
-  color: var(--vit);
-  text-decoration: none;
-  margin-right: var(--margin-s);
-  font-size: 1.25rem;
-  font-weight: 500;
-
-  width: 150px;
-  height: var(--header-btn-sz);
-  background-color: var(--orange);
-  border-radius: 1rem;
-
-  text-align: center;
-
-}
-
-.menu a:hover {
-  background-color: var(--red);
-}
-
-/* Stil för små skärmar */
-@media screen and (max-width: 1600px) {
-  .menu {
-    display: none;
+  header {
     width: 100%;
-    text-align: center;
-  }
+    height: var(--header-sz);
+    /* background-color: var(--svart); */
+    background-color: transparent;
+    display: flex;
+    position: relative; /* Lägger till relativ position för att hantera absolut positionering av knappen */
 
-  .menu a {
-    padding: 15px;
+    font-family: var(--font);
+    h1 {
+      position: absolute;
+
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+    }
+
+    .logga {
+      position: absolute;
+
+      top: 50%;
+      left: 5%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      width: 4rem;
+    }
   }
 
   .menu-icon {
-    display: block;
+    display: none;
+    font-size: 30px;
+    cursor: pointer;
+    color: white;
+    margin-right: var(--margin-s);
     position: absolute;
+    top: 50%; /* Placera knappen i mitten av headern vertikalt */
+    transform: translateY(
+      -50%
+    ); /* Justera för att centrera knappen vertikalt */
+  }
+
+  .menu {
+    display: flex;
+    flex-direction: row; /* Visa menyelementen i en kolumn när menyn är öppen */
+    gap: 20px;
+    position: absolute;
+    top: 100%; /* Placera menyn under headern */
+    right: 0; /* Justera för att placera menyn till höger */
     top: 50%;
     transform: translateY(-50%);
-    right: 10px;
+    z-index: 10; /* Säkerställ att menyn visas ovanpå andra element */
   }
 
-  .menu.show {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    left: 50%;
-    top: var(--header-sz);
-    transform: translateX(-50%);
-
-    background-color: var(--svart);
-    padding-bottom: var(--margin-s);
-    padding-top: 5px;
-  }
-}
-
-@media screen and (max-width: 600px){
-  h1{
+  .menu button {
+    color: var(--guld);
+    text-decoration: none;
+    margin-right: var(--margin-s);
     font-size: 1.25rem;
-    position: absolute;
+    font-weight: bold;
+
+    width: 150px;
+    height: var(--header-btn-sz);
+    background-color: var(--orange);
+    border-radius: 1rem;
+
     text-align: center;
-
-    top: 50%;
-    left: 30%;
-    transform: translate(-50%, -50%);
-    margin: 0;
-    width: 60%;
   }
 
-  .logga{
-    display: none;
+  .menu button:hover {
+    background-color: var(--gra);
+    cursor: pointer;
   }
-}
+
+  /* Stil för små skärmar */
+  @media screen and (max-width: 1600px) {
+    .menu {
+      display: none;
+      width: 100%;
+      text-align: center;
+    }
+
+    .menu a {
+      padding: 15px;
+    }
+
+    .menu-icon {
+      display: block;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 10px;
+    }
+
+    .menu.show {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      left: 50%;
+      top: var(--header-sz);
+      transform: translateX(-50%);
+
+      background-color: var(--svart);
+      padding-bottom: var(--margin-s);
+      padding-top: 5px;
+    }
+  }
+
+  @media screen and (max-width: 600px) {
+    h1 {
+      font-size: 1.25rem;
+      position: absolute;
+      text-align: center;
+
+      top: 50%;
+      left: 30%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      width: 60%;
+    }
+
+    .logga {
+      display: none;
+    }
+  }
 </style>

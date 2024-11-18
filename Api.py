@@ -9,6 +9,7 @@ from flask_cors import CORS
 import datetime
 import re
 import time
+from openai import OpenAI
 
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
@@ -21,6 +22,12 @@ load_dotenv()
 # Hämta användarnamn och lösenord från miljövariabler
 USERNAME = os.getenv("USERN")
 PASSWORD = os.getenv("PASSWORD")
+APIKEY = os.getenv("APIKEY")
+
+client = OpenAI(
+    # This is the default and can be omitted
+    api_key=APIKEY,
+)
 
 global_car_model = "No model found"
 
@@ -34,6 +41,7 @@ cache = Cache(
 )
 
 SESSION_FILE = "session.json"  # Fil för att lagra sessionen
+SESSION_FILE_AI = "sessionai.json"  # Fil för att lagra sessionen
 global_besbruk = "Error"
 global_fskatt = "Error"
 drivmedel = "Error"
@@ -83,31 +91,26 @@ def convert_text_to_float(text):
 # Funktion för att logga in och spara sessionen
 def login_and_save_session(playwright):
     if USERNAME != None or PASSWORD != None:
-        browser = playwright.chromium.launch(
-            headless=True
-        )  # Sätt till True om du vill köra i bakgrunden
+        browser = playwright.chromium.launch(headless=False)
         context = browser.new_context()
-
         page = context.new_page()
 
-        # Gå till inloggningssidan
         page.goto("https://auth.car.info/sv-se?cachereset")
 
-        # Klicka för att använda användarnamn och lösenord
-        page.get_by_role("button", name="--> Användarnamn och lösenord").click()
-
-        # Fyll i användarnamn och lösenord
+        page.get_by_role("button", name="Användarnamn och lösenord").click()
+        page.get_by_placeholder("Användarnamn eller E-post").click()
         page.get_by_placeholder("Användarnamn eller E-post").fill(USERNAME)
+
+        page.get_by_placeholder("Lösenord").click()
         page.get_by_placeholder("Lösenord").fill(PASSWORD)
 
-        # Klicka på "Logga in"-knappen
         page.get_by_role("button", name="Logga in").click()
 
         # Vänta på att inloggningen ska lyckas (letar efter "Logga ut"-knappen)
-        page.wait_for_selector("text=Arvid Ålund", timeout=10000)
+        page.wait_for_selector("#main_header", timeout=10000)
 
         # Kontrollera att inloggningen lyckades
-        if page.is_visible("text=Arvid Ålund"):
+        if page.is_visible("text=Mina listor"):
             print("Inloggningen lyckades!")
 
             # Spara sessionen till en fil
@@ -243,6 +246,21 @@ def get_car_info():
     if h1_tag and h1_tag.text.strip() == "Kaffepaus":
         return jsonify({"message": "Try again later"})
     else:
+        print(
+            "All data: ",
+            "reg_plate: ",
+            reg_plate,
+            "car_model: ",
+            car_model,
+            "besbruk: ",
+            global_besbruk,
+            "fskatt: ",
+            global_fskatt,
+            "drivmedel: ",
+            drivmedel,
+            "Co2_bruk: ",
+            co2,
+        )
         return jsonify(
             {
                 "reg_plate": reg_plate,
@@ -360,150 +378,159 @@ Datum: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 @app.route("/insurance", methods=["GET"])
 def get_insurance():
     try:
-        # Anropa funktionen för att hämta försäkringsdata
-        with sync_playwright() as p:
-            average_price = insurance(p)  # Skicka in playwright-instans
 
-        # Kontrollera om medelpriset är None
+        insurance_prompt = f"What is the average annual cost of comprehensive insurance for a {global_car_model} in Swedish kronor? Provide the yearly total as a single integer, formatted without spaces, commas, or other delimiters. Do not include any explanations or additional text."
+
+        print("Prompten är:", insurance_prompt)
+        response = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": insurance_prompt,
+                }
+            ],
+            model="gpt-3.5-turbo",
+        )
+        text = """ChatCompletion(id='chatcmpl-AUxRu5NKFprbkToVp8a7NdJ5JiTFn', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content='6003', refusal=None, role='assistant', function_call=None, tool_calls=None))], created=1731941726, model='gpt-3.5-turbo-0125', object='chat.completion', service_tier=None, system_fingerprint=None, usage=CompletionUsage(completion_tokens=2, prompt_tokens=74, total_tokens=76, prompt_tokens_details={'cached_tokens': 0, 'audio_tokens': 0}, completion_tokens_details={'reasoning_tokens': 0, 'audio_tokens': 0, 'accepted_prediction_tokens': 0, 'rejected_prediction_tokens': 0}))"""
+
+        print(response)
+        average_price = response.choices[0].message.content
+        print("Genomsnittligt försäkringspris:", average_price)
+        print("Svaret från ai: ", average_price)
+        # Använd regex för att hitta innehållet i 'content'
+        average_price = int(average_price)
         if average_price is None:
+            average_price = 0
             return jsonify({"error": "Could not calculate average price"}), 400
 
-        # Beräkna månadskostnaden
-        average_price_month = average_price / 12
+        if average_price != 0:
+            # Beräkna månadskostnaden
+            average_price_month = average_price / 12
+        else:
+            average_price_month = 0
 
         # Returnera den beräknade månadskostnaden som JSON
         return jsonify({"average_price_month": average_price_month})
 
     except Exception as e:
         # Fångar oväntade fel och returnerar ett felmeddelande
+        print("Ett fel uppstod:", e)
         return jsonify({"error": str(e)}), 500
-
-
-def insurance(playwright):
-    browser = playwright.chromium.launch(headless=True)
-    context = browser.new_context()
-    page = context.new_page()
-
-    # Gå till inloggningssidan
-    page.goto("https://copilot.microsoft.com/?msockid=2703ee02556e635a1eb6fc6a54466276")
-
-    # Vänta på att textarea ska laddas
-    page.wait_for_selector("#searchbox")
-
-    # Skriv in text i textarea
-    page.fill(
-        "#searchbox",
-        f"Vad är det genomsnittliga priset för en helförsäkring för en {global_car_model} i svenska kronor? Svara endast med ett heltal utan några skiljetecken (t.ex. mellanslag eller kommatecken), och ge inga förklaringar eller annan text.",
-    )
-
-    # Tryck på Enter-tangenten
-    page.press("#searchbox", "Enter")
-
-    # Vänta på att elementet med klassen 'tooltip-target' ska laddas
-    time.sleep(5)
-
-    # Hämta texten från elementet med klassen 'tooltip-target'
-    average_price_ai = int(page.inner_text(".ac-textBlock"))
-
-    print("Svaret från AI:", average_price_ai)
-
-    # Stäng webbläsaren
-    context.close()
-    browser.close()
-
-    # Kontrollera att average_price inte är None innan du returnerar
-    if average_price_ai is not None:
-        return average_price_ai  # Returnera medelpriset som ett tal
-    else:
-        return None  # Hantera fallet där siffror inte kunde extraheras korrekt
 
 
 @app.route("/maintenance", methods=["GET"])
 def get_maintenance():
     try:
+        maintenance_data = maintenance()
         # Anropa funktionen för att hämta försäkringsdata
-        with sync_playwright() as p:
-            maintenance_data = maintenance(p)  # Skicka in playwright-instans
-
         # Kontrollera om medelpriset är None
         if maintenance_data is None:
+            response_data = 0
             return jsonify({"error": "Could not calculate average price"}), 400
-        # Skapa en JSON-struktur där varje del separeras
 
-        # Kontrollera att data är en lista med tuples
-        if not isinstance(maintenance_data, list) or not all(
-            isinstance(item, tuple) and len(item) == 2 for item in maintenance_data
-        ):
-            return jsonify({"error": "Invalid maintenance data format"}), 400
+        def calculate_monthly_costs(yearly_costs, categories):
+            response_data = {}
 
-        response_data = {}
+            # Loopar genom varje årsbelopp och kategori
+            for index, (yearly_cost, category) in enumerate(
+                zip(yearly_costs, categories)
+            ):
+                # Beräkna månadskostnaden
+                monthly_cost = yearly_cost / 12
 
-        for item in maintenance_data:
-            print("Item: ", item)
-            category = item[0]  # T.ex. 'Service och reperationer'
-            yearly_cost = item[1]  # T.ex. 666.67
-            monthly_cost = (
-                yearly_cost / 12
-            )  # Dela årsbeloppet med 12 för att få månadskostnad
+                # Lägg till månadskostnaden i response_data med kategorinamn
+                response_data[category] = round(monthly_cost, 2)
 
-            # Lägg till månadskostnaden till svaret
-            response_data[category] = round(monthly_cost, 2)
+            return response_data
 
+        # Exempel på användning:
+        categories = ["Service och reperationer", "Däckbyte och underhåll"]
+
+        # Hämta månadskostnader
+        result = calculate_monthly_costs(maintenance_data, categories)
+        print(result)
         # Returnera som JSON
-        return jsonify(response_data)
+        return jsonify(result)
 
     except Exception as e:
         # Fångar oväntade fel och returnerar ett felmeddelande
+        print("Ett fel uppstod:", e)
         return jsonify({"error": str(e)}), 500
 
 
-def maintenance(playwright):
-    browser = playwright.chromium.launch(headless=True)
-    context = browser.new_context()
-    page = context.new_page()
+def maintenance():
 
-    # Gå till inloggningssidan
-    page.goto("https://copilot.microsoft.com/?msockid=2703ee02556e635a1eb6fc6a54466276")
-
-    # Vänta på att textarea ska laddas
-    page.wait_for_selector("#searchbox")
-
-    # Skriv in text i textarea
-    page.fill(
-        "#searchbox",
-        f"vad är det genomsnitliga priset för underhåll på en {global_car_model} i svenska kronor? Svara endast med ett heltal utan några skiljetecken (t.ex. mellanslag eller kommatecken), och ge inga förklaringar eller annan text. Dela upp svaret i 'Service och reperationer'', 'Däckbyte och underhåll'",
+    maintenance_prompt = (
+        f"What is the average maintenance cost for a {global_car_model} in Swedish kronor? "
+        "Please respond only with an integer without any delimiters (e.g., spaces or commas), "
+        "and provide no explanations or additional text.\n\n"
+        "Specify the following:\n"
+        "1. Service and repairs: [Enter amount]\n"
+        "2. Tire change and maintenance: [Enter amount]\n"
     )
 
-    # Tryck på Enter-tangenten
-    page.press("#searchbox", "Enter")
+    print("Prompten är:", maintenance_prompt)
 
-    # Vänta på att elementet med klassen 'tooltip-target' ska laddas
-    time.sleep(8)
+    text = """ChatCompletion(id='chatcmpl-AUxRvs041rJFGh1FgBNu5JxI5E2Lh', choices=[Choice(finish_reason='stop', index=0, logprobs=None, message=ChatCompletionMessage(content='1. 6000\n2. 3000', refusal=None, role='assistant', function_call=None, tool_calls=None))], created=1731941727, model='gpt-3.5-turbo-0125', object='chat.completion', service_tier=None, system_fingerprint=None, usage=CompletionUsage(completion_tokens=11, prompt_tokens=96, total_tokens=107, prompt_tokens_details={'cached_tokens': 0, 'audio_tokens': 0}, completion_tokens_details={'reasoning_tokens': 0, 'audio_tokens': 0, 'accepted_prediction_tokens': 0, 'rejected_prediction_tokens': 0}))"""
+    response = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": maintenance_prompt,
+            }
+        ],
+        model="gpt-3.5-turbo",
+    )
+    print(response)
+    maintenancecost = response.choices[0].message.content
 
-    # Hämta texten från elementet med klassen 'tooltip-target'
-    maintenancecost = page.inner_text(".ac-textBlock")
+    print("Svaret från ai: ", maintenancecost)
+    maintenancecost = int(maintenancecost)
+    # Använd regex för att hitta alla siffror i 'content'
+    # Hitta innehåll inom 'content'
 
-    print("Svaret från AI:", maintenancecost)
+    if maintenancecost:
+        # Extrahera alla siffror från innehållet
+        numbers = re.findall(
+            r"\d+", maintenancecost[0]
+        )  # Leta efter alla siffror i 'content'
+        # Filtrera bort 1 och 2
+        numbers = [int(num) for num in numbers if num not in ["1", "2"]]
+    else:
+        print("Hittade inget matchande innehåll.")
+    print("Genererad data:", numbers)
+    # Skriv ut det genererade svaret
+    print("Service:", numbers[0], "\nMaintiance:", numbers[1])
 
-    # Stäng webbläsaren
-    context.close()
-    browser.close()
-
-    matches = re.findall(r"([a-zA-ZåäöÅÄÖ\s]+):\s*(\d+)", maintenancecost)
-
-    # Konvertera till lista
-    resultat_lista = [(item[0].strip(), int(item[1])) for item in matches]
-
-    print(resultat_lista)
     # Kontrollera att average_price inte är None innan du returnerar
-    if resultat_lista is not None:
-        return resultat_lista  # Returnera medelpriset som ett tal
+    if numbers is not None:
+        return numbers  # Returnera medelpriset som ett tal
     else:
         return None  # Hantera fallet där siffror inte kunde extraheras korrekt
+
+
+@app.route("/tips", methods=["GET"])
+def tips():
+
+    tips_trix_promt = f"Ge en lista med de fem viktigaste tipsen för att minska utsläppen och göra en {global_car_model} mer miljövänlig och kostnadseffektiv. Fokusera på att förbättra bränsleeffektivitet, minska koldioxidutsläpp och optimera långsiktiga kostnadsbesparingar. Inkludera både tips för körvanor och bilunderhåll. Avsluta med en uppskattning av hur mycket utsläpp och pengar man kan spara med dessa åtgärder."
+    print("Prompten är:", tips_trix_promt)
+
+    response = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": tips_trix_promt,
+            }
+        ],
+        model="gpt-3.5-turbo",
+    )
+    maintenancecost = response.choices[0].message.content
+
+    print("Svaret från ai: ", maintenancecost)
 
 
 # Registrera funktionen för att köra vid avslut
 atexit.register(on_shutdown)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
