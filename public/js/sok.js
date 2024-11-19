@@ -281,8 +281,10 @@ async function getMaintenance() {
         const maintenanceData = await response.json();
         // Se till att försäkringskostnaden kommer in som nummer
 
-        const serviceReparationer = maintenanceData['Service och reperationer'];
-        const däckbyteUnderhåll = maintenanceData['Däckbyte och underhåll'];
+        
+// ad[0][sdgsdg]
+        const serviceReparationer = maintenanceData[0][1];
+        const däckbyteUnderhåll = maintenanceData[1][1];
 
         // const totMaintenance = serviceReparationer + däckbyteUnderhåll;
 

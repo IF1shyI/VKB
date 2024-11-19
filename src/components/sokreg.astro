@@ -1,26 +1,42 @@
 <label class="reg-num-label" for="reg-number">Sök reg nummer:</label>
 <div class="input-wrapper">
   <input
-  type="text"
-  id="reg-number"
-  class="registration-input"
-  placeholder="ABC123"
-  maxlength="6"
-/>
-<div onclick="Search()"><img src="/bilder/arrow_r.svg" alt="arrow" class="sok-knapp" id="sok-knapp"></div>
+    type="text"
+    id="reg-number"
+    class="registration-input"
+    placeholder="ABC123"
+    maxlength="6"
+  />
+  <div onclick="Search()">
+    <img
+      src="/bilder/arrow_r.svg"
+      alt="arrow"
+      class="sok-knapp"
+      id="sok-knapp"
+    />
+  </div>
 </div>
 <div id="loading-message" class="loading">Hämtar data...</div>
 <div class="step-two">
   <div class="car-info" id="car-info"></div>
-  <label class="mile-label" for="milage-input">Hur många mil per månad tänte du åka?:</label>
+  <label class="mile-label" for="milage-input"
+    >Hur många mil per månad tänte du åka?:</label
+  >
   <div class="input-wrapper">
     <input
-    type="text"
-    id="milage-input"
-    class="milage-input"
-    placeholder="1000"
+      type="text"
+      id="milage-input"
+      class="milage-input"
+      placeholder="1000"
     />
-    <div onclick="Calc()"><img src="/bilder/arrow_r.svg" alt="arrow" class="sok-knapp" id="sok-knapp"></div>
+    <div onclick="Calc()">
+      <img
+        src="/bilder/arrow_r.svg"
+        alt="arrow"
+        class="sok-knapp"
+        id="sok-knapp"
+      />
+    </div>
   </div>
   <div id="loading-message" class="loading">Hämtar data...</div>
   <div id="fuel-find" class="loading">Hämtar bränslepriser...</div>
@@ -29,14 +45,10 @@
   <div id="nklar" class="loading">Nästan klar...</div>
 </div>
 
-
 <script src="/js/sok.js" is:inline></script>
 
-
-
 <style>
-
-  .input-wrapper{
+  .input-wrapper {
     position: absolute;
     width: var(--input-sok-sz);
     aspect-ratio: 4/1;
@@ -48,73 +60,71 @@
     transform: translate(-50%, -50%);
 
     overflow: hidden;
-  
+
     box-shadow: 0 4px 8px 2px rgba(0, 0, 0, 0.2);
     border: 2px solid #000;
-}
+  }
 
+  input {
+    width: var(--input-sok-sz);
+    height: 100%;
 
-    input{
-      width: var(--input-sok-sz);
-      height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
 
-      position: absolute;
-      left: 0;
-      top: 0;
+    font-size: 2rem;
+    font-weight: 600;
 
-      font-size: 2rem;
-      font-weight: 600;
+    text-align: center;
+    letter-spacing: 5px;
+    font-family: var(--font);
+    text-transform: uppercase;
+    padding: 0;
+    border: 0;
+  }
 
-      text-align: center;
-      letter-spacing: 5px;
-      font-family: var(--font);
-      text-transform: uppercase;
-      padding: 0;
-      border: 0;
-    }
-
-  .reg-num-label{
+  .reg-num-label {
     position: absolute;
     top: 20%;
     left: 50%;
 
     transform: translate(-50%, -50%);
   }
-    img{
-      position: absolute;
-      left: var(--input-sok-sz);
-      background-image: var(--orange-btn-gradient);
-      top: 50%;
-      transform: translateY(-50%);
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: right center;
-      height: 100%;
-      cursor: pointer;
-      z-index: 60;
-    }
+  img {
+    position: absolute;
+    left: var(--input-sok-sz);
+    background-color: var(--guld_2);
+    top: 50%;
+    transform: translateY(-50%);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: right center;
+    height: 100%;
+    cursor: pointer;
+    z-index: 60;
+  }
 
-    img:hover{
-      opacity: 0.8;
-    }
-  
-    
-    .registration-input::placeholder {
-        color: rgba(0, 0, 0, 0.5);
-    }
+  img:hover {
+    opacity: 0.8;
+  }
 
-    .loading {
-            display: none;
-            position: absolute;
-            top: 80%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+  .registration-input::placeholder {
+    color: rgba(0, 0, 0, 0.5);
+  }
 
-            font-size: 2rem;
+  .loading {
+    display: none;
+    position: absolute;
+    top: 80%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 
-            font-family: var(--font);
-            color: var(--kontrast);
-        }
+    font-size: 2rem;
+
+    font-family: var(--font);
+    color: var(--kontrast);
+  }
 
   .step-two {
     display: none;
@@ -132,7 +142,7 @@
     left: 0;
   }
 
-  .car-info{
+  .car-info {
     position: absolute;
     width: 100%;
     height: fit-content;
@@ -142,10 +152,9 @@
 
     font-family: var(--font);
     font-size: 1.5rem;
-
   }
 
-  .mile-label{
+  .mile-label {
     position: absolute;
     top: 20%;
     left: 50%;
@@ -157,24 +166,24 @@
   }
 
   @media (max-width: 600px) {
-  .input-wrapper {
-    width: 70%; /* Justera bredden här */
-    padding-right: 2rem; /* Minska padding om nödvändigt */
-  }
+    .input-wrapper {
+      width: 70%; /* Justera bredden här */
+      padding-right: 2rem; /* Minska padding om nödvändigt */
+    }
 
-  input {
-    font-size: 1.5rem; /* Justera fontstorlek */
-    width: 80%;
-  }
+    input {
+      font-size: 1.5rem; /* Justera fontstorlek */
+      width: 80%;
+    }
 
-  .reg-num-label, .mile-label {
-    font-size: 0.8rem; /* Justera storleken på etiketterna */
-  }
+    .reg-num-label,
+    .mile-label {
+      font-size: 0.8rem; /* Justera storleken på etiketterna */
+    }
 
-  img {
-    height: 100%; /* Justera storleken på ikonen */
-    left: 80%; /* Placera om ikonen */
+    img {
+      height: 100%; /* Justera storleken på ikonen */
+      left: 80%; /* Placera om ikonen */
+    }
   }
-}
-
 </style>

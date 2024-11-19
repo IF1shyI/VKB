@@ -428,26 +428,8 @@ def get_maintenance():
             response_data = 0
             return jsonify({"error": "Could not calculate average price"}), 400
 
-        def calculate_monthly_costs(yearly_costs, categories):
-            response_data = {}
-
-            # Loopar genom varje årsbelopp och kategori
-            for index, (yearly_cost, category) in enumerate(
-                zip(yearly_costs, categories)
-            ):
-                # Beräkna månadskostnaden
-                monthly_cost = yearly_cost / 12
-
-                # Lägg till månadskostnaden i response_data med kategorinamn
-                response_data[category] = round(monthly_cost, 2)
-
-            return response_data
-
-        # Exempel på användning:
-        categories = ["Service och reperationer", "Däckbyte och underhåll"]
-
         # Hämta månadskostnader
-        result = calculate_monthly_costs(maintenance_data, categories)
+        result = calculate_monthly_costs(maintenance_data)
         print(result)
         # Returnera som JSON
         return jsonify(result)
@@ -465,8 +447,8 @@ def maintenance():
         "Please respond only with an integer without any delimiters (e.g., spaces or commas), "
         "and provide no explanations or additional text.\n\n"
         "Specify the following:\n"
-        "1. Service and repairs: [Enter amount]\n"
-        "2. Tire change and maintenance: [Enter amount]\n"
+        "Service and repairs: [Enter amount]\n"
+        "Tire change and maintenance: [Enter amount]\n"
     )
 
     print("Prompten är:", maintenance_prompt)
@@ -485,28 +467,40 @@ def maintenance():
     maintenancecost = response.choices[0].message.content
 
     print("Svaret från ai: ", maintenancecost)
-    maintenancecost = int(maintenancecost)
     # Använd regex för att hitta alla siffror i 'content'
     # Hitta innehåll inom 'content'
 
     if maintenancecost:
         # Extrahera alla siffror från innehållet
-        numbers = re.findall(
-            r"\d+", maintenancecost[0]
-        )  # Leta efter alla siffror i 'content'
-        # Filtrera bort 1 och 2
-        numbers = [int(num) for num in numbers if num not in ["1", "2"]]
+        nested_list = []
+        for line in maintenancecost.strip().split("\n"):
+            if ":" in line:
+                title, amount = line.split(":")
+                nested_list.append([title.strip(), int(amount.strip())])
+
     else:
         print("Hittade inget matchande innehåll.")
-    print("Genererad data:", numbers)
+    print("Genererad data:", nested_list)
     # Skriv ut det genererade svaret
-    print("Service:", numbers[0], "\nMaintiance:", numbers[1])
 
     # Kontrollera att average_price inte är None innan du returnerar
-    if numbers is not None:
-        return numbers  # Returnera medelpriset som ett tal
+    if nested_list is not None:
+        return nested_list  # Returnera medelpriset som ett tal
     else:
         return None  # Hantera fallet där siffror inte kunde extraheras korrekt
+
+
+def calculate_monthly_costs(data):
+
+    new_data = []
+    for item in data:
+        month_cost = round(
+            item[1] / 12, 1
+        )  # Använd round() för att avrunda till 1 decimal
+        new_data.append([item[0], month_cost])  # Lägg till som en lista
+
+    print("Ny data:", new_data)
+    return new_data
 
 
 @app.route("/tips", methods=["GET"])
