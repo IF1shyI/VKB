@@ -1,4 +1,7 @@
 <h1>Miljövänliga och kostnadseffektiva tips för att minska utsläpp</h1>
+<button onclick="window.location.href='/shop'"
+  >Miljövänliga och billiga bildelar</button
+>
 <ol>
   <li>
     <strong>Optimera körvanor (Eco-driving)</strong>
@@ -95,22 +98,21 @@
   </li>
 </ol>
 <h2>Uppskattning av besparingar</h2>
-<ul>
-  <li>
-    <strong>Bränsleeffektivitet:</strong> Genom att kombinera dessa tips kan du minska
-    bränsleförbrukningen med 20–30%. För ett fordon som kör 15 000 km per år kan
-    detta innebära en besparing på 300–600 liter bränsle, vilket motsvarar 3 000–6
-    000 kronor årligen (beroende på bränslepris).
-  </li>
-  <li>
-    <strong>Koldioxidutsläpp:</strong> Med en minskad bränsleförbrukning på 30% kan
-    utsläppen minska med 3–4 ton CO2 per år för en genomsnittlig bil.
-  </li>
-</ul>
+
+<div>
+  <strong>Bränsleeffektivitet:</strong> 20–30% = <mark id="SparH"></mark> - <mark
+    id="SparL"></mark> KR
+</div>
+<div>
+  <strong>Koldioxidutsläpp:</strong> Räkna på hur mycket man inte släpper ut
+</div>
+
 <p>
   Genom att följa dessa åtgärder kan du inte bara bidra till en bättre miljö
   utan även spara pengar på lång sikt!
 </p>
+
+<script src="/js/tips.js" async is:inline></script>
 
 <style>
   h1 {
@@ -152,5 +154,34 @@
 
   ul > li {
     margin-top: var(--margin-m);
+  }
+
+  button {
+    color: var(--guld);
+    text-decoration: none;
+    margin-top: var(--margin-l);
+    margin-bottom: var(--margin-l);
+    font-size: 1.5rem;
+    font-weight: bold;
+
+    width: 400px;
+    height: calc(var(--header-btn-sz) * 1.2);
+    background-color: var(--orange);
+    border-radius: 1rem;
+
+    text-align: center;
+
+    display: flex;
+    justify-content: center;
+
+    cursor: pointer;
+
+    position: relative;
+    left: 50%;
+    transform: translate(-50%);
+    &&:hover {
+      background-color: var(--gra);
+      cursor: pointer;
+    }
   }
 </style>

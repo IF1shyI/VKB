@@ -282,7 +282,6 @@ async function getMaintenance() {
         // Se till att försäkringskostnaden kommer in som nummer
 
         
-// ad[0][sdgsdg]
         const serviceReparationer = maintenanceData[0][1];
         const däckbyteUnderhåll = maintenanceData[1][1];
 
@@ -340,10 +339,24 @@ async function Results() {
     } else {
         console.error("Element med klassen 'result-container' hittades inte");
     }
+
+    Tips()
 }
 
 async function Co2_Emission(milage){
+    const drivmedel = (data.drivmedel || '')
+        .split(/[\|,]/)[0]  // Dela upp med både "|" och ","
+        .trim();
+    
     driving_distance_km = milage  * 10
+    if (data.Co2_bruk === "Error" || data.Co2_bruk instanceof Error) {
+        if (drivmedel== "Diesel"){
+            data.Co2_bruk==120
+        }
+        if (drivmedel== "Bensin"){
+            data.Co2_bruk==140
+        }
+    }
     console.log("mil:", milage," co2 bruk:", data.Co2_bruk)
 
     total_emisson = driving_distance_km * data.Co2_bruk
@@ -352,16 +365,3 @@ async function Co2_Emission(milage){
     Emisson.innerHTML = `${total_emisson / 1000} kg`;
 }
 
-async function Tips() {
-    try {
-        const response = await fetch('http://127.0.0.1:5000/tips');
-        if (!response.ok) {
-            throw new Error('Något gick fel vid hämtning av försäkringskostnader');
-        }
-
-        
-    
-    } catch (error) {
-        console.error('Fel:', error);
-    }
-}

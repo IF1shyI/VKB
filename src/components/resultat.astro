@@ -1,4 +1,4 @@
-<div class="result-container">
+<div class="result-container show">
   <h1 class="info-head">
     Total: <br /><mark><div class="car-info" id="tot-pris"></div></mark>
   </h1>
@@ -66,6 +66,34 @@
     top: var(--header-sz);
     left: 0;
     background-color: var(--svart);
+
+    button {
+      color: var(--guld);
+      text-decoration: none;
+      margin-top: var(--margin-s);
+      font-size: 1.25rem;
+      font-weight: bold;
+
+      width: fit-content;
+      height: var(--header-btn-sz);
+      background-color: var(--orange);
+      border-radius: 1rem;
+
+      text-align: center;
+
+      display: flex;
+      justify-content: center;
+
+      cursor: pointer;
+
+      position: relative;
+      left: 50%;
+      transform: translate(-50%);
+      &&:hover {
+        background-color: var(--gra);
+        cursor: pointer;
+      }
+    }
 
     .info-head {
       text-align: center;

@@ -1,0 +1,60 @@
+<div class="val">
+  <button>Året runt</button>
+  <button>Sommar</button>
+  <button>Vinter</button>
+
+  <select name="Dropdown" id="">
+    <option value="1">Rekomenderad</option>
+    <option value="2">Populär</option>
+    <option value="3">Lågt - Högt</option>
+    <option value="4">Högst - Lågt</option>
+  </select>
+</div>
+
+<style>
+  :root {
+    --realwidth: calc(100vw - var(--margin-m));
+
+    --ButtonWidthoptions: 7%;
+    --ButtonHeightoptions:calc(var(--ButtonWidth)*0.2);
+    --ButtonFontSzoptions: 1rem;
+    --ButtonPaddingoptions:5px;
+  }
+  .val {
+    position: relative;
+    width: var(--realwidth);
+    margin-left: var(--margin-m);
+    margin-top:  var(--margin-s);
+    margin-bottom:  var(--margin-s);
+
+    border-bottom: 1px solid var(--vit);
+
+    button {
+      color: var(--svart);
+      text-decoration: none;
+      font-size: var(--ButtonFontSzoptions);
+      font-weight: bold;
+      background-color: var(--vit);
+      border-radius: 1rem;
+
+      width: var(--ButtonWidthoptions);
+      height: var(--ButtonHeightoptions);
+
+      padding: var(--ButtonPaddingoptions);
+      margin-right: var(--margin-s);
+      margin-bottom: var(--margin-s);
+
+      &&:hover {
+        background-color: beige;
+        cursor: pointer;
+      }
+    
+    select{
+        position: absolute;
+        top: 0;
+        right: 0;
+
+        
+      }
+  }
+</style>

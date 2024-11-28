@@ -1,0 +1,104 @@
+---
+const { Title, Price, Img, link } = Astro.props;
+---
+
+<div class="container">
+  <img src={Img} alt="Bild" />
+  <div class="headinfo">
+    <h2>{Title}</h2>
+    <div class="pris">{Price} :-</div>
+  </div>
+  <button onclick={`window.open('${link}', '_blank')`}>Köp nu</button>
+</div>
+
+<style>
+  :root {
+    --containerHeight: 350px;
+    --containerWidth: calc(var(--containerHeight));
+    --imgHeight: 40%;
+    --InfoStart: var(--imgHeight);
+    --infoHeigt: 40%;
+    --TitleSize: 1.7rem;
+    --PriceSize: calc(var(--TitleSize) * 1.2);
+
+    --ButtonWidth: 50%;
+    --ButtonHeight: calc(var(var(--ButtonWidth) * 0.2));
+    --ButtonFontSz: 1.8rem;
+    --ButtonPadding: 5px;
+  }
+  .container {
+    background-color: var(--gra);
+    width: var(--containerWidth);
+    height: var(--containerHeight);
+
+    border-radius: 5%;
+
+    overflow: hidden;
+
+    position: relative;
+
+    img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      object-fit: cover;
+      height: var(--imgHeight);
+    }
+
+    .headinfo {
+      position: absolute;
+
+      top: var(--InfoStart);
+
+      width: 100%;
+
+      height: var(--infoHeigt);
+
+      margin-top: var(--margin-s);
+
+      h2 {
+        font-family: var(--font);
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 0;
+        font-size: var(--TitleSize);
+
+        color: var(--guld);
+      }
+
+      .pris {
+        text-align: center;
+        margin-top: var(--margin-m);
+
+        font-size: var(--PriceSize);
+        font-weight: bold;
+
+        color: var(--guld);
+      }
+    }
+    button {
+      position: absolute;
+      bottom: 5%;
+      left: 50%;
+      transform: translate(-50%);
+
+      color: var(--vit);
+      text-decoration: none;
+      font-size: var(--ButtonFontSz);
+      font-weight: bold;
+      background-color: var(--svart);
+      border-radius: 1rem;
+
+      width: var(--ButtonWidth);
+      height: var(--ButtonHeight);
+
+      padding: var(--ButtonPadding);
+
+      &&:hover {
+        background-color: var(--guld_2);
+        cursor: pointer;
+      }
+    }
+  }
+</style>

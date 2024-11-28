@@ -1,0 +1,79 @@
+---
+import Shopcard from "./shopcard.astro";
+import Shopoptions from "./shopoptions.astro";
+const ads = [
+  {
+    Title: "Nokian Seasonproof",
+    Price: "1200",
+    Img: "https://media.tyred.se/tyred/images/amr1518560nokt433137_43864/261/261/0/nokian-seasonproof-1.jpg",
+    link: "https://www.nokiantyres.com/summer-tires/nokian-tyres-seasonproof/",
+  },
+  {
+    Title: "Sommar Däck",
+    Price: "500",
+    Img: "https://example.com/2.jpg",
+    link: "https://example.com/2",
+  },
+  {
+    Title: "Vinter Däck",
+    Price: "1500",
+    Img: "https://example.com/3.jpg",
+    link: "https://example.com/3",
+  },
+];
+---
+
+<h1>Affär</h1>
+<h2>Däck</h2>
+<div class="itemcontainer">
+  <Shopoptions />
+  <div class="itemholder">
+    {
+      ads.map((ad) => (
+        <Shopcard
+          Title={ad.Title}
+          Price={ad.Price}
+          Img={ad.Img}
+          link={ad.link}
+        />
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  :root {
+    --HeaderSZ: 5rem;
+
+    --ItemRubSZ: 3rem;
+
+    --realwidth: calc(100% - var(--margin-m));
+  }
+
+  h1 {
+    width: 100vw;
+    margin-top: var(--margin-xxl);
+
+    border-bottom: 1px solid var(--vit);
+
+    text-align: center;
+    font-size: var(--HeaderSZ);
+
+    color: var(--guld);
+  }
+
+  h2 {
+    width: var(--realwidth);
+    border-bottom: 1px solid var(--vit);
+    margin-left: var(--margin-m);
+    margin-bottom: 0;
+
+    font-size: var(--ItemRubSZ);
+  }
+
+  .itemholder {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+</style>

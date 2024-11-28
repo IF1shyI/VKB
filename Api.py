@@ -160,23 +160,41 @@ def get_car_info_with_playwright(reg_plate):
         page_content = page.content()
 
         print("Hämtar Bensin förbrukning")
-        bbruk_class = page.query_selector_all(".idva_float")
-        for bbruk in bbruk_class:
-            bbruk_pre = bbruk.inner_text()
-            if bbruk_pre.endswith("100km"):
-                global_besbruk = convert_text_to_float(bbruk_pre)
-                print(bbruk_pre)
-                break
-            else:
-                global_besbruk = "Ingen forbrukning hittad"
+        col3_class = page.query_selector_all(
+            ".col-md-3"
+        )  # Hämtar alla element med klassen col-md-3
+        for div_element in col3_class:
+            print("Testar: ", div_element)  # Skriv ut elementet för felsökning
+            div_content = div_element.text_content().strip()  # Hämta textinnehållet
+            if (
+                "Blandad förbrukning" in div_content
+            ):  # Kontrollera om texten innehåller "Blandad förbrukning"
+                print("Match hittad")
+                # Hämta specifik information från den inre div med klassen "idva_float"
+                div_bbruk = div_element.query_selector(
+                    ".idva_float"
+                )  # OBS! query_selector används här, inte _all
+                if div_bbruk:  # Kontrollera om elementet hittades
+                    besbruk_pre = div_bbruk.text_content().strip()
+                    if besbruk_pre.endswith("100km"):
+                        global_besbruk = convert_text_to_float(besbruk_pre)
+                        print("Global bensinförbrukning:", global_besbruk)
+                        break
+                else:
+                    global_besbruk = "Ingen förbrukning hittad"
+                    print(global_besbruk)
 
         print("Hämtar Fordonsskatt")
-        fskatt_class = page.query_selector_all(".button-like")
-        for skatt in fskatt_class:
-            skatt_pre = skatt.query_selector(".btn_value")
-            if skatt_pre:
-                fskatt_pre = skatt_pre.inner_text()
-                global_fskatt = convert_currency_text_to_int(fskatt_pre)
+        fskatt_class = page.query_selector_all(".featured_info_item")
+        for item in fskatt_class:
+            div_elements = item.query_selector_all(".btn_description")
+            for div in div_elements:
+                div_text = div.text_content().strip()  # Extrahera och trimma texten
+                print("Div namn: ", div_text)
+                if div_text == "Fordonsskatt":
+                    print("Match found!")
+                    fskatt_pre = item.query_selector(".btn_value").inner_text()
+                    global_fskatt = convert_currency_text_to_int(fskatt_pre)
 
         print("Hämtar drivmedel")
         fskatt_class = page.query_selector_all(".idva_float")
@@ -187,19 +205,29 @@ def get_car_info_with_playwright(reg_plate):
                 break
 
         print("Hämtar co2 utsläpp")
-        co2_class = page.query_selector_all(".idva_float")
+        co2_class = page.query_selector_all(".has_extra_info_modal")
         for text in co2_class:
-            co2_name = text.inner_text()
-            print(co2_name)
+            co2_name = (
+                text.inner_text().strip()
+            )  # Rensa strängen från mellanslag i början och slutet
             if co2_name.endswith("g/km"):
-                co2 = int(
-                    co2_name.replace("\u00a0", "")
-                    .replace("g/km", "")
-                    .replace(",", ".")
-                    .replace(" ", "")
-                    .strip()
-                )
-                break
+
+                print(f"Original sträng: {repr(co2_name)}")
+
+                # Extrahera endast siffror följt av "g/km"
+                match = re.search(r"(\d+)\s*g/km", co2_name)
+                if match:
+                    try:
+                        co2 = int(match.group(1))  # Extrahera siffran från matchningen
+                        print(f"CO₂ hittat: {co2}")
+                    except ValueError as e:
+                        print(f"Fel vid konvertering av {repr(co2_name)}: {e}")
+                else:
+                    print("Ingen giltig CO₂-data hittades:", repr(co2_name))
+                    break
+
+        if co2 == "Error":
+            co2 = 130
 
         # Stäng webbläsaren
         context.close()
