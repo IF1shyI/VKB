@@ -1,0 +1,107 @@
+[
+  {
+    "Title": "Nokian Seasonproof",
+    "Price": 1200,
+    "Img": "https://media.tyred.se/tyred/images/amr1518560nokt433137_43864/261/261/0/nokian-seasonproof-1.jpg",
+    "link": "https://www.nokiantyres.com/summer-tires/nokian-tyres-seasonproof/",
+    "Type": "All"
+  },
+  {
+    "Title": "Michelin CrossClimate 2",
+    "Price": 1400,
+    "Img": "https://www.abswheels.se/img/dack/9c500968.jpg",
+    "link": "https://www.michelin.se/dack/michelin-crossclimate-2",
+    "Type": "All"
+  },
+  {
+    "Title": "Hankook Kinergy 4S2",
+    "Price": 1150,
+    "Img": "https://m.media-amazon.com/images/I/81OsrAVXTjL.jpg",
+    "link": "https://www.hankooktire.com/global/en/tire/kinergy-4s2-h750",
+    "Type": "All"
+  },
+  {
+    "Title": "Pirelli Cinturato",
+    "Price": 1300,
+    "Img": "https://dackgruppen.se/media/catalog/product/cache/d1a2cad86384cdc453e57c917d618870/5/1/518349_105.jpg",
+    "link": "https://www.pirelli.com/tyres/en-ww/car-light-truck/tyres/cinturato-all-season-sf2",
+    "Type": "All"
+  },
+  {
+    "Title": "Falken Euroall Season",
+    "Price": 950,
+    "Img": "https://image.delti.com/tyre-pictures/1000/Brands/Falken/92342/Profil_EUROALLSEASONAS210.jpg",
+    "link": "https://www.falkentyre.com/en/tyres/passenger-car/all-season/euroall-season-as210",
+    "Type": "All"
+  },
+  {
+    "Title": "Continental EcoContact 6",
+    "Price": 900,
+    "Img": "https://dackproffs.se/2600-large_default/bildack-continental-ecocontact-6-175-55qr20.jpg",
+    "link": "https://www.continental-tires.com/car/tires/ecocontact6",
+    "Type": "Summer"
+  },
+  {
+    "Title": "Bridgestone Turanza",
+    "Price": 1000,
+    "Img": "https://ntgroup.studio.crasman.cloud/file/dl/c=tyre_preview/9nwfjQ/TMA1tiyO0ipDriiQs4RBhQ/Bridgestone_Turanza-6.jpg",
+    "link": "https://www.bridgestone.com/products/passenger-tires/turanza/",
+    "Type": "Summer"
+  },
+  {
+    "Title": "Michelin Primacy 4+",
+    "Price": 1250,
+    "Img": "https://media.tyred.se/tyred/images/ins434030_87014/0/0/0/michelin-primacy-4.jpg",
+    "link": "https://www.michelin.se/dack/michelin-primacy-4",
+    "Type": "Summer"
+  },
+  {
+    "Title": "Hankook Kinergy Eco 2",
+    "Price": 850,
+    "Img": "https://m.media-amazon.com/images/I/61uJEn31ysL._AC_UF1000,1000_QL80_.jpg",
+    "link": "https://www.hankooktire.com/global/en/tire/kinergy-eco-2-k435.html",
+    "Type": "Summer"
+  },
+  {
+    "Title": "Pirelli Cinturato P7 Blue",
+    "Price": 1100,
+    "Img": "https://m.media-amazon.com/images/I/61hXrHBdJcL._AC_UF1000,1000_QL80_.jpg",
+    "link": "https://www.pirelli.com/tyres/en-ww/car-light-truck/tyres/cinturato-p7-blue",
+    "Type": "Summer"
+  },
+  {
+    "Title": "Nokian Hakkapeliitta R5",
+    "Price": 1600,
+    "Img": "https://ntgroup.studio.crasman.cloud/file/dl/c=tyre_preview/MNktMQ/n8m13bnZcr1KlMFCCqPvqw/Nokian_Tyres_Hakkapeliitta_R5_EV_with_rim.jpg",
+    "link": "https://www.nokiantyres.se/vinterdack/nokian-hakkapeliitta-r5/",
+    "Type": "Winter"
+  },
+  {
+    "Title": "Nokian Nordman 7",
+    "Price": 1350,
+    "Img": "https://image.delti.com/tyre-pictures/h300/Nokian/Nordman7.jpg/92342/_.jpg",
+    "link": "https://www.nokiantyres.se/vinterdack/nokian-nordman-7/",
+    "Type": "Winter"
+  },
+  {
+    "Title": "Bridgestone Blizzak",
+    "Price": 1300,
+    "Img": "https://media.tyred.se/tyred/images/productseriesdata-bridgestone-blizzak-lm005-2020-10-29-143450765/0/0/0/bridgestone-blizzak-lm005.jpeg",
+    "link": "https://www.bridgestone.com/products/winter/blizzak-lm005.html",
+    "Type": "Winter"
+  },
+  {
+    "Title": "Michelin X-Ice Snow",
+    "Price": 1500,
+    "Img": "https://www.abswheels.se/img/dack/Michelin-X-ICE-SNOW.jpg",
+    "link": "https://www.michelin.ca/en/auto/tires/michelin-x-ice-snow",
+    "Type": "Winter"
+  },
+  {
+    "Title": "Goodyear UltraGrip Ice 2",
+    "Price": 1350,
+    "Img": "https://ntgroup.studio.crasman.cloud/file/dl/c=tyre_preview/Q116Mg/x2E8eCtTfZOUgg9aDlde8w/goodyearultragripice2.jpg",
+    "link": "https://www.goodyear.eu/en_gb/consumer/tires/ultragrip-ice-2.html",
+    "Type": "Winter"
+  }
+]

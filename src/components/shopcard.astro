@@ -1,8 +1,9 @@
 ---
-const { Title, Price, Img, link } = Astro.props;
+// Här hämtar vi däckdata från Astro.props
+const { Title, Price, Img, link, Type } = Astro.props;
 ---
 
-<div class="container">
+<div class="container" data-type={Type}>
   <img src={Img} alt="Bild" />
   <div class="headinfo">
     <h2>{Title}</h2>
@@ -48,13 +49,9 @@ const { Title, Price, Img, link } = Astro.props;
 
     .headinfo {
       position: absolute;
-
       top: var(--InfoStart);
-
       width: 100%;
-
       height: var(--infoHeigt);
-
       margin-top: var(--margin-s);
 
       h2 {
@@ -63,20 +60,18 @@ const { Title, Price, Img, link } = Astro.props;
         text-align: center;
         margin-bottom: 0;
         font-size: var(--TitleSize);
-
         color: var(--guld);
       }
 
       .pris {
         text-align: center;
         margin-top: var(--margin-m);
-
         font-size: var(--PriceSize);
         font-weight: bold;
-
-        color: var(--guld);
+        color: var(--vit);
       }
     }
+
     button {
       position: absolute;
       bottom: 5%;

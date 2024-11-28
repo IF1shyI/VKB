@@ -1,13 +1,13 @@
 <div class="val">
-  <button>Året runt</button>
-  <button>Sommar</button>
-  <button>Vinter</button>
+  <button id="All">Året runt</button>
+  <button id="Summer">Sommar</button>
+  <button id="Winter">Vinter</button>
 
-  <select name="Dropdown" id="">
-    <option value="1">Rekomenderad</option>
+  <select name="Dropdown" id="dropdownSort">
+    <option value="1">Rekommenderat</option>
     <option value="2">Populär</option>
-    <option value="3">Lågt - Högt</option>
-    <option value="4">Högst - Lågt</option>
+    <option value="3">Lägst - Högst</option>
+    <option value="4">Högst - Lägst</option>
   </select>
 </div>
 
@@ -16,16 +16,19 @@
     --realwidth: calc(100vw - var(--margin-m));
 
     --ButtonWidthoptions: 7%;
-    --ButtonHeightoptions:calc(var(--ButtonWidth)*0.2);
+    --ButtonHeightoptions: calc(var(--ButtonWidth) * 0.2);
     --ButtonFontSzoptions: 1rem;
-    --ButtonPaddingoptions:5px;
+    --ButtonPaddingoptions: 5px;
+
+    --DroppdownWidthoptions: 10%;
+    --DroppdownHeightoptions: calc(var(var(--DroppdownWidthoptions) * 1));
   }
   .val {
     position: relative;
     width: var(--realwidth);
     margin-left: var(--margin-m);
-    margin-top:  var(--margin-s);
-    margin-bottom:  var(--margin-s);
+    margin-top: var(--margin-s);
+    margin-bottom: var(--margin-s);
 
     border-bottom: 1px solid var(--vit);
 
@@ -48,13 +51,22 @@
         background-color: beige;
         cursor: pointer;
       }
-    
-    select{
-        position: absolute;
-        top: 0;
-        right: 0;
-
-        
+    }
+    select {
+      position: absolute;
+      top: 16px;
+      transform: translateY(-50%);
+      right: 1%;
+      width: var(--DroppdownWidthoptions);
+      height: var(--DroppdownHeightoptions);
+    }
+    .active {
+      background-color: var(--gra);
+      color: var(--vit);
+      &&:hover {
+        color: var(--svart);
+        background-color: slategrey;
       }
+    }
   }
 </style>

@@ -52,14 +52,21 @@ async function Search() {
 
             // Tilldela global variabel "data" med API-svaret
             data = await response.json();
-
-            // Logga data för felsökning
-            console.log("Data från API:", data);
-            
-            // Visa informationen på sidan
+            if (data.message === "Try again later") {
+            console.log("API svarade med: ", data.message);
             carInfoDiv.innerHTML = `
-                <p>${data.car_model ? data.car_model : 'Hittar inte bilmodell'}</p>
-                `;
+                    <p>${data.car_model ? data.car_model : 'Problem uppstod. Försök igen senare'}</p>
+                    `;
+            // Visa meddelande till användaren
+            } else {
+            // API-svaret innehåller bilinformationen
+            console.log("API-data:", data);
+            
+                // Visa informationen på sidan
+                carInfoDiv.innerHTML = `
+                    <p>${data.car_model ? data.car_model : 'Hittar inte bilmodell. Försök igen senare'}</p>
+                    `;
+                
 
             const fuelConsumptionPerMile = (data.besbruk && !isNaN(data.besbruk)) ? parseFloat(data.besbruk) : 5;
 
@@ -74,7 +81,7 @@ async function Search() {
             skatt.innerHTML = `
                 <p>${mskatt.toFixed(2)}</p>
             `;
-            console.log("Data hämtad och visad");
+            console.log("Data hämtad och visad");}
         } catch (error) {
             // Hantera fel och visa ett meddelande
             carInfoDiv.innerHTML = `<p>Fel: ${error.message}</p>`;
@@ -83,9 +90,10 @@ async function Search() {
             // Dölj laddningsmeddelandet
             loadingMessage.style.display = 'none';
         }
-
-        // Toggla steg eller nästa del av sidan
-        toggleStep();
+        if (data.message != "Try again later"){
+            toggleStep();
+        }
+        
     } else {
         carInfoDiv.innerHTML = '<p>Registreringsnumret måste vara exakt 6 tecken långt.</p>';
         loadingMessage.style.display = 'none';
