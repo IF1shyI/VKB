@@ -1,132 +1,14 @@
 ---
 import Shopcard from "./shopcard.astro";
 import Shopoptions from "./shopoptions.astro";
-const tire_ads = [
-  {
-    Title: "Nokian Seasonproof",
-    Price: 1219,
-    Img: "https://media.tyred.se/tyred/images/amr1518560nokt433137_43864/261/261/0/nokian-seasonproof-1.jpg",
-    link: "https://www.gummihuset.se/sommardack/225-45r17-nokian-seasonproof-1",
-    Type: "All",
-  },
-  {
-    Title: "Michelin CrossClimate 2",
-    Price: 1223,
-    Img: "https://www.abswheels.se/img/dack/9c500968.jpg",
-    link: "https://www.bythjul.com/dack/michelin/michelin_crossclimate2",
-    Type: "All",
-  },
-  {
-    Title: "Hankook Kinergy 4S2",
-    Price: 1244,
-    Img: "https://m.media-amazon.com/images/I/81OsrAVXTjL.jpg",
-    link: "https://www.dackvaruhuset.se/hankook/sommardack/kinergy-4s2-h750/",
-    Type: "All",
-  },
-  {
-    Title: "Pirelli Cinturato",
-    Price: 1194,
-    Img: "https://dackgruppen.se/media/catalog/product/cache/d1a2cad86384cdc453e57c917d618870/5/1/518349_105.jpg",
-    link: "https://www.bythjul.com/dack/pirelli/pirelli_cinturatoallseason",
-    Type: "All",
-  },
-  {
-    Title: "Falken Euroall Season",
-    Price: 715,
-    Img: "https://image.delti.com/tyre-pictures/1000/Brands/Falken/92342/Profil_EUROALLSEASONAS210.jpg",
-    link: "https://www.dackleader.se/bildack/falken/euroall-season-as210/",
-    Type: "All",
-  },
-  {
-    Title: "Continental EcoContact 6",
-    Price: 898,
-    Img: "https://dackproffs.se/2600-large_default/bildack-continental-ecocontact-6-175-55qr20.jpg",
-    link: "https://www.bythjul.com/dack/continental/continental_ecocontact6",
-    Type: "Summer",
-  },
-  {
-    Title: "Bridgestone Turanza",
-    Price: 1208,
-    Img: "https://ntgroup.studio.crasman.cloud/file/dl/c=tyre_preview/9nwfjQ/TMA1tiyO0ipDriiQs4RBhQ/Bridgestone_Turanza-6.jpg",
-    link: "https://www.bythjul.com/dack/bridgestone/bridgestone_turanzat005",
-    Type: "Summer",
-  },
-  {
-    Title: "Michelin Primacy 4+",
-    Price: 1137,
-    Img: "https://media.tyred.se/tyred/images/ins434030_87014/0/0/0/michelin-primacy-4.jpg",
-    link: "https://www.bythjul.com/dack/michelin/michelin_primacy4",
-    Type: "Summer",
-  },
-  {
-    Title: "Hankook Kinergy Eco 2",
-    Price: 704,
-    Img: "https://m.media-amazon.com/images/I/61uJEn31ysL._AC_UF1000,1000_QL80_.jpg",
-    link: "https://www.bythjul.com/dack/hankook/hankook_kinergyeco2k435",
-    Type: "Summer",
-  },
-  {
-    Title: "Pirelli Cinturato P7 Blue",
-    Price: 3014,
-    Img: "https://m.media-amazon.com/images/I/61hXrHBdJcL._AC_UF1000,1000_QL80_.jpg",
-    link: "https://www.bythjul.com/dack/pirelli/pirelli_cinturatop7blue",
-    Type: "Summer",
-  },
-  {
-    Title: "Nokian Hakkapeliitta R5",
-    Price: 749,
-    Img: "https://ntgroup.studio.crasman.cloud/file/dl/c=tyre_preview/MNktMQ/n8m13bnZcr1KlMFCCqPvqw/Nokian_Tyres_Hakkapeliitta_R5_EV_with_rim.jpg",
-    link: "https://www.bythjul.com/dack/nokian/nokian_hakkapeliittar5",
-    Type: "Winter",
-  },
-  {
-    Title: "Nokian Nordman 7",
-    Price: 630,
-    Img: "https://image.delti.com/tyre-pictures/h300/Nokian/Nordman7.jpg/92342/_.jpg",
-    link: "https://www.bythjul.com/dack/nokian/nokian_nordman7",
-    Type: "Winter",
-  },
-  {
-    Title: "Bridgestone Blizzak",
-    Price: 894,
-    Img: "https://media.tyred.se/tyred/images/productseriesdata-bridgestone-blizzak-lm005-2020-10-29-143450765/0/0/0/bridgestone-blizzak-lm005.jpeg",
-    link: "https://www.bythjul.com/dack/bridgestone/bridgestone_blizzakice",
-    Type: "Winter",
-  },
-  {
-    Title: "Michelin X-Ice Snow",
-    Price: 1182,
-    Img: "https://www.abswheels.se/img/dack/Michelin-X-ICE-SNOW.jpg",
-    link: "https://www.bythjul.com/dack/michelin/michelin_xicesnow",
-    Type: "Winter",
-  },
-  {
-    Title: "Goodyear UltraGrip Ice 2",
-    Price: 2355,
-    Img: "https://ntgroup.studio.crasman.cloud/file/dl/c=tyre_preview/Q116Mg/x2E8eCtTfZOUgg9aDlde8w/goodyearultragripice2.jpg",
-    link: "https://www.bythjul.com/dack/goodyear/goodyear_ultragripice2",
-    Type: "Winter",
-  },
-];
 ---
 
 <h1>Affär</h1>
 <h2>Däck</h2>
 <div class="itemcontainer">
   <Shopoptions />
-  <div class="itemholder">
-    {
-      tire_ads.map((ad) => (
-        <Shopcard
-          Title={ad.Title}
-          Price={ad.Price}
-          Img={ad.Img}
-          link={ad.link}
-          Type={ad.Type}
-        />
-      ))
-    }
-  </div>
+
+  <div id="tireContainer" class="Ad_holder_tire"></div>
 </div>
 
 <script is:inline src="/js/options.js"></script>
@@ -138,6 +20,19 @@ const tire_ads = [
     --ItemRubSZ: 3rem;
 
     --realwidth: calc(100% - var(--margin-m));
+
+    --containerHeight: 350px;
+    --containerWidth: calc(var(--containerHeight));
+    --imgHeight: 40%;
+    --InfoStart: var(--imgHeight);
+    --infoHeigt: 40%;
+    --TitleSize: 1.7rem;
+    --PriceSize: calc(var(--TitleSize) * 1.2);
+
+    --ButtonWidth: 50%;
+    --ButtonHeight: calc(var(var(--ButtonWidth) * 0.2));
+    --ButtonFontSz: 1.8rem;
+    --ButtonPadding: 5px;
   }
 
   h1 {
@@ -162,7 +57,9 @@ const tire_ads = [
     color: var(--guld);
   }
 
-  .itemholder {
+  .Ad_holder_tire {
+    width: var(--realwidth);
+
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;

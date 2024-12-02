@@ -26,6 +26,7 @@ let totMaintenance;
 
 async function Search() {
     // Hämta värdet från input-fältet
+    localStorage.clear()
     const inputValue = document.getElementById('reg-number').value;
     const carInfoDiv = document.getElementById('car-info');
     const loadingMessage = document.getElementById('loading-message');
@@ -174,6 +175,7 @@ async function Calc() {
         
         // Logga data.besbruk för att se vad som faktiskt finns där
         console.log("Bensinförbrukning (data.besbruk):", data.besbruk);
+        localStorage.setItem('Bensinbruk', data.besbruk)
 
         // Använd bilens förbrukning eller ett standardvärde om det saknas
         const fuelConsumptionPerMile = (data.besbruk && !isNaN(data.besbruk)) ? parseFloat(data.besbruk) : 0.5;
@@ -183,7 +185,7 @@ async function Calc() {
 
         // Beräkna total bensinförbrukning
         const totalFuelConsumed = milage * fuelConsumptionPerMile;
-
+        localStorage.setItem('distance', milage)
         Co2_Emission(milage)
 
         // Deklarera variabler för pris och kostnad
@@ -219,6 +221,8 @@ async function Calc() {
             return; // Avsluta funktionen om drivmedlet är okänt
         }
 
+        localStorage.setItem('Bensinpris', bpris)
+        localStorage.setItem('Totprisbensin', bensinkostnad)
         const Bensinkostnad = document.getElementById('tot-bkostnad');
         Bensinkostnad.innerHTML = `
             <p>${bensinkostnad.toFixed(2)}</p>
@@ -371,5 +375,7 @@ async function Co2_Emission(milage){
 
     const Emisson = document.getElementById('emission-display');
     Emisson.innerHTML = `${total_emisson / 1000} kg`;
+
+    localStorage.setItem('C02', total_emisson/1000)
 }
 

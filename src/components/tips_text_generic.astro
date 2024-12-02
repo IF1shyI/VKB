@@ -97,27 +97,6 @@
     </ul>
   </li>
 </ol>
-<h2>Uppskattning av besparingar</h2>
-<div class="Spar">
-  <strong id="TotSpar"></strong>KR och <strong id="C02Tot"></strong> KG Co2
-</div>
-
-<div class="calc-text">
-  <strong>Bränsleeffektivitet:</strong> 20–30% = <mark id="SparH"></mark> till
-  <mark id="SparL"></mark>
-  <strong>KR</strong>
-</div>
-<div class="calc-text">
-  <strong>Koldioxidutsläpp:</strong>
-  <mark id="co2sparL" class="Co2"></mark> till <mark id="co2sparH" class="Co2"
-  ></mark>
-  <strong>KG Co2</strong>
-</div>
-
-<p>
-  Genom att följa dessa åtgärder kan du inte bara bidra till en bättre miljö
-  utan även spara pengar på lång sikt!
-</p>
 
 <script src="/js/tips.js" async is:inline></script>
 
@@ -190,43 +169,5 @@
       background-color: var(--gra);
       cursor: pointer;
     }
-  }
-
-  .calc-text {
-    font-size: calc(var(--sz));
-    margin-left: var(--margin-l);
-    margin-bottom: var(--margin-l);
-  }
-  mark {
-    text-decoration: none;
-    background-color: transparent;
-    color: var(--green);
-    font-weight: bold;
-  }
-
-  .Spar {
-    color: var(--vit);
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    font-size: calc(var(--sz) * 1.2);
-    margin-bottom: var(--margin-m);
-  }
-  .Co2 {
-    color: var(--red);
-  }
-
-  #TotSpar {
-    margin-right: var(--margin-s);
-    color: var(--green);
-  }
-  #C02Tot {
-    margin-left: var(--margin-s);
-    margin-right: var(--margin-s);
-    color: var(--red);
-  }
-
-  p {
-    margin: var(--margin-m);
   }
 </style>

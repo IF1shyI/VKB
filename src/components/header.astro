@@ -4,12 +4,13 @@
 
 <header>
   <a href="/"><img src="/bilder/logga.svg" alt="logga.svg" class="logga" /></a>
-  <h1 class="namn">VAD KOSTAR BILEN</h1>
+  <a href="/"><h1 class="namn">VAD KOSTAR BILEN</h1></a>
   <div class="menu-icon" onclick="toggleMenu()">
     <img src="/bilder/meny_icon.svg" alt="meny.svg" />
   </div>
   <nav class="menu">
     <button onclick="window.location.href='/'">Hem</button>
+    <button onclick="window.location.href='/info'">Tips</button>
     <button onclick="window.location.href='/kontakt'">Kontakt</button>
     <button onclick="window.location.href='/about'">Om oss</button>
   </nav>
@@ -38,6 +39,7 @@
       left: 50%;
       transform: translate(-50%, -50%);
       margin: 0;
+      color: var(--vit);
     }
 
     .logga {

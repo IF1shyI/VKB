@@ -3,7 +3,7 @@
 const { Title, Price, Img, link, Type } = Astro.props;
 ---
 
-<div class="container" data-type={Type}>
+<div class="container_shopcard" data-type={Type}>
   <img src={Img} alt="Bild" />
   <div class="headinfo">
     <h2>{Title}</h2>
@@ -27,7 +27,7 @@ const { Title, Price, Img, link, Type } = Astro.props;
     --ButtonFontSz: 1.8rem;
     --ButtonPadding: 5px;
   }
-  .container {
+  .container_shopcard {
     background-color: var(--gra);
     width: var(--containerWidth);
     height: var(--containerHeight);
@@ -70,29 +70,28 @@ const { Title, Price, Img, link, Type } = Astro.props;
         font-weight: bold;
         color: var(--vit);
       }
-    }
+      button {
+        position: absolute;
+        bottom: 5%;
+        left: 50%;
+        transform: translate(-50%);
 
-    button {
-      position: absolute;
-      bottom: 5%;
-      left: 50%;
-      transform: translate(-50%);
+        color: var(--vit);
+        text-decoration: none;
+        font-size: var(--ButtonFontSz);
+        font-weight: bold;
+        background-color: var(--svart);
+        border-radius: 1rem;
 
-      color: var(--vit);
-      text-decoration: none;
-      font-size: var(--ButtonFontSz);
-      font-weight: bold;
-      background-color: var(--svart);
-      border-radius: 1rem;
+        width: var(--ButtonWidth);
+        height: var(--ButtonHeight);
 
-      width: var(--ButtonWidth);
-      height: var(--ButtonHeight);
+        padding: var(--ButtonPadding);
 
-      padding: var(--ButtonPadding);
-
-      &&:hover {
-        background-color: var(--guld_2);
-        cursor: pointer;
+        &&:hover {
+          background-color: var(--guld_2);
+          cursor: pointer;
+        }
       }
     }
   }

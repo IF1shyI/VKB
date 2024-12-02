@@ -1,56 +1,178 @@
-// Håll reda på de aktiva filtren
+// Håll reda på aktiva filter
 let activeFilters = [];
 
-function sortTires() {
-  const dropdownValue = document.getElementById('dropdownSort').value;
-
-  let sortedTires;
-
-  switch (dropdownValue) {
-    case '1':
-      // Rekommenderat, ingen specifik sortering
-      sortedTires = tiresData; // Här kan du lägga till logik för att sortera baserat på rekommenderat om du har sådan data
-      break;
-
-    case '2':
-      // Populär (Antar att du har någon popularitetsordning, t.ex. rankad lista)
-      sortedTires = tiresData; // Om du har populära däcken ordnade, implementera det här
-      break;
-
-    case '3':
-      // Lägst - Högst
-      sortedTires = [...tiresData].sort((a, b) => a.Price - b.Price);
-      break;
-
-    case '4':
-      // Högst - Lägst
-      sortedTires = [...tiresData].sort((a, b) => b.Price - a.Price);
-      break;
-
-    default:
-      sortedTires = tiresData;
+// Funktion för att hämta JSON-data
+async function fetchTiresData() {
+  try {
+    const response = await fetch('/json/tire_ads.json'); // Ange rätt sökväg till JSON-filen
+    const tiresData = await response.json(); // Konvertera till JS-objekt
+    initializeTires(tiresData); // Initiera visningen
+  } catch (error) {
+    console.error('Fel vid hämtning av JSON:', error);
   }
-
-  updateTiresDisplay(sortedTires); // Uppdatera däcken med den sorterade listan
-  
 }
 
-// Funktion för att uppdatera visningen av däcken
-function updateTiresDisplay() {
-  const cards = document.querySelectorAll('.container'); // Alla däckkort
-  cards.forEach(card => {
-    const type = card.getAttribute('data-type'); // Hämta däcktyp från kortet
-    // Visa eller dölj kortet beroende på om det matchar det aktiva filtret
-    if (activeFilters.length === 0 || activeFilters.includes(type)) {
-      card.style.display = 'block'; // Visa kortet
-    } else {
-      card.style.display = 'none'; // Dölj kortet
-    }
+// Funktion för att initiera däckvisningen
+function initializeTires(tiresData) {
+  // Sortera och filtrera direkt vid sidladdning
+  sortAndFilterTires(tiresData);
+
+  // Lägg till event listeners på filterknappar
+  document.getElementById('All').addEventListener('click', () => toggleFilter('All', tiresData));
+  document.getElementById('Summer').addEventListener('click', () => toggleFilter('Summer', tiresData));
+  document.getElementById('Winter').addEventListener('click', () => toggleFilter('Winter', tiresData));
+
+  // Lägg till event listener på dropdown-menyn
+  document.getElementById('dropdownSort').addEventListener('change', () => sortAndFilterTires(tiresData));
+}
+
+// Funktion för att sortera och filtrera däck
+function sortAndFilterTires(tiresData) {
+  const dropdownValue = document.getElementById('dropdownSort').value;
+
+  let filteredTires = tiresData;
+
+  // Filtrera baserat på aktiva filter
+  if (activeFilters.length > 0) {
+    filteredTires = filteredTires.filter(tire => activeFilters.includes(tire.Type));
+  }
+
+  // Sortera baserat på dropdownvärde
+  switch (dropdownValue) {
+    case '3': // Lägst - Högst
+      filteredTires.sort((a, b) => a.Price - b.Price);
+      break;
+    case '4': // Högst - Lägst
+      filteredTires.sort((a, b) => b.Price - a.Price);
+      break;
+    default:
+      // Rekommenderat eller Populär (ingen specifik logik implementerad)
+      break;
+  }
+
+  updateTiresDisplay(filteredTires);
+}
+
+// Funktion för att uppdatera visningen av däck
+function updateTiresDisplay(tires) {
+  const container = document.getElementById('tireContainer');
+  container.innerHTML = ''; // Rensa befintliga annonser
+
+  tires.forEach(tire => {
+    const tireElement = createStyledCard(tire);
+    container.appendChild(tireElement);
   });
 }
 
-// Funktion för att hantera knapptryckningar
-function toggleFilter(type) {
+// Funktion för att skapa ett stylat kort
+function createStyledCard(tire) {
+  // Hämta CSS-variabler från :root
+  const rootStyles = getComputedStyle(document.documentElement);
+  const containerHeight = rootStyles.getPropertyValue('--containerHeight').trim();
+  const containerWidth = rootStyles.getPropertyValue('--containerWidth').trim();
+  const imgHeight = rootStyles.getPropertyValue('--imgHeight').trim();
+  const infoStart = rootStyles.getPropertyValue('--InfoStart').trim();
+  const infoHeight = rootStyles.getPropertyValue('--infoHeigt').trim();
+  const titleSize = rootStyles.getPropertyValue('--TitleSize').trim();
+  const priceSize = rootStyles.getPropertyValue('--PriceSize').trim();
+  const buttonWidth = rootStyles.getPropertyValue('--ButtonWidth').trim();
+  const buttonHeight = rootStyles.getPropertyValue('--ButtonHeight').trim();
+  const buttonFontSize = rootStyles.getPropertyValue('--ButtonFontSz').trim();
+  const buttonPadding = rootStyles.getPropertyValue('--ButtonPadding').trim();
+  const graycolor = rootStyles.getPropertyValue('--gra').trim()
+  const whiteColor = rootStyles.getPropertyValue('--vit').trim();
+  const goldColor2 = rootStyles.getPropertyValue('--guld_2').trim();
+  const goldColor = rootStyles.getPropertyValue('--guld').trim();
+  const BlackColor = rootStyles.getPropertyValue('--svart').trim();
+  const MarginSmall = rootStyles.getPropertyValue('--margin-s').trim();
+
+
+  // Kortets huvudbehållare
+  const card = document.createElement('div');
+  card.className = 'container_shopcard';
+  card.setAttribute('data-type', tire.Type);
+  Object.assign(card.style, {
+    backgroundColor: graycolor,
+    width: containerWidth,
+    height: containerHeight,
+    borderRadius: '5%',
+    overflow: 'hidden',
+    position: 'relative',
+  });
+
+  // Bild
+  const img = document.createElement('img');
+  img.src = tire.Img;
+  img.alt = 'Tire Image';
+  Object.assign(img.style, {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: imgHeight,
+    objectFit: 'cover',
+  });
+
+  // Info-sektion
+  const headInfo = document.createElement('div');
+  Object.assign(headInfo.style, {
+    position: 'absolute',
+    top: infoStart,
+    width: '100%',
+    height: infoHeight,
+    textAlign: 'center',
+  });
+
+  // Titel
+  const title = document.createElement('h2');
+  title.textContent = tire.Title;
+  Object.assign(title.style, {
+    fontSize: titleSize,
+    fontWeight: 'bold',
+    color: goldColor
+  });
+
+  // Pris
+  const price = document.createElement('div');
+  price.textContent = `${tire.Price} :-`;
+  Object.assign(price.style, {
+    fontSize: priceSize,
+    margin: '10px 0',
+    fontWeight: 'bold',
+  });
+
+  // Köp-knapp
+  const button = document.createElement('button');
+  button.textContent = 'Köp nu';
+  button.onclick = () => window.open(tire.Link, '_blank');
+  Object.assign(button.style, {
+    position: 'absolute',
+    bottom: '5%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: buttonWidth,
+    height: buttonHeight,
+    fontSize: buttonFontSize,
+    padding: buttonPadding,
+    backgroundColor: BlackColor,
+    color: whiteColor,
+    borderRadius: '1rem',
+    cursor: 'pointer',
+  });
+
+  // Sätt ihop kortet
+  headInfo.appendChild(title);
+  headInfo.appendChild(price);
+  card.appendChild(img);
+  card.appendChild(headInfo);
+  card.appendChild(button);
+
+  return card;
+}
+
+
+// Funktion för att hantera filterknappar
+function toggleFilter(type, tiresData) {
   const index = activeFilters.indexOf(type);
   if (index > -1) {
     activeFilters.splice(index, 1); // Ta bort filtret om det redan är aktivt
@@ -59,14 +181,8 @@ function toggleFilter(type) {
     activeFilters.push(type); // Lägg till filtret om det inte är aktivt
     document.getElementById(type).classList.add('active'); // Lägg till aktiv klass
   }
-  updateTiresDisplay(); // Uppdatera däcken
+  sortAndFilterTires(tiresData); // Uppdatera listan
 }
 
-// Lägg till event listeners på knapparna
-document.getElementById('All').addEventListener('click', () => toggleFilter('All'));
-document.getElementById('Summer').addEventListener('click', () => toggleFilter('Summer'));
-document.getElementById('Winter').addEventListener('click', () => toggleFilter('Winter'));
-
-// Initial uppdatering av däcken när sidan laddas
-updateTiresDisplay();
-
+// Hämta och initiera däckvisning vid sidladdning
+fetchTiresData();
