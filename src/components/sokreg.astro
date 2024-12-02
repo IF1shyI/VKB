@@ -1,5 +1,44 @@
 <label class="reg-num-label" for="reg-number">Sök reg nummer:</label>
 <div class="input-wrapper">
+  <div class="blue-strip">
+    <svg
+      viewBox="0 0 100 100"
+      class="stars-circle"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <!-- Gruppera stjärnorna kring centrum (50,50) -->
+      <g transform="translate(50, 50)">
+        <!-- Skapa 24 stjärnor i en cirkel med radien 35 -->
+        <circle cx="0" cy="-35" r="2" fill="yellow"></circle>
+        <!-- Topp -->
+        <circle cx="9" cy="-34" r="2" fill="yellow"></circle>
+        <!-- Mellan -->
+        <circle cx="17" cy="-30" r="2" fill="yellow"></circle>
+        <circle cx="25" cy="-25" r="2" fill="yellow"></circle>
+        <circle cx="30" cy="-17" r="2" fill="yellow"></circle>
+        <circle cx="34" cy="-9" r="2" fill="yellow"></circle>
+        <circle cx="35" cy="0" r="2" fill="yellow"></circle>
+        <circle cx="34" cy="9" r="2" fill="yellow"></circle>
+        <circle cx="30" cy="17" r="2" fill="yellow"></circle>
+        <circle cx="25" cy="25" r="2" fill="yellow"></circle>
+        <circle cx="17" cy="30" r="2" fill="yellow"></circle>
+        <circle cx="9" cy="34" r="2" fill="yellow"></circle>
+        <circle cx="0" cy="35" r="2" fill="yellow"></circle>
+        <circle cx="-9" cy="34" r="2" fill="yellow"></circle>
+        <circle cx="-17" cy="30" r="2" fill="yellow"></circle>
+        <circle cx="-25" cy="25" r="2" fill="yellow"></circle>
+        <circle cx="-30" cy="17" r="2" fill="yellow"></circle>
+        <circle cx="-34" cy="9" r="2" fill="yellow"></circle>
+        <circle cx="-35" cy="0" r="2" fill="yellow"></circle>
+        <circle cx="-34" cy="-9" r="2" fill="yellow"></circle>
+        <circle cx="-30" cy="-17" r="2" fill="yellow"></circle>
+        <circle cx="-25" cy="-25" r="2" fill="yellow"></circle>
+        <circle cx="-17" cy="-30" r="2" fill="yellow"></circle>
+        <circle cx="-9" cy="-34" r="2" fill="yellow"></circle>
+      </g>
+    </svg>
+    <div class="country-code">S</div>
+  </div>
   <input
     type="text"
     id="reg-number"
@@ -186,5 +225,35 @@
       height: 100%; /* Justera storleken på ikonen */
       left: 80%; /* Placera om ikonen */
     }
+  }
+
+  .blue-strip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 99999;
+
+    background: #003399;
+    width: 40px;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    color: white;
+  }
+
+  .country-code {
+    position: absolute;
+    font-size: 20px;
+    font-weight: bold;
+    bottom: 7px;
+  }
+
+  .stars-circle {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 40px;
   }
 </style>
