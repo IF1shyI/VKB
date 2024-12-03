@@ -39,6 +39,9 @@ function sortAndFilterTires(tiresData) {
 
   // Sortera baserat på dropdownvärde
   switch (dropdownValue) {
+    case '1': // Rekommenderat (slumpmässig ordning)
+      filteredTires = shuffleArray(filteredTires);
+      break;
     case '3': // Lägst - Högst
       filteredTires.sort((a, b) => a.Price - b.Price);
       break;
@@ -53,6 +56,13 @@ function sortAndFilterTires(tiresData) {
   updateTiresDisplay(filteredTires);
 }
 
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1)); // Slumpmässigt index
+    [array[i], array[j]] = [array[j], array[i]]; // Byt plats på element
+  }
+  return array;
+}
 // Funktion för att uppdatera visningen av däck
 function updateTiresDisplay(tires) {
   const container = document.getElementById('tireContainer');
