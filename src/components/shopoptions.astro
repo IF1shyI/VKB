@@ -4,15 +4,15 @@
       <div class="button_Image"><img src="/bilder/options.svg" alt="" /></div>
       <div class="button_text">Filter</div>
     </button>
-    <div class="options hidden">
+    <div class="options options_display_none">
       <button id="All" class="option_button dropdown_button">Året runt</button>
       <button id="Summer" class="option_button">Sommar</button>
       <button id="Winter" class="option_button">Vinter</button>
     </div>
   </div>
-  <button id="All" class="outside_button option_button">Året runt</button>
+  <!-- <button id="All" class="outside_button option_button">Året runt</button>
   <button id="Summer" class="outside_button option_button">Sommar</button>
-  <button id="Winter" class="outside_button option_button">Vinter</button>
+  <button id="Winter" class="outside_button option_button">Vinter</button> -->
 
   <select name="Dropdown" id="dropdownSort" class="styled-dropdown">
     <option value="1">Rekommenderat</option>
@@ -28,7 +28,7 @@
     --realwidth: calc(100vw - var(--margin-m));
 
     --ButtonWidthoptions: 150px;
-    --ButtonHeightoptions: calc(var(--ButtonWidth) * 0.5);
+    --ButtonHeightoptions: 40px;
     --ButtonFontSzoptions: 1rem;
     --ButtonPaddingoptions: 5px;
 
@@ -36,7 +36,7 @@
     --DroppdownHeightoptions: calc(var(var(--DroppdownWidthoptions) * 1));
 
     --filterWidth: 75%;
-    --filterHeight: 50px;
+    --filterHeight: 44px;
   }
 
   .hidden {
@@ -46,8 +46,16 @@
   .show {
     display: flex;
   }
+
+  .options_display_flex {
+    display: flex;
+  }
+
+  .options_height_real {
+    height: 150px;
+  }
   .filter {
-    display: none;
+    display: block;
     width: var(--filterWidth);
     height: var(--filterHeight);
   }
@@ -57,8 +65,6 @@
     margin-left: var(--margin-m);
     margin-top: var(--margin-s);
     margin-bottom: var(--margin-s);
-
-    border-bottom: 1px solid var(--vit);
 
     display: flex;
     flex-wrap: wrap;
@@ -121,18 +127,19 @@
       background-color: #f9f9f9;
       color: #333;
     }
-    .active {
-      background-color: var(--gra);
-      color: var(--vit);
-      &&:hover {
-        color: var(--svart);
-        background-color: slategrey;
-      }
+  }
+
+  .active {
+    background-color: var(--gra) !important;
+    color: var(--vit) !important;
+    &&:hover {
+      color: var(--svart) !important;
+      background-color: slategrey !important;
     }
   }
 
   .filter_button {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 0.6rem;
 
@@ -161,8 +168,6 @@
   }
 
   .options {
-    width: 100vw;
-    height: 150px;
     background-color: var(--svart);
     z-index: 9999999;
     flex-wrap: wrap;
@@ -180,6 +185,29 @@
     }
     .outside_button {
       display: none;
+    }
+
+    .filter_button {
+      display: flex;
+    }
+
+    .options_display_none {
+      display: none;
+    }
+  }
+
+  @media screen and (min-width: 801px) {
+    .option {
+      height: var(--filterHeight);
+    }
+
+    .val_toggled {
+      height: var(--filterHeight);
+    }
+    .options_height_real {
+      height: var(--filterHeight);
+      display: block;
+      width: 100%;
     }
   }
 </style>
