@@ -67,6 +67,20 @@ const { title } = Astro.props;
     --input-sok-sz: 18rem;
     --sz: 2rem;
   }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --primary-clr: #fff;
+    }
+  }
+
+  /* Stilar för mörkt tema */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --primary-clr: rgb(0, 0, 0);
+      --sec-clr: #fff;
+    }
+  }
   html {
     font-family: var(--font);
     background: var(--svart);
@@ -89,7 +103,7 @@ const { title } = Astro.props;
 
   body {
     margin: 0;
-    background-color: black;
+    background-color: var(--primary-clr);
     color: #fff;
     height: 100vh;
   }
