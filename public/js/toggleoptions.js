@@ -14,7 +14,6 @@ function toggleOptions(event) {
   
 
   // Använd toggle() för att lägga till/ta bort klasser
-  options.classList.toggle("hidden");
   options.classList.toggle("show");
   options.classList.toggle("options_display_flex");
   options.classList.toggle("options_display_none");

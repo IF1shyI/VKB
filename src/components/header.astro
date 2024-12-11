@@ -5,6 +5,10 @@
 <header>
   <a href="/"><img src="/bilder/logga.svg" alt="logga.svg" class="logga" /></a>
   <a href="/"><h1 class="namn">VAD KOSTAR BILEN</h1></a>
+  <button class="login" onclick="window.location.href='/login'">
+    <img src="/bilder/login_icon.svg" alt="" class="login_img" />
+    <div class="login_button_text">Logga in</div>
+  </button>
   <div class="menu-icon" onclick="toggleMenu()">
     <img src="/bilder/meny_icon.svg" alt="meny.svg" />
   </div>
@@ -54,21 +58,20 @@
   }
 
   .menu-icon {
-    display: none;
+    display: block;
     font-size: 30px;
     cursor: pointer;
     color: white;
     margin-right: var(--margin-s);
     position: absolute;
-    top: 50%; /* Placera knappen i mitten av headern vertikalt */
-    transform: translateY(
-      -50%
-    ); /* Justera för att centrera knappen vertikalt */
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
   }
 
   .menu {
     display: flex;
-    flex-direction: row; /* Visa menyelementen i en kolumn när menyn är öppen */
+    flex-wrap: wrap;
     gap: 20px;
     position: absolute;
     top: 100%; /* Placera menyn under headern */
@@ -76,6 +79,8 @@
     top: 50%;
     transform: translateY(-50%);
     z-index: 10; /* Säkerställ att menyn visas ovanpå andra element */
+
+    justify-content: center;
   }
 
   .menu button {
@@ -95,11 +100,61 @@
 
   .menu button:hover {
     background-color: var(--gra);
-    cursor: pointer;
+  }
+
+  .menu {
+    display: none;
+    width: 100%;
+    text-align: center;
+  }
+
+  .menu a {
+    padding: 15px;
+  }
+
+  .menu.show {
+    display: flex;
+    align-items: center;
+
+    left: 50%;
+    top: var(--header-sz);
+    transform: translateX(-50%);
+
+    background-color: var(--svart);
+    padding-bottom: var(--margin-s);
+    padding-top: 5px;
+  }
+
+  .login {
+    position: absolute;
+    top: 50%;
+    right: 100px;
+    transform: translateY(-50%);
+
+    width: 130px;
+    height: var(--header-btn-sz);
+
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    .login_img {
+      position: absolute;
+      top: 5px;
+      left: 15px;
+
+      height: 62%;
+    }
+
+    .login_button_text {
+      position: absolute;
+      right: 15px;
+      font-weight: bold;
+      font-size: 1rem;
+    }
   }
 
   /* Stil för små skärmar */
-  @media screen and (max-width: 1800px) {
+  /* @media screen and (max-width: 1800px) {
     .menu {
       display: none;
       width: 100%;
@@ -131,19 +186,18 @@
       padding-bottom: var(--margin-s);
       padding-top: 5px;
     }
-  }
+  } */
 
-  @media screen and (max-width: 600px) {
-    h1 {
+  @media screen and (max-width: 800px) {
+    .namn {
       font-size: 1.25rem;
       position: absolute;
       text-align: center;
 
-      top: 50%;
-      left: 30%;
-      transform: translate(-50%, -50%);
+      left: 10px;
+      transform: translateY(-50%);
       margin: 0;
-      width: 60%;
+      /* width: 60%; */
     }
 
     .logga {

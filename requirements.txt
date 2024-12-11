@@ -1,0 +1,8 @@
+Flask
+beautifulsoup4
+Flask-Caching
+playwright
+python-dotenv
+flask-cors
+openai
+astro

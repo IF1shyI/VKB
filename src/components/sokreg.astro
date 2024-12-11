@@ -11,7 +11,7 @@
     placeholder="ABC123"
     maxlength="6"
   />
-  <div onclick="Search()">
+  <div class="arrow-knapp" onclick="Search()">
     <img
       src="/bilder/arrow_r.svg"
       alt="arrow"
@@ -169,10 +169,39 @@
     width: 90%;
     font-size: 1rem;
   }
+  .blue-strip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 99999;
+    overflow: hidden;
 
+    background: #003399;
+    width: calc(var(--input-sok-sz) * 0.15);
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+
+  .country-code {
+    position: absolute;
+    font-size: 20px;
+    font-weight: bold;
+    bottom: 7px;
+  }
+
+  .stars-circle {
+    position: absolute;
+    top: 8%;
+    width: 30px;
+    height: 30px;
+  }
   @media (max-width: 600px) {
     .input-wrapper {
       width: 70%; /* Justera bredden här */
+      height: 25%;
       padding-right: 2rem; /* Minska padding om nödvändigt */
     }
 
@@ -190,36 +219,25 @@
       height: 100%; /* Justera storleken på ikonen */
       left: 80%; /* Placera om ikonen */
     }
-  }
 
-  .blue-strip {
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 99999;
-    overflow: hidden;
+    .blue-strip {
+      width: 10%;
 
-    background: #003399;
-    width: 40px;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    color: white;
-  }
+      .country-code {
+        font-size: 15px;
+      }
 
-  .country-code {
-    position: absolute;
-    font-size: 20px;
-    font-weight: bold;
-    bottom: 7px;
-  }
+      .stars-circle {
+        left: 2px;
+        top: 8px;
+        width: 85%;
+      }
+    }
 
-  .stars-circle {
-    position: absolute;
-    top: 8%;
-    width: 30px;
-    height: 30px;
+    .arrow-knapp {
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
   }
 </style>

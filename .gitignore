@@ -26,3 +26,7 @@ pnpm-debug.log*
 
 #session fil
 session.json
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

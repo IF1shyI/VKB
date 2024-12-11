@@ -10,20 +10,24 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.3",
-    "@astrojs/react": "^3.6.3",
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/react": "^4.0.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "astro": "^4.15.4",
+    "astro": "^5.0.4",
     "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.3",
     "cookie-session": "^2.1.0",
-    "dotenv": "^16.4.6",
-    "express": "^4.21.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "google-auth-library": "^9.15.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "^5.6.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.1",
     "daisyui": "^4.12.14",
     "tailwindcss": "^3.4.15"
   }
