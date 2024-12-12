@@ -66,6 +66,9 @@
         SucsessDIV.innerHTML = `
                     <h1>${result.message}</h1>
                     `;
+        setTimeout(() => {
+          window.location.href = "/"; // Ersätt med URL till startsidan
+        }, 1000);
       } else {
         SucsessDIV.innerHTML = `
                     <h1>${result.message}</h1>

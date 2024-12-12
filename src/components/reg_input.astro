@@ -15,6 +15,21 @@ import Sok from "./sokreg.astro";
   </section>
 </div>
 
+<script>
+  async function checkLoginStatus() {
+    const response = await fetch("/dashboard");
+    if (response.ok) {
+      const data = await response.json();
+      console.log(data.message); // Visar användarens välkomstmeddelande
+    } else {
+      // Om användaren inte är inloggad, omdirigera till login-sidan
+      console.log("Ej inloggad");
+    }
+  }
+
+  checkLoginStatus();
+</script>
+
 <style>
   .image-container {
     position: relative;

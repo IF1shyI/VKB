@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session, redirect, url_for
 from bs4 import BeautifulSoup
 from flask_caching import Cache
 from playwright.sync_api import sync_playwright
@@ -11,6 +11,7 @@ import re
 import time
 from openai import OpenAI
 from cryptography.fernet import Fernet
+from flask_session import Session
 
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
@@ -25,6 +26,7 @@ USERNAME = os.getenv("USERN")
 PASSWORD = os.getenv("PASSWORD")
 APIKEY = os.getenv("APIKEY")
 encryption_key = os.getenv("ENCRTPT_KEY")
+Session_key = os.getenv("SESS_KEY")
 
 client = OpenAI(
     # This is the default and can be omitted
@@ -48,6 +50,12 @@ global_besbruk = "Error"
 global_fskatt = "Error"
 drivmedel = "Error"
 co2 = "Error"
+
+app.secret_key = Session_key
+
+# Använd serverbaserade sessioner (sessioner som sparas på servern)
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
 
 def convert_currency_text_to_int(text):
@@ -618,19 +626,17 @@ def login():
 
         # Jämför e-post och lösenord
         if user_email == email and user_password == password:
+            session["user"] = email
             return jsonify({"message": "Inloggning lyckades!"}), 200
 
     return jsonify({"message": "Fel e-post eller lösenord"}), 401
 
 
-# Läs användare (dekrypterad)
-@app.route("/read_users", methods=["GET"])
-def read_users():
-    try:
-        users = read_from_md_file()
-        return jsonify({"users": users}), 200
-    except Exception as e:
-        return jsonify({"message": "Fel vid läsning av data", "error": str(e)}), 500
+@app.route("/logout")
+def logout():
+    # Ta bort användaren från sessionen (logga ut)
+    session.pop("user", None)
+    return redirect(url_for("login"))
 
 
 # Registrera funktionen för att köra vid avslut
@@ -638,3 +644,7 @@ atexit.register(on_shutdown)
 
 if __name__ == "__main__":
     app.run(debug=False)
+
+
+# if "user" not in session:
+#     return redirect(url_for("login"))

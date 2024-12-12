@@ -10,3 +10,4 @@ express
 body-parser 
 bcrypt 
 jsonwebtoken
+Flask-Session
