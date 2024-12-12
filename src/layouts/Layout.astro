@@ -4,6 +4,7 @@ interface Props {
 }
 
 const { title } = Astro.props;
+import Cookie from "../components/cookie.astro";
 ---
 
 <!doctype html>
@@ -24,6 +25,7 @@ const { title } = Astro.props;
   </head>
   <body>
     <slot />
+    <Cookie />
   </body>
 </html>
 <style is:global>

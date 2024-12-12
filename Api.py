@@ -598,11 +598,20 @@ def read_from_md_file():
 def register():
     data = request.get_json()
     name = data.get("name")
-    email = data.get("email")
     password = data.get("password")
 
+    users = read_from_md_file()
+    for user_data in users:
+        # Split the decrypted data into fields
+        user_fields = user_data.split(", ")
+        existing_name = user_fields[0].split(": ")[1]  # Extract 'Name' field
+        if existing_name == name:
+            return (
+                jsonify({"message": "Användarnamn är redan taget", "success": False}),
+                409,
+            )
     # Kryptera data
-    user_data = f"Name: {name}, Email: {email}, Password: {password}"
+    user_data = f"Name: {name}, Password: {password}"
     encrypted_data = encrypt_data(user_data)
 
     # Skriv krypterad data till .md-filen
@@ -614,7 +623,7 @@ def register():
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    email = data.get("email")
+    username = data.get("username")
     password = data.get("password")
 
     # Läs användardata från filen
@@ -624,12 +633,12 @@ def login():
     for user in users:
         # Dela upp den dekrypterade data för att få ut e-post och lösenord
         user_data = user.split(", ")
-        user_email = user_data[1].split(": ")[1]
-        user_password = user_data[2].split(": ")[1]
+        user_name = user_data[0].split(": ")[1]
+        user_password = user_data[1].split(": ")[1]
 
         # Jämför e-post och lösenord
-        if user_email == email and user_password == password:
-            session["user"] = email
+        if user_name == username and user_password == password:
+            session["user"] = username
             return jsonify({"message": "Inloggning lyckades!", "success": True}), 200
 
     return jsonify({"message": "Fel e-post eller lösenord", "success": False}), 401

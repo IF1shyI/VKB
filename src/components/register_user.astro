@@ -11,22 +11,13 @@
 <form id="registerForm">
   <h1>Skapa Konto</h1>
   <div class="form-group">
-    <label for="name">Namn</label>
+    <label for="name">Användarnamn</label>
     <input
       type="text"
       id="name"
       required
-      placeholder="Namn"
+      placeholder="Användarnamn"
       autocomplete="off"
-    />
-    <label for="email">Mail</label>
-    <input
-      type="email"
-      id="email"
-      spellcheck="false"
-      required
-      placeholder="Mail"
-      autocomplete="on"
     />
     <label for="password">Lösenord</label>
     <input
@@ -49,15 +40,13 @@
       e.preventDefault();
 
       const name = (document.getElementById("name") as HTMLInputElement).value;
-      const email = (document.getElementById("email") as HTMLInputElement)
-        .value;
       const password = (document.getElementById("password") as HTMLInputElement)
         .value;
 
       const response = await fetch("http://127.0.0.1:5000/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, password }),
       });
       const SucsessDIV = document.getElementById("SucsessDIV");
       const result = await response.json();
@@ -70,7 +59,7 @@
         }, 1000);
       } else {
         SucsessDIV.innerHTML = `
-                    <h1>Mail finns redan</h1>
+                    <h1>${result.message}</h1>
                     `;
       }
     });

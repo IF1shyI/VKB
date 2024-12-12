@@ -1,0 +1,67 @@
+<div id="cookie-banner" class="cookie-banner hidden">
+  <p>
+    Vi använder cookies för att förbättra din upplevelse på vår webbplats. Genom
+    att fortsätta samtycker du till vår användning av cookies.
+  </p>
+  <button id="accept-cookies">Acceptera</button>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const banner = document.getElementById("cookie-banner");
+    const acceptButton = document.getElementById("accept-cookies");
+
+    // Kontrollera om cookie-inställningen redan finns
+    const hasAcceptedCookies = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("cookiesAccepted="));
+
+    if (!hasAcceptedCookies) {
+      // Visa bannern om cookies inte har accepterats
+      banner.classList.remove("hidden");
+    }
+
+    acceptButton.addEventListener("click", () => {
+      // Sätt en cookie för att indikera att cookies är accepterade
+      document.cookie = "cookiesAccepted=true; path=/; max-age=31536000";
+      console.log("Accepterade cookies");
+
+      // Dölj bannern
+      banner.classList.add("hidden");
+    });
+  });
+</script>
+
+<style>
+  .cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .cookie-banner p {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+  }
+
+  .cookie-banner button {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+
+  .cookie-banner.hidden {
+    display: none;
+  }
+</style>
