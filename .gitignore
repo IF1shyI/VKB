@@ -30,3 +30,6 @@ session.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+#användare
+users.md

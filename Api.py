@@ -16,7 +16,10 @@ from flask_session import Session
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
+
+
+app.secret_key = os.urandom(24)
 
 # Ladda miljövariabler från .env-filen
 load_dotenv()
@@ -627,9 +630,9 @@ def login():
         # Jämför e-post och lösenord
         if user_email == email and user_password == password:
             session["user"] = email
-            return jsonify({"message": "Inloggning lyckades!"}), 200
+            return jsonify({"message": "Inloggning lyckades!", "success": True}), 200
 
-    return jsonify({"message": "Fel e-post eller lösenord"}), 401
+    return jsonify({"message": "Fel e-post eller lösenord", "success": False}), 401
 
 
 @app.route("/logout")
@@ -637,6 +640,17 @@ def logout():
     # Ta bort användaren från sessionen (logga ut)
     session.pop("user", None)
     return redirect(url_for("login"))
+
+
+@app.route("/checksession", methods=["GET"])
+def checksession():
+    # Kollar om användaren är inloggad genom att kontrollera sessionen
+    if "user" in session:
+        # Om användaren är inloggad, returnera ett välkomstmeddelande
+        return jsonify({"message": f"Välkommen, {session['user']}!"}), 200
+    else:
+        # Om användaren inte är inloggad, returnera ett felmeddelande
+        return jsonify({"message": "Ej inloggad"}), 401
 
 
 # Registrera funktionen för att köra vid avslut

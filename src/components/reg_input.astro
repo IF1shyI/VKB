@@ -5,6 +5,7 @@ import Sok from "./sokreg.astro";
 
 <div class="image-container">
   <img src="/bilder/car_image.webp" alt="En beskrivning av bilden" />
+  <div id="personwelcome"></div>
   <h1>Ta reda på din <br /> <mark>Månadskostnad</mark> <br />redan idag</h1>
   <section class="select-vehicle">
     <div class="vehicle-select-box">
@@ -16,11 +17,18 @@ import Sok from "./sokreg.astro";
 </div>
 
 <script>
+  const welcomeperson = document.getElementById("personwelcome");
   async function checkLoginStatus() {
-    const response = await fetch("/dashboard");
+    const response = await fetch("http://127.0.0.1:5000/checksession", {
+      method: "GET",
+      credentials: "include", // Skicka med cookies (inklusive session-cookie)
+    });
+
     if (response.ok) {
       const data = await response.json();
-      console.log(data.message); // Visar användarens välkomstmeddelande
+      welcomeperson.innerHTML = `
+                    <h3>${data.message}</h3>
+                    `;
     } else {
       // Om användaren inte är inloggad, omdirigera till login-sidan
       console.log("Ej inloggad");
