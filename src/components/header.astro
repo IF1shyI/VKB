@@ -13,20 +13,35 @@
     <img src="/bilder/meny_icon.svg" alt="meny.svg" />
   </div>
   <nav class="menu">
-    <button onclick="window.location.href='/'">Hem</button>
-    <button onclick="window.location.href='/info'">Tips</button>
-    <button onclick="window.location.href='/kontakt'">Kontakt</button>
-    <button onclick="window.location.href='/about'">Om oss</button>
+    <button class="nav-button" onclick="window.location.href='/'">Hem</button>
+    <button class="nav-button" onclick="window.location.href='/info'"
+      >Tips</button
+    >
+    <button class="nav-button" onclick="window.location.href='/kontakt'"
+      >Kontakt</button
+    >
+    <button class="nav-button" onclick="window.location.href='/about'"
+      >Om oss</button
+    >
   </nav>
 </header>
 <script is:inline>
   function toggleMenu() {
+    var nav_buttons = document.getElementsByClassName("nav-button");
     var menu = document.querySelector(".menu");
     menu.classList.toggle("show");
+    if (nav_buttons) {
+      nav_buttons.classList.toggle("hidden");
+    } else {
+      console.error("Menu element not found!");
+    }
   }
 </script>
 
 <style>
+  .hidden {
+    display: none;
+  }
   header {
     width: 100%;
     height: var(--header-sz);
@@ -103,9 +118,18 @@
   }
 
   .menu {
-    display: none;
+    opacity: 0;
+    max-height: 0;
+
+    overflow: hidden;
+
     width: 100%;
+
     text-align: center;
+
+    transition:
+      opacity 0.5s ease,
+      max-height 0.5s ease;
   }
 
   .menu a {
@@ -123,6 +147,9 @@
     background-color: var(--svart);
     padding-bottom: var(--margin-s);
     padding-top: 5px;
+
+    opacity: 1;
+    max-height: 500px;
   }
 
   .login {
@@ -152,41 +179,6 @@
       font-size: 1rem;
     }
   }
-
-  /* Stil för små skärmar */
-  /* @media screen and (max-width: 1800px) {
-    .menu {
-      display: none;
-      width: 100%;
-      text-align: center;
-    }
-
-    .menu a {
-      padding: 15px;
-    }
-
-    .menu-icon {
-      display: block;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      right: 10px;
-    }
-
-    .menu.show {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-      left: 50%;
-      top: var(--header-sz);
-      transform: translateX(-50%);
-
-      background-color: var(--svart);
-      padding-bottom: var(--margin-s);
-      padding-top: 5px;
-    }
-  } */
 
   @media screen and (max-width: 800px) {
     .namn {
