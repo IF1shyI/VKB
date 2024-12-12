@@ -58,6 +58,8 @@ app.secret_key = Session_key
 
 # Använd serverbaserade sessioner (sessioner som sparas på servern)
 app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_COOKIE_SECURE"] = False
+
 Session(app)
 
 

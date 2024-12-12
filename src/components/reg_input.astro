@@ -18,24 +18,6 @@ import Sok from "./sokreg.astro";
 
 <script>
   const welcomeperson = document.getElementById("personwelcome");
-  async function checkLoginStatus() {
-    const response = await fetch("http://127.0.0.1:5000/checksession", {
-      method: "GET",
-      credentials: "include", // Skicka med cookies (inklusive session-cookie)
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      welcomeperson.innerHTML = `
-                    <h3>${data.message}</h3>
-                    `;
-    } else {
-      // Om användaren inte är inloggad, omdirigera till login-sidan
-      console.log("Ej inloggad");
-    }
-  }
-
-  checkLoginStatus();
 </script>
 
 <style>

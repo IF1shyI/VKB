@@ -28,6 +28,23 @@ import Cookie from "../components/cookie.astro";
     <Cookie />
   </body>
 </html>
+<script>
+  async function checkLoginStatus() {
+    const response = await fetch("http://127.0.0.1:5000/checksession", {
+      method: "GET",
+      credentials: "include", // Skicka med cookies (inklusive session-cookie)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Inloggad");
+    } else {
+      console.log("Ej inloggad");
+    }
+  }
+
+  checkLoginStatus();
+</script>
 <style is:global>
   @tailwind base;
   @tailwind components;

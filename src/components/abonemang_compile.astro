@@ -1,0 +1,27 @@
+---
+import Text from "./abonemang_text.astro";
+---
+
+<div class="abonemang_container">
+  <Text />
+</div>
+
+<style>
+  :root {
+    --container_width_abonemang: 70%;
+    --container_margin_top: 70px;
+  }
+  .abonemang_container {
+    position: relative;
+    left: 50%;
+    transform: translate(-50%);
+
+    width: var(--container_width_abonemang);
+
+    margin-top: var(--container_margin_top);
+
+    display: flex;
+    flex-direction: column;
+    place-content: center;
+  }
+</style>
