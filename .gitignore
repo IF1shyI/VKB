@@ -30,6 +30,7 @@ session.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/flask_session
 
 #användare
 users.md
