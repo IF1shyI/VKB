@@ -8,9 +8,17 @@
 />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-<form id="loginForm">
-  <h1>Logga in</h1>
+<form id="registerForm">
+  <h1>Skapa Konto</h1>
   <div class="form-group">
+    <label for="name">Namn</label>
+    <input
+      type="text"
+      id="name"
+      required
+      placeholder="Namn"
+      autocomplete="off"
+    />
     <label for="email">Mail</label>
     <input
       type="email"
@@ -28,47 +36,38 @@
       placeholder="Lösenord"
       autocomplete="off"
     />
-    <button type="submit" class="submitbtn">Logga in</button>
+    <button type="submit" class="submitbtn">Registrera</button>
   </div>
 </form>
-
-<div class="loginlink">
-  Har du inget konto? <a href="/register">Registrera dig</a>
-</div>
-
+<div class="loginlink">Har du redan konto? <a href="/login">Logga in</a></div>
 <div id="SucsessDIV"></div>
-
-<div id="google-login" class="mt-4"></div>
 
 <script>
   document
-    .getElementById("loginForm")
+    .getElementById("registerForm")
     ?.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const emailInput = document.getElementById("email") as HTMLInputElement;
-      const passwordInput = document.getElementById(
-        "password"
-      ) as HTMLInputElement;
+      const name = (document.getElementById("name") as HTMLInputElement).value;
+      const email = (document.getElementById("email") as HTMLInputElement)
+        .value;
+      const password = (document.getElementById("password") as HTMLInputElement)
+        .value;
 
-      const email = emailInput?.value || "";
-      const password = passwordInput?.value || "";
-
-      const response = await fetch("http://127.0.0.1:5000/login", {
+      const response = await fetch("http://127.0.0.1:5000/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password }),
       });
-
       const SucsessDIV = document.getElementById("SucsessDIV");
       const result = await response.json();
-      if (result.message === "Inloggning lyckades!") {
+      if (result.message === "Användare registrerad och data sparad") {
         SucsessDIV.innerHTML = `
-                    <h1>${result.message}</h1>
+                    <h1>Registrering lyckades!</h1>
                     `;
       } else {
         SucsessDIV.innerHTML = `
-                    <h1>${result.message}</h1>
+                    <h1>Mail finns redan</h1>
                     `;
       }
     });

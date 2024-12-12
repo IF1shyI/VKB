@@ -6,3 +6,7 @@ python-dotenv
 flask-cors
 openai
 astro
+express 
+body-parser 
+bcrypt 
+jsonwebtoken

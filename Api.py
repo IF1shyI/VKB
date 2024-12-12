@@ -10,6 +10,7 @@ import datetime
 import re
 import time
 from openai import OpenAI
+from cryptography.fernet import Fernet
 
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
@@ -23,6 +24,7 @@ load_dotenv()
 USERNAME = os.getenv("USERN")
 PASSWORD = os.getenv("PASSWORD")
 APIKEY = os.getenv("APIKEY")
+encryption_key = os.getenv("ENCRTPT_KEY")
 
 client = OpenAI(
     # This is the default and can be omitted
@@ -549,6 +551,86 @@ def tips():
     maintenancecost = response.choices[0].message.content
 
     print("Svaret från ai: ", maintenancecost)
+
+
+# Markdown-fil där användardata sparas
+DATA_FILE = "users.md"
+
+KEY = encryption_key  # Ersätt med en riktig nyckel
+cipher_suite = Fernet(KEY)
+
+
+# Hjälpfunktioner för kryptering och filhantering
+def encrypt_data(data: str) -> str:
+    return cipher_suite.encrypt(data.encode()).decode()
+
+
+def decrypt_data(data: str) -> str:
+    return cipher_suite.decrypt(data.encode()).decode()
+
+
+def write_to_md_file(encrypted_data: str):
+    with open(DATA_FILE, "a") as file:
+        file.write(encrypted_data + "\n")
+
+
+def read_from_md_file():
+    if not os.path.exists(DATA_FILE):
+        return []
+    with open(DATA_FILE, "r") as file:
+        lines = file.readlines()
+    return [decrypt_data(line.strip()) for line in lines]
+
+
+# Registreringsrutt
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    name = data.get("name")
+    email = data.get("email")
+    password = data.get("password")
+
+    # Kryptera data
+    user_data = f"Name: {name}, Email: {email}, Password: {password}"
+    encrypted_data = encrypt_data(user_data)
+
+    # Skriv krypterad data till .md-filen
+    write_to_md_file(encrypted_data)
+
+    return jsonify({"message": "Användare registrerad och data sparad"}), 200
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+
+    # Läs användardata från filen
+    users = read_from_md_file()
+
+    # Kontrollera om användaren finns och om lösenordet stämmer
+    for user in users:
+        # Dela upp den dekrypterade data för att få ut e-post och lösenord
+        user_data = user.split(", ")
+        user_email = user_data[1].split(": ")[1]
+        user_password = user_data[2].split(": ")[1]
+
+        # Jämför e-post och lösenord
+        if user_email == email and user_password == password:
+            return jsonify({"message": "Inloggning lyckades!"}), 200
+
+    return jsonify({"message": "Fel e-post eller lösenord"}), 401
+
+
+# Läs användare (dekrypterad)
+@app.route("/read_users", methods=["GET"])
+def read_users():
+    try:
+        users = read_from_md_file()
+        return jsonify({"users": users}), 200
+    except Exception as e:
+        return jsonify({"message": "Fel vid läsning av data", "error": str(e)}), 500
 
 
 # Registrera funktionen för att köra vid avslut
