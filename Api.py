@@ -12,6 +12,8 @@ import time
 from openai import OpenAI
 from cryptography.fernet import Fernet
 from flask_session import Session
+import jwt
+from datetime import datetime, timedelta
 
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
@@ -20,6 +22,10 @@ CORS(app, supports_credentials=True)
 
 
 app.secret_key = os.urandom(24)
+
+app.config["SESSION_COOKIE_SECURE"] = False  # Aktivera endast om du kör HTTPS
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Tillåt cross-site requests med cookies
 
 # Ladda miljövariabler från .env-filen
 load_dotenv()
@@ -570,10 +576,12 @@ def tips():
 DATA_FILE = "users.md"
 
 KEY = encryption_key  # Ersätt med en riktig nyckel
+SECRET_KEY = encryption_key
+ALGORITHM = "HS256"
+TOKEN_EXPIRATION_MINUTES = 120
 cipher_suite = Fernet(KEY)
 
 
-# Hjälpfunktioner för kryptering och filhantering
 def encrypt_data(data: str) -> str:
     return cipher_suite.encrypt(data.encode()).decode()
 
@@ -593,6 +601,28 @@ def read_from_md_file():
     with open(DATA_FILE, "r") as file:
         lines = file.readlines()
     return [decrypt_data(line.strip()) for line in lines]
+
+
+# Hjälpfunktion för att generera JWT
+def generate_jwt(username: str) -> str:
+    expiration = datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRATION_MINUTES)
+    payload = {
+        "username": username,
+        "exp": expiration,
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return token
+
+
+# Hjälpfunktion för att verifiera JWT
+def verify_jwt(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload  # Returnerar användardata från tokenen
+    except jwt.ExpiredSignatureError:
+        return None  # Token har gått ut
+    except jwt.InvalidTokenError:
+        return None  # Token är ogiltig
 
 
 # Registreringsrutt
@@ -633,17 +663,25 @@ def login():
 
     # Kontrollera om användaren finns och om lösenordet stämmer
     for user in users:
-        # Dela upp den dekrypterade data för att få ut e-post och lösenord
+        # Dela upp den dekrypterade data för att få ut namn och lösenord
         user_data = user.split(", ")
         user_name = user_data[0].split(": ")[1]
         user_password = user_data[1].split(": ")[1]
 
-        # Jämför e-post och lösenord
+        # Jämför namn och lösenord
         if user_name == username and user_password == password:
-            session["user"] = username
-            return jsonify({"message": "Inloggning lyckades!", "success": True}), 200
+            token = generate_jwt(username)  # Skapa JWT för användaren
+            return (
+                jsonify(
+                    {"message": "Inloggning lyckades!", "token": token, "success": True}
+                ),
+                200,
+            )
 
-    return jsonify({"message": "Fel e-post eller lösenord", "success": False}), 401
+    return (
+        jsonify({"message": "Fel användarnamn eller lösenord", "success": False}),
+        401,
+    )
 
 
 @app.route("/logout")
@@ -654,14 +692,24 @@ def logout():
 
 
 @app.route("/checksession", methods=["GET"])
-def checksession():
-    # Kollar om användaren är inloggad genom att kontrollera sessionen
-    if "user" in session:
-        # Om användaren är inloggad, returnera ett välkomstmeddelande
-        return jsonify({"message": f"Välkommen, {session['user']}!"}), 200
-    else:
-        # Om användaren inte är inloggad, returnera ett felmeddelande
-        return jsonify({"message": "Ej inloggad"}), 401
+def check_session():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"message": "Ingen token tillhandahållen"}), 401
+
+    token = auth_header.split(" ")[1]
+    try:
+        # Dekryptera JWT för att få användardata
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        username = decoded_token.get("username")
+        if username:
+            return jsonify({"message": "Session giltig", "username": username}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token har gått ut"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Ogiltig token"}), 401
+
+    return jsonify({"message": "Ogiltig session"}), 401
 
 
 # Registrera funktionen för att köra vid avslut

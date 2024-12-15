@@ -5,10 +5,12 @@
 <header>
   <a href="/"><img src="/bilder/logga.svg" alt="logga.svg" class="logga" /></a>
   <a href="/"><h1 class="namn">VAD KOSTAR BILEN</h1></a>
-  <button class="login" onclick="window.location.href='/login'">
-    <img src="/bilder/login_icon.svg" alt="" class="login_img" />
-    <div class="login_button_text">Logga in</div>
-  </button>
+  <div id="login-container">
+    <button class="login" onclick="window.location.href='/login'">
+      <img src="/bilder/login_icon.svg" alt="" class="login_img" />
+      <div class="login_button_text">Logga in</div>
+    </button>
+  </div>
   <div class="menu-icon" onclick="toggleMenu()">
     <img src="/bilder/meny_icon.svg" alt="meny.svg" />
   </div>
@@ -36,9 +38,51 @@
       console.error("Menu element not found!");
     }
   }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const loginContainer = document.getElementById("login-container");
+
+    // Kontrollera om JWT finns i localStorage
+    const jwtToken = localStorage.getItem("jwt");
+
+    if (jwtToken) {
+      try {
+        // Skicka en begäran till backend för att verifiera JWT och få användarinfo
+        const response = await fetch("http://127.0.0.1:5000/checksession", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          // Om token är giltig och användarnamn finns, uppdatera knappen
+          if (data.username) {
+            loginContainer.innerHTML = `
+              <button class="login logged-in" onclick="window.location.href='/profile'">
+                <img src="/bilder/login_icon.svg" alt="" class="login_img" />
+                <div class="login_button_text">${data.username}</div>
+              </button>
+            `;
+          }
+        } else {
+          // Om token inte är giltig, ta bort den
+          localStorage.removeItem("jwt");
+        }
+      } catch (error) {
+        console.error("Fel vid validering av session:", error);
+        localStorage.removeItem("jwt");
+      }
+    }
+  });
 </script>
 
 <style>
+  :root {
+    --login_button_width: 130px;
+  }
   .hidden {
     display: none;
   }
@@ -154,11 +198,10 @@
 
   .login {
     position: absolute;
-    top: 50%;
-    right: 100px;
-    transform: translateY(-50%);
+    top: 0;
+    left: 0;
 
-    width: 130px;
+    width: var(--login_button_width);
     height: var(--header-btn-sz);
 
     display: flex;
@@ -166,21 +209,40 @@
     align-items: center;
     .login_img {
       position: absolute;
-      top: 5px;
-      left: 15px;
+      top: 50%;
+      left: 15%;
+      transform: translate(-50%, -50%);
 
-      height: 62%;
+      height: 60%;
+      aspect-ratio: 1;
     }
 
     .login_button_text {
       position: absolute;
       right: 15px;
-      font-weight: bold;
       font-size: 1rem;
+      width: fit-content;
     }
+  }
+  #login-container {
+    position: absolute;
+    top: 50%;
+    right: 80px;
+    transform: translateY(-50%);
+
+    width: var(--login_button_width);
+    height: var(--header-btn-sz);
+  }
+
+  .logged-in {
+    width: 400px;
   }
 
   @media screen and (max-width: 800px) {
+    :root {
+      --login_button_width: 30px;
+      --header-btn-sz: var(--login_button_width);
+    }
     .namn {
       font-size: 1.25rem;
       position: absolute;
@@ -193,6 +255,21 @@
     }
 
     .logga {
+      display: none;
+    }
+
+    .login {
+      border-radius: 4px;
+      margin: 0;
+
+      .login_img {
+      position: absolute;
+      left: 50%; !important
+      top: 50%;
+      }
+    }
+
+    .login_button_text {
       display: none;
     }
   }

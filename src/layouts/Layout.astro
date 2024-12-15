@@ -4,7 +4,7 @@ interface Props {
 }
 
 const { title } = Astro.props;
-import Cookie from "../components/cookie.astro";
+import Cookie from "../components/all/cookie.astro";
 ---
 
 <!doctype html>
@@ -29,21 +29,32 @@ import Cookie from "../components/cookie.astro";
   </body>
 </html>
 <script>
-  async function checkLoginStatus() {
+  // Funktion för att kontrollera om användaren är inloggad
+  async function checkSession() {
+    const jwtToken = localStorage.getItem("jwt");
+    if (!jwtToken) {
+      console.log("Ingen användare är inloggad.");
+      return;
+    }
+
+    // Skicka token till backend för validering
     const response = await fetch("http://127.0.0.1:5000/checksession", {
       method: "GET",
-      credentials: "include", // Skicka med cookies (inklusive session-cookie)
+      headers: { Authorization: `Bearer ${jwtToken}` },
     });
 
+    const result = await response.json();
+
     if (response.ok) {
-      const data = await response.json();
-      console.log("Inloggad");
+      console.log(result.message); // Välkomstmeddelande från backend
     } else {
-      console.log("Ej inloggad");
+      console.error("Sessionen är ogiltig eller har gått ut:", result.message);
+      localStorage.removeItem("jwt"); // Rensa token vid utloggning eller fel
     }
   }
 
-  checkLoginStatus();
+  // Kontrollera session direkt vid sidladdning
+  checkSession();
 </script>
 <style is:global>
   @tailwind base;

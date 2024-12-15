@@ -18,6 +18,37 @@ import Sok from "./sokreg.astro";
 
 <script>
   const welcomeperson = document.getElementById("personwelcome");
+
+  // Kontrollera om JWT finns i localStorage
+  const jwtToken = localStorage.getItem("jwt");
+
+  if (jwtToken) {
+    // Skicka token till backend för validering och hämta användarinformation
+    fetch("http://127.0.0.1:5000/checksession", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message) {
+          // Visa välkomstmeddelande om sessionen är giltig
+          welcomeperson.innerHTML = `<h2>${data.message}</h2>`;
+        } else {
+          // Om sessionen inte är giltig, rensa JWT från localStorage
+          localStorage.removeItem("jwt");
+          welcomeperson.innerHTML = `<h2>Välkommen, gäst!</h2>`;
+        }
+      })
+      .catch((error) => {
+        console.error("Fel vid kontroll av sessionen:", error);
+        welcomeperson.innerHTML = `<h2>Välkommen, gäst!</h2>`;
+      });
+  } else {
+    // Om ingen JWT hittas, visa standardtext
+    welcomeperson.innerHTML = `<h2>Välkommen, gäst!</h2>`;
+  }
 </script>
 
 <style>
@@ -100,6 +131,17 @@ import Sok from "./sokreg.astro";
         font-family: "Arial", sans-serif;
         font-weight: bold;
       }
+    }
+  }
+
+  #personwelcome {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%);
+
+    h2 {
+      margin-top: var(--margin-s);
     }
   }
 </style>

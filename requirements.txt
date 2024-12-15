@@ -11,3 +11,4 @@ body-parser
 bcrypt 
 jsonwebtoken
 Flask-Session
+PyJWT

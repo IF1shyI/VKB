@@ -8,17 +8,17 @@
 />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-<form id="loginForm">
-  <h1>Logga in</h1>
+<form id="registerForm">
+  <h1>Skapa Konto</h1>
   <div class="form-group">
-    <label for="Username">Användarnamn</label>
+    <label for="name">Användarnamn</label>
     <input
       type="text"
-      id="Username"
-      spellcheck="false"
+      id="name"
       required
       placeholder="Användarnamn"
-      autocomplete="on"
+      autocomplete="off"
+      maxlength="12"
     />
     <label for="password">Lösenord</label>
     <input
@@ -28,48 +28,35 @@
       placeholder="Lösenord"
       autocomplete="off"
     />
-    <button type="submit" class="submitbtn">Logga in</button>
+    <button type="submit" class="submitbtn">Registrera</button>
   </div>
 </form>
-
-<div class="loginlink">
-  Har du inget konto? <a href="/register">Registrera dig</a>
-</div>
-
+<div class="loginlink">Har du redan konto? <a href="/login">Logga in</a></div>
 <div id="SucsessDIV"></div>
-
-<div id="google-login" class="mt-4"></div>
 
 <script>
   document
-    .getElementById("loginForm")
+    .getElementById("registerForm")
     ?.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const usernameInput = document.getElementById(
-        "Username"
-      ) as HTMLInputElement;
-      const passwordInput = document.getElementById(
-        "password"
-      ) as HTMLInputElement;
+      const name = (document.getElementById("name") as HTMLInputElement).value;
+      const password = (document.getElementById("password") as HTMLInputElement)
+        .value;
 
-      const username = usernameInput?.value || "";
-      const password = passwordInput?.value || "";
-
-      const response = await fetch("http://127.0.0.1:5000/login", {
+      const response = await fetch("http://127.0.0.1:5000/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ name, password }),
       });
-
       const SucsessDIV = document.getElementById("SucsessDIV");
       const result = await response.json();
-      if (result.message === "Inloggning lyckades!") {
+      if (result.message === "Användare registrerad och data sparad") {
         SucsessDIV.innerHTML = `
-                    <h1>${result.message}</h1>
+                    <h1>Registrering lyckades! Omdirigeras</h1>
                     `;
         setTimeout(() => {
-          window.location.href = "/"; // Ersätt med URL till startsidan
+          window.location.href = "/login"; // Ersätt med URL till inlogging
         }, 1000);
       } else {
         SucsessDIV.innerHTML = `
