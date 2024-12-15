@@ -48,8 +48,8 @@ import Cookie from "../components/all/cookie.astro";
     if (response.ok) {
       console.log(result.message); // Välkomstmeddelande från backend
     } else {
+      localStorage.removeItem("jwt");
       console.error("Sessionen är ogiltig eller har gått ut:", result.message);
-      localStorage.removeItem("jwt"); // Rensa token vid utloggning eller fel
     }
   }
 
@@ -136,6 +136,7 @@ import Cookie from "../components/all/cookie.astro";
     background-color: var(--primary-clr);
     color: #fff;
     height: 100vh;
+    text-rendering: optimizeLegibility;
   }
 
   button {

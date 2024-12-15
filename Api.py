@@ -14,6 +14,7 @@ from cryptography.fernet import Fernet
 from flask_session import Session
 import jwt
 from datetime import datetime, timedelta
+from functools import wraps
 
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 

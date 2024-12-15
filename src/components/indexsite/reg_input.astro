@@ -34,20 +34,15 @@ import Sok from "./sokreg.astro";
       .then((data) => {
         if (data.message) {
           // Visa välkomstmeddelande om sessionen är giltig
-          welcomeperson.innerHTML = `<h2>${data.message}</h2>`;
+          welcomeperson.innerHTML = `<h2>Välkommen ${data.username}!</h2>`;
         } else {
           // Om sessionen inte är giltig, rensa JWT från localStorage
           localStorage.removeItem("jwt");
-          welcomeperson.innerHTML = `<h2>Välkommen, gäst!</h2>`;
         }
       })
       .catch((error) => {
         console.error("Fel vid kontroll av sessionen:", error);
-        welcomeperson.innerHTML = `<h2>Välkommen, gäst!</h2>`;
       });
-  } else {
-    // Om ingen JWT hittas, visa standardtext
-    welcomeperson.innerHTML = `<h2>Välkommen, gäst!</h2>`;
   }
 </script>
 
