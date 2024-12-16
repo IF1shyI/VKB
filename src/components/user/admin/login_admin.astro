@@ -1,0 +1,15 @@
+<script>
+  async function checkadmin() {
+    const jwtToken = localStorage.getItem("jwt");
+
+    // Om det inte finns någon JWT-token, skicka användaren till inloggningssidan
+    if (!jwtToken) {
+      console.log("Ingen användare är inloggad.");
+      window.location.href = "/404"; // Omdirigera till inloggningssidan
+      return;
+    }
+  }
+
+  // Kontrollera session direkt vid sidladdning
+  checkadmin();
+</script>
