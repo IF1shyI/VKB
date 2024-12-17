@@ -685,11 +685,33 @@ def login():
     )
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
-    # Ta bort användaren från sessionen (logga ut)
-    session.pop("user", None)
-    return redirect(url_for("login"))
+    try:
+        # Hämta Authorization-headern från begäran
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"message": "Token saknas eller är ogiltig"}), 401
+
+        # Extrahera JWT-token
+        token = auth_header.split(" ")[1]
+
+        # Verifiera JWT-token
+        try:
+            decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            return jsonify({"message": "Token har gått ut"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"message": "Ogiltig token"}), 401
+
+        # Om verifieringen lyckas, logga ut användaren (rensa sessionen)
+        session.pop("user", None)
+
+        # Returnera en framgångsrik respons
+        return jsonify({"message": "Utloggning lyckades"}), 200
+
+    except Exception as e:
+        return jsonify({"message": f"Något gick fel: {str(e)}"}), 500
 
 
 @app.route("/checksession", methods=["GET"])

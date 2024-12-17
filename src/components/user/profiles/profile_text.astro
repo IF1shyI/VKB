@@ -1,7 +1,59 @@
-<h1 class="h1_profile">Allmänna kontoinställningar</h1>
-<div class="line"></div>
+<div class="text_container">
+  <h1 class="h1_profile">Allmänna kontoinställningar</h1>
+  <button
+    id="logout_button"
+    class="logout_button"
+    onclick="window.location.href='/'">Logga ut</button
+  >
+  <div class="line"></div>
+</div>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const jwtToken = localStorage.getItem("jwt");
+
+    const logout_button = document.getElementById("logout_button");
+
+    logout_button.addEventListener("click", async () => {
+      // Här används rätt variabelnamn
+      try {
+        // Skicka en begäran till backend för att verifiera JWT och logga ut
+        const response = await fetch("http://127.0.0.1:5000/logout", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.message) {
+            localStorage.removeItem("jwt");
+            console.log(data.message);
+            window.location.href = "/"; // Omdirigera till startsidan
+          }
+        } else {
+          console.error("Servern returnerade ett fel:", response.status);
+        }
+      } catch (error) {
+        console.error("Fel vid utloggning:", error);
+      }
+    });
+  });
+</script>
 
 <style>
+  .text_container {
+    position: relative;
+  }
+  .logout_button {
+    position: absolute;
+    top: 0;
+    right: 8%;
+    width: 200px;
+    aspect-ratio: 4/1;
+    font-size: 1.8rem;
+  }
   .line {
     width: 200px;
     aspect-ratio: 14/1;
