@@ -12,6 +12,7 @@ from openai import OpenAI
 from flask_session import Session
 from datetime import datetime
 import requests
+import hashlib
 
 
 # http://127.0.0.1:4000/bilinfo?reg_plate=CWJ801
@@ -61,6 +62,47 @@ app.config["SESSION_TYPE"] = "filesystem"
 app.config["SESSION_COOKIE_SECURE"] = False
 
 Session(app)
+
+
+# Funktion för att skapa en hash av API-nyckeln
+def create_api_key(user_name):
+    # Skapa en unik API-nyckel genom att kombinera användarnamn och nuvarande tid
+    raw_key = f"{user_name}-{datetime.now().timestamp()}".encode("utf-8")
+
+    # Skapa SHA256 hash av den råa nyckeln
+    hashed_key = hashlib.sha256(raw_key).hexdigest()
+
+    return raw_key.decode("utf-8"), hashed_key
+
+
+# Funktion för att lägga till både råa och hashade nycklar till .md-filen
+def add_api_key_to_file(user_name, raw_key, hashed_key, file_path="api_keys.md"):
+    # Skapa en beskrivning för användaren och nyckeln
+    entry = f"## User: {user_name}\n"
+    entry += f"- **API Key (Raw)**: {raw_key}\n"
+    entry += f"- **API Key (Hashed)**: {hashed_key}\n"
+    entry += f"- **Created on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+
+    # Skriv till filen
+    with open(file_path, "a") as file:
+        file.write(entry)
+
+    print(f"Ny API-nyckel för {user_name} har lagts till i filen.")
+
+
+def verify_api_key(input_key, file_path="api_keys.md"):
+    # Hasha input-nyckeln och jämför med filen
+    hashed_input_key = hashlib.sha256(input_key.encode("utf-8")).hexdigest()
+
+    with open(file_path, "r") as file:
+        content = file.read()
+
+    if hashed_input_key in content:
+        print("API key is valid.")
+        return True
+    else:
+        print("Invalid API key.")
+        return False
 
 
 def convert_currency_text_to_int(text):
@@ -615,7 +657,38 @@ def car_cost_month():
         return jsonify({"error": f"Failed to calculate total cost: {str(e)}"}), 500
 
 
+@app.route("/create_api_key", methods=["POST"])
+def create_key():
+    # Ta emot användarnamnet från begäran
+    user_name = request.json.get("user_name")
+
+    if not user_name:
+        return jsonify({"error": "user_name is required"}), 400
+
+    # Skapa API-nyckeln
+    raw_key, hashed_key = create_api_key(user_name)
+
+    # Lägg till nyckeln till .md-filen
+    add_api_key_to_file(user_name, raw_key, hashed_key)
+
+    # Returnera den råa och hashade nyckeln som svar
+    return (
+        jsonify({"raw_key": raw_key}),
+        200,
+    )
+
+
 atexit.register(on_shutdown)
+
 
 if __name__ == "__main__":
     app.run(debug=False, port=4000)
+
+
+# user_name = "hej"  # Namn på användaren som ska få en ny nyckel
+# raw_key, hashed_key = create_api_key(user_name)
+
+# # Lägg till den råa och hashade nyckeln i filen
+# add_api_key_to_file(user_name, raw_key, hashed_key)
+
+# curl -X POST http://127.0.0.1:4000/create_api_key -H "Content-Type: application/json" -d '{"user_name": "example_user"}'
