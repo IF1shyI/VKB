@@ -15,6 +15,8 @@ from flask_session import Session
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
+import hashlib
+
 
 # http://127.0.0.1:5000/bilinfo?reg_plate=CWJ801
 
@@ -632,6 +634,7 @@ def register():
     data = request.get_json()
     name = data.get("name")
     password = data.get("password")
+    Tier = "PP"
 
     users = read_from_md_file()
     for user_data in users:
@@ -644,7 +647,7 @@ def register():
                 409,
             )
     # Kryptera data
-    user_data = f"Name: {name}, Password: {password}"
+    user_data = f"Name: {name}, Password: {password}, Tier: {Tier}"
     encrypted_data = encrypt_data(user_data)
 
     # Skriv krypterad data till .md-filen
@@ -735,6 +738,53 @@ def check_session():
     return jsonify({"message": "Ogiltig session"}), 401
 
 
+@app.route("/checktier", methods=["GET"])
+def check_tier():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"message": "Ingen token tillhandahållen"}), 401
+
+    token = auth_header.split(" ")[1]
+
+    try:
+        # Dekryptera JWT för att få användardata
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        username_from_token = decoded_token.get("username")
+
+        if not username_from_token:
+            return jsonify({"message": "Ingen användare i token"}), 401
+
+        # Läs användardata från markdown-fil
+        users = read_from_md_file()
+
+        # Kontrollera om användaren finns och om lösenordet stämmer
+        for user in users:
+            # Dela upp den dekrypterade data för att få ut namn och lösenord
+            user_data = user.split(", ")
+            user_name = user_data[0].split(": ")[1]
+            user_tier = user_data[2].split(": ")[1]
+
+            if user_tier == "FA":
+                return_tier = "ftag"
+            elif user_tier == "PA":
+                return_tier = "pro"
+            else:
+                return_tier = "privat"
+
+            if user_name == username_from_token:
+                return (
+                    jsonify({"message": "Användare hittad", "tier": return_tier}),
+                    200,
+                )
+
+        return jsonify({"message": "Användare ej hittad"}), 404
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token har gått ut"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Ogiltig token"}), 401
+
+
 # Registrera funktionen för att köra vid avslut
 atexit.register(on_shutdown)
 
@@ -744,3 +794,5 @@ if __name__ == "__main__":
 
 # if "user" not in session:
 #     return redirect(url_for("login"))
+
+# PP = privatperson PA = Professionell användare FA = Företagsanvändare
