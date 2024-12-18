@@ -1,11 +1,11 @@
 <div class="result-container">
   <h1 class="info-head">
-    Total: <br /><mark><div class="car-info" id="tot-pris"></div></mark>
+    Total: <br /><mark><div class="car-info" id="tot_pris"></div></mark>
   </h1>
 
   <h2 class="info-head">
     Co2 utsläpp: <br /><mark
-      ><div class="car-info" id="emission-display"></div></mark
+      ><div class="car-info" id="emission_display"></div></mark
     >
   </h2>
   <button onclick="window.location.href='/tips'"
@@ -18,7 +18,7 @@
     </div>
     <div class="data-ram">
       <h3>Bensinkostnad</h3>
-      <div class="info" id="tot-bkostnad"></div>
+      <div class="info" id="tot_bkostnad"></div>
     </div>
     <div class="data-ram">
       <h3>Skatt per månad</h3>
@@ -26,7 +26,7 @@
     </div>
     <div class="data-ram">
       <h3>Totalt Underhåll</h3>
-      <div class="info" id="maintenance-display"></div>
+      <div class="info" id="maintenance_display"></div>
     </div>
     <div class="data-ram">
       <h3 id="dmedeltyp"></h3>
@@ -34,31 +34,28 @@
     </div>
     <div class="data-ram">
       <h3>Bensinförbrukning</h3>
-      <div class="info" id="bbruk-display"></div>
+      <div class="info" id="bbruk_display"></div>
     </div>
     <div class="data-ram">
       <h3>Underhåll service</h3>
-      <div class="info" id="maintenance-display-service"></div>
+      <div class="info" id="maintenance_display_service"></div>
     </div>
     <div class="data-ram">
       <h3>Underhåll däck</h3>
-      <div class="info" id="maintenance-display-tire"></div>
+      <div class="info" id="maintenance_display_tire"></div>
     </div>
   </div>
+  <h3 id="car_name"></h3>
 </div>
 
 <script src="/js/sok.js" is:inline></script>
 
 <style>
-  .result-container {
-    display: none;
-  }
-
   p {
     margin: 0;
   }
 
-  .result-container.show {
+  .result-container {
     display: block;
     width: 100%;
     height: 100vh- var(--header-sz);
@@ -153,5 +150,9 @@
         font-size: var(--sz);
       }
     }
+  }
+
+  #car_name {
+    text-align: center;
   }
 </style>

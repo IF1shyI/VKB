@@ -3,7 +3,10 @@
   <div class="opt1_container optcommon">
     <h4>Privatperson</h4>
     <div class="rw1">
-      <p class="text_info">Begränsad användning</p>
+      <p class="text_info">
+        Grundläggande användning för privatpersoner med begränsad data och
+        funktioner.
+      </p>
     </div>
     <ul class="details_list">
       <li class="included">Grundläggande data</li>
@@ -21,26 +24,34 @@
   <!-- Kolumn 2 -->
   <div class="opt2_container optcommon recommended">
     <div class="recommended_label">Rekommenderat</div>
-    <h4>Professionell användare</h4>
+    <h4>Basanvändare</h4>
     <div class="rw1">
-      <p class="text_info">Obegränsad användning</p>
+      <p class="text_info">
+        Utökad data för grundläggande analyser med viss support. Perfekt för
+        enklare behov.
+      </p>
     </div>
     <ul class="details_list">
       <li class="included">Grundläggande data</li>
       <li class="included">Detaljerad data</li>
-      <li class="included">Obegränsade sökningar</li>
+      <li class="excluded">Obegränsade sökningar</li>
       <li class="included">Support</li>
       <li class="excluded">API-integration</li>
     </ul>
-    <p class="price">Pris: <strong>200 SEK/månad</strong></p>
-    <button class="buy_button">Beställ</button>
+    <div class="price_button">
+      <p class="price">Pris: <strong>50 SEK/månad</strong></p>
+      <button class="buy_button">Beställ</button>
+    </div>
   </div>
 
   <!-- Kolumn 3 -->
   <div class="opt3_container optcommon">
-    <h4>Försäkringsbolag</h4>
+    <h4>Professionell användare</h4>
     <div class="rw1">
-      <p class="text_info">Extra data och utredningar</p>
+      <p class="text_info">
+        Fullständiga funktioner för obegränsade sökningar och avancerade
+        analyser.
+      </p>
     </div>
     <ul class="details_list">
       <li class="included">Grundläggande data</li>
@@ -49,250 +60,264 @@
       <li class="included">Support</li>
       <li class="excluded">API-integration</li>
     </ul>
-    <p class="price">Pris: <strong>1 900 SEK/månad</strong></p>
-    <button class="buy_button">Beställ</button>
+    <div class="price_button">
+      <p class="price">Pris: <strong>200 SEK/månad</strong></p>
+      <button class="buy_button">Beställ</button>
+    </div>
   </div>
 
   <!-- Kolumn 4 -->
   <div class="opt4_container optcommon">
     <h4>Företagsanvändare</h4>
     <div class="rw1">
-      <p class="text_info">Specialanpassade lösningar</p>
+      <p class="text_info">
+        Specialanpassade lösningar för företag som kräver avancerad
+        funktionalitet, integration och utökade analyser.
+      </p>
     </div>
     <ul class="details_list">
       <li class="included">Grundläggande data</li>
       <li class="included">Detaljerad data</li>
       <li class="included">Obegränsade sökningar</li>
-      <li class="included">Fristående värderingsverktyg</li>
       <li class="included">Utredningsmaterial</li>
       <li class="included">API-integration</li>
     </ul>
-    <p class="price">Pris: <strong>Anpassat pris</strong></p>
-    <button class="buy_button">Kontakta oss</button>
+    <div class="price_button">
+      <p class="price">Pris: <strong>Anpassat pris</strong></p>
+      <button class="buy_button" onclick="window.location.href='/kontakt'"
+        >Kontakta oss</button
+      >
+    </div>
   </div>
-</div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    const loginContainer = document.getElementById("login-container");
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const loginContainer = document.getElementById("login-container");
 
-    // Hämta JWT från localStorage
-    const jwtToken = localStorage.getItem("jwt");
+      // Hämta JWT från localStorage
+      const jwtToken = localStorage.getItem("jwt");
 
-    if (jwtToken) {
-      try {
-        // Skicka en begäran till backend för att verifiera JWT och få användarinfo
-        const response = await fetch("http://127.0.0.1:5000/checktier", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const tier = data.tier.trim();
-
-          // Lägg till klasser och etikett baserat på användarens tier
-          const columns = {
-            privat: document.querySelector(".opt1_container"),
-            pro: document.querySelector(".opt2_container"),
-            BA: document.querySelector(".opt3_container"),
-            ftag: document.querySelector(".opt4_container"),
-          };
-
-          // Rensa tidigare markeringar
-          for (const key in columns) {
-            columns[key].classList.remove("active", "owned");
-            const label = columns[key].querySelector(".tier_label");
-            if (label) {
-              label.remove();
-            }
-          }
-
-          // Lägg till "Äger"-etikett och klasser
-          const activeColumn = columns[tier];
-
-          if (!activeColumn) {
-            console.error("Ingen kolumn hittades för tier:", tier);
-            return;
-          }
-
-          console.log("Aktiv kolumn hittad:", activeColumn);
-
-          // Rensa tidigare markeringar
-          document.querySelectorAll(".optcommon").forEach((col) => {
-            col.classList.remove("active", "owned");
-            const existingLabel = col.querySelector(".tier_label");
-            if (existingLabel) existingLabel.remove();
+      if (jwtToken) {
+        try {
+          // Skicka en begäran till backend för att verifiera JWT och få användarinfo
+          const response = await fetch("http://127.0.0.1:5000/checktier", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern
+            },
           });
 
-          // Lägg till klassen för aktiv kolumn
-          activeColumn.classList.add("active", "owned");
+          if (response.ok) {
+            const data = await response.json();
+            const tier = data.tier.trim();
 
-          // Lägg till "Äger"-etiketten
-          const label = document.createElement("div");
-          label.className = "tier_label";
-          label.textContent = "Aktiv";
+            // Lägg till klasser och etikett baserat på användarens tier
+            const columns = {
+              privat: document.querySelector(".opt1_container"),
+              pro: document.querySelector(".opt2_container"),
+              BA: document.querySelector(".opt3_container"),
+              ftag: document.querySelector(".opt4_container"),
+            };
 
-          const astroCid = activeColumn
-            .getAttributeNames()
-            .find((attr) => attr.startsWith("data-astro-cid"));
-          if (astroCid) {
-            label.setAttribute(astroCid, ""); // Applicera samma attribut på den nya "label"
+            // Rensa tidigare markeringar
+            for (const key in columns) {
+              columns[key].classList.remove("active", "owned");
+              const label = columns[key].querySelector(".tier_label");
+              if (label) {
+                label.remove();
+              }
+            }
+
+            // Lägg till "Äger"-etikett och klasser
+            const activeColumn = columns[tier];
+
+            if (!activeColumn) {
+              console.error("Ingen kolumn hittades för tier:", tier);
+              return;
+            }
+
+            console.log("Aktiv kolumn hittad:", activeColumn);
+
+            // Rensa tidigare markeringar
+            document.querySelectorAll(".optcommon").forEach((col) => {
+              col.classList.remove("active", "owned");
+              const existingLabel = col.querySelector(".tier_label");
+              if (existingLabel) existingLabel.remove();
+            });
+
+            // Lägg till klassen för aktiv kolumn
+            activeColumn.classList.add("active", "owned");
+
+            // Lägg till "Äger"-etiketten
+            const label = document.createElement("div");
+            label.className = "tier_label";
+            label.textContent = "Aktiv";
+
+            const astroCid = activeColumn
+              .getAttributeNames()
+              .find((attr) => attr.startsWith("data-astro-cid"));
+            if (astroCid) {
+              label.setAttribute(astroCid, ""); // Applicera samma attribut på den nya "label"
+            }
+            activeColumn.prepend(label);
+          } else {
+            // Om token inte är giltig, ta bort den
+            console.warn("Token ogiltig, tar bort från localStorage.");
+            localStorage.removeItem("jwt");
           }
-          activeColumn.prepend(label);
-        } else {
-          // Om token inte är giltig, ta bort den
-          console.warn("Token ogiltig, tar bort från localStorage.");
+        } catch (error) {
+          console.error("Fel vid validering av session:", error);
           localStorage.removeItem("jwt");
         }
-      } catch (error) {
-        console.error("Fel vid validering av session:", error);
-        localStorage.removeItem("jwt");
       }
+    });
+  </script>
+
+  <style>
+    /* Grundläggande containerlayout */
+    .opt_container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px; /* Mellanrum mellan kolumnerna */
+      width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
     }
-  });
-</script>
 
-<style>
-  /* Grundläggande containerlayout */
-  .opt_container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 20px; /* Mellanrum mellan kolumnerna */
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-  }
+    .optcommon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 23%;
+      min-width: 268px;
+      box-sizing: border-box;
+      text-align: center;
+      position: relative; /* För att placera "Rekommenderat" korrekt */
+    }
 
-  .optcommon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 23%;
-    min-width: 268px;
-    box-sizing: border-box;
-    text-align: center;
-    position: relative; /* För att placera "Rekommenderat" korrekt */
-  }
+    .recommended {
+      border: 2px solid green; /* Grön kant runt den professionella användaren */
+    }
 
-  .recommended {
-    border: 2px solid green; /* Grön kant runt den professionella användaren */
-  }
+    /* Stil för markering av aktiv kolumn */
+    .active {
+      border: 2px solid var(--guld); /* Grön border för den aktiva planen */
+      position: relative;
+    }
 
-  /* Stil för markering av aktiv kolumn */
-  .active {
-    border: 2px solid var(--guld); /* Grön border för den aktiva planen */
-    position: relative;
-  }
+    /* Stil för 'Äger'-etiketten */
+    .tier_label {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--guld);
+      color: black;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
 
-  /* Stil för 'Äger'-etiketten */
-  .tier_label {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--guld);
-    color: black;
-    font-weight: bold;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.9rem;
-  }
+    /* Stil för kolumner som har 'Äger' */
+    .owned {
+      background-color: #f0f8e2; /* Ljus bakgrundsfärg för 'Äger' */
+    }
 
-  /* Stil för kolumner som har 'Äger' */
-  .owned {
-    background-color: #f0f8e2; /* Ljus bakgrundsfärg för 'Äger' */
-  }
+    .recommended_label {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: green;
+      color: white;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
 
-  .recommended_label {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: green;
-    color: white;
-    font-weight: bold;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.9rem;
-  }
+    h4 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      color: #333;
+    }
 
-  h4 {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-    color: #333;
-  }
+    .text_info {
+      font-weight: bold;
+      font-size: 0.8rem;
+      margin: 10px 0 15px;
+      color: #444;
+    }
 
-  .text_info {
-    font-weight: bold;
-    font-size: 1rem;
-    margin: 10px 0 15px;
-    color: #444;
-  }
+    .details_list {
+      list-style-type: none;
+      padding: 0;
+      margin: 10px 0;
+      text-align: left;
+      width: 100%;
+    }
 
-  .details_list {
-    list-style-type: none;
-    padding: 0;
-    margin: 10px 0;
-    text-align: left;
-    width: 100%;
-  }
+    .details_list li {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      padding-left: 25px;
+      position: relative;
+      line-height: 1.4;
+      color: black;
+    }
 
-  .details_list li {
-    font-size: 1rem;
-    margin-bottom: 8px;
-    padding-left: 25px;
-    position: relative;
-    line-height: 1.4;
-    color: black;
-  }
+    .details_list li.included::before {
+      content: "✔";
+      color: green;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+      font-size: 1.2rem;
+    }
 
-  .details_list li.included::before {
-    content: "✔";
-    color: green;
-    font-weight: bold;
-    position: absolute;
-    left: 0;
-    font-size: 1.2rem;
-  }
+    .details_list li.excluded::before {
+      content: "X";
+      color: red;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+      font-size: 1.2rem;
+    }
 
-  .details_list li.excluded::before {
-    content: "X";
-    color: red;
-    font-weight: bold;
-    position: absolute;
-    left: 0;
-    font-size: 1.2rem;
-  }
+    .price {
+      font-size: 1.2rem;
+      color: #333;
+      margin: 15px 0;
+    }
 
-  .price {
-    font-size: 1.2rem;
-    color: #333;
-    margin: 15px 0;
-  }
+    .buy_button {
+      background-color: #ff9900;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
 
-  .buy_button {
-    background-color: #ff9900;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
+    .buy_button:hover {
+      background-color: #e68a00;
+    }
 
-  .buy_button:hover {
-    background-color: #e68a00;
-  }
-</style>
+    .price_button {
+      position: absolute;
+      bottom: 5%;
+      padding-top: 10px;
+    }
+  </style>
+</div>

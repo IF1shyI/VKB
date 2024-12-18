@@ -7,6 +7,11 @@
   document.addEventListener("DOMContentLoaded", async () => {
     const jwtToken = localStorage.getItem("jwt");
 
+    const profile_picture = document.getElementById("profile_picture");
+    const about_info_container = document.getElementById(
+      "about_info_container"
+    );
+
     if (jwtToken) {
       try {
         // Skicka en begäran till backend för att verifiera JWT och få användarinfo
@@ -21,8 +26,21 @@
           const data = await response.json();
 
           // Om token är giltig och användarnamn finns, uppdatera knappen
-          if (data.message) {
-            console.log(data.message);
+          if (data.username) {
+            profile_picture.innerHTML = `
+                <h5 class="info_big_text">Profilbild</h5>
+                <a href=""><img src="./bilder/no-picture.svg" alt="Bild" /></a>
+                <div class="picture_name">${data.username}</div>
+            `;
+            about_info_container.innerHTML = `
+                <h5 class="info_big_text">Inställningar</h5>
+                <label for="Username">Användarnamn</label>
+                <input type="text" id="Username" placeholder="${data.username}" />
+                <label for="email">Mail</label>
+                <input type="email" id="email" />
+                <button class="save_button">Spara inställningar</button>
+                <button class="psw_button">Återställ lösenord</button>
+            `;
           }
         } else {
           // Om token inte är giltig, ta bort den
@@ -40,81 +58,35 @@
   .info_container {
     display: flex;
     flex-wrap: wrap;
+    flex-direction: row;
     margin-top: var(--margin-m);
-    gap: 20px; /* Lägger mellanrum mellan huvudsektionerna */
-  }
 
-  .about_info_container {
-    width: 70%;
-    display: flex;
-    flex-direction: column;
-    gap: 20px; /* Mellanrum mellan rader */
-  }
+    .about_info_container {
+      width: 70%;
 
-  .input_label_holder {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
-    width: 100%;
-  }
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      height: fit-content;
+    }
 
-  .info_label {
-    font-size: 1.2rem;
-    margin-bottom: 5px; /* Mellanrum mellan label och input */
-    color: white; /* Justera färg så den är läsbar */
-  }
+    .profile_picture {
+      padding-left: 30px;
 
-  input {
-    padding: 8px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100%; /* Gör input-fälten bredare */
-    box-sizing: border-box; /* Ser till att padding inte påverkar bredden */
-  }
+      display: flex;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: center;
+    }
 
-  button {
-    padding: 10px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: #ff9500;
-    color: white;
-    text-align: center;
-    width: 200px;
-    margin: 0; /* Nollställ margin */
-  }
+    h5 {
+      margin: 0;
+      padding-bottom: 30px;
 
-  button:hover {
-    background-color: #e07c00;
-  }
+      font-size: 1.2rem;
 
-  .button_container {
-    display: flex; /* Gör knapparna horisontella */
-    gap: 20px; /* Mellanrum mellan knapparna */
-  }
-
-  .profile_picture {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding-left: 30px;
-  }
-
-  .profile_picture img {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  h5 {
-    margin: 0;
-    padding-bottom: 10px;
-    font-size: 1.5rem; /* Gör rubriken större */
-    color: white;
-    font-weight: bold; /* Gör texten fet */
+      height: fit-content;
+      width: 100%;
+    }
   }
 </style>

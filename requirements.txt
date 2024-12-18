@@ -12,3 +12,4 @@ bcrypt
 jsonwebtoken
 Flask-Session
 PyJWT
+requests

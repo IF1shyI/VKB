@@ -29,7 +29,6 @@ import Cookie from "../components/all/cookie.astro";
   </body>
 </html>
 <script>
-  // Funktion för att kontrollera om användaren är inloggad
   async function checkSession() {
     const jwtToken = localStorage.getItem("jwt");
     if (!jwtToken) {
@@ -52,8 +51,6 @@ import Cookie from "../components/all/cookie.astro";
       console.error("Sessionen är ogiltig eller har gått ut:", result.message);
     }
   }
-
-  // Kontrollera session direkt vid sidladdning
   checkSession();
 </script>
 <style is:global>
