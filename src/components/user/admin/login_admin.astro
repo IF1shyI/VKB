@@ -1,15 +1,22 @@
-<script>
-  async function checkadmin() {
-    const jwtToken = localStorage.getItem("jwt");
+<div id="admin_cover" class="cover"></div>
 
-    // Om det inte finns någon JWT-token, skicka användaren till inloggningssidan
-    if (!jwtToken) {
-      console.log("Ingen användare är inloggad.");
-      window.location.href = "/404"; // Omdirigera till inloggningssidan
-      return;
-    }
+<script src="../../../../public/js/admincheck.js"></script>
+
+<style>
+  .cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+
+    display: block;
+
+    z-index: 50;
+    background-color: black;
   }
 
-  // Kontrollera session direkt vid sidladdning
-  checkadmin();
-</script>
+  .hide {
+    display: none;
+  }
+</style>

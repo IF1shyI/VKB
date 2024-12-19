@@ -94,83 +94,109 @@
     document.addEventListener("DOMContentLoaded", async () => {
       const loginContainer = document.getElementById("login-container");
 
+      // Försök att hämta användarens tier
+      const tier = await getUserTier();
+
+      if (tier) {
+        // Lägg till klasser och etikett baserat på användarens tier
+        const columns = {
+          privat: document.querySelector(".opt1_container"),
+          pro: document.querySelector(".opt2_container"),
+          BA: document.querySelector(".opt3_container"),
+          ftag: document.querySelector(".opt4_container"),
+        };
+
+        // Rensa tidigare markeringar
+        for (const key in columns) {
+          columns[key].classList.remove("active", "owned");
+          const label = columns[key].querySelector(".tier_label");
+          if (label) {
+            label.remove();
+          }
+        }
+
+        // Lägg till "Äger"-etikett och klasser
+        const activeColumn = columns[tier];
+
+        if (!activeColumn) {
+          console.error("Ingen kolumn hittades för tier:", tier);
+          return;
+        }
+
+        console.log("Aktiv kolumn hittad:", activeColumn);
+
+        // Rensa tidigare markeringar
+        document.querySelectorAll(".optcommon").forEach((col) => {
+          col.classList.remove("active", "owned");
+          const existingLabel = col.querySelector(".tier_label");
+          if (existingLabel) existingLabel.remove();
+        });
+
+        // Lägg till klassen för aktiv kolumn
+        activeColumn.classList.add("active", "owned");
+
+        // Lägg till "Aktiv"-etiketten
+        const label = document.createElement("div");
+        label.className = "tier_label";
+        label.textContent = "Aktiv";
+
+        const astroCid = activeColumn
+          .getAttributeNames()
+          .find((attr) => attr.startsWith("data-astro-cid"));
+        if (astroCid) {
+          label.setAttribute(astroCid, ""); // Applicera samma attribut på den nya "label"
+        }
+        activeColumn.prepend(label);
+      } else {
+        // Om token inte är giltig, ta bort den
+        console.warn("Token ogiltig, tar bort från localStorage.");
+        localStorage.removeItem("jwt");
+      }
+    });
+
+    // Funktion för att hämta användarens tier
+    async function getUserTier() {
       // Hämta JWT från localStorage
       const jwtToken = localStorage.getItem("jwt");
 
-      if (jwtToken) {
-        try {
-          // Skicka en begäran till backend för att verifiera JWT och få användarinfo
-          const response = await fetch("http://127.0.0.1:5000/checktier", {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            const tier = data.tier.trim();
-
-            // Lägg till klasser och etikett baserat på användarens tier
-            const columns = {
-              privat: document.querySelector(".opt1_container"),
-              pro: document.querySelector(".opt2_container"),
-              BA: document.querySelector(".opt3_container"),
-              ftag: document.querySelector(".opt4_container"),
-            };
-
-            // Rensa tidigare markeringar
-            for (const key in columns) {
-              columns[key].classList.remove("active", "owned");
-              const label = columns[key].querySelector(".tier_label");
-              if (label) {
-                label.remove();
-              }
-            }
-
-            // Lägg till "Äger"-etikett och klasser
-            const activeColumn = columns[tier];
-
-            if (!activeColumn) {
-              console.error("Ingen kolumn hittades för tier:", tier);
-              return;
-            }
-
-            console.log("Aktiv kolumn hittad:", activeColumn);
-
-            // Rensa tidigare markeringar
-            document.querySelectorAll(".optcommon").forEach((col) => {
-              col.classList.remove("active", "owned");
-              const existingLabel = col.querySelector(".tier_label");
-              if (existingLabel) existingLabel.remove();
-            });
-
-            // Lägg till klassen för aktiv kolumn
-            activeColumn.classList.add("active", "owned");
-
-            // Lägg till "Äger"-etiketten
-            const label = document.createElement("div");
-            label.className = "tier_label";
-            label.textContent = "Aktiv";
-
-            const astroCid = activeColumn
-              .getAttributeNames()
-              .find((attr) => attr.startsWith("data-astro-cid"));
-            if (astroCid) {
-              label.setAttribute(astroCid, ""); // Applicera samma attribut på den nya "label"
-            }
-            activeColumn.prepend(label);
-          } else {
-            // Om token inte är giltig, ta bort den
-            console.warn("Token ogiltig, tar bort från localStorage.");
-            localStorage.removeItem("jwt");
-          }
-        } catch (error) {
-          console.error("Fel vid validering av session:", error);
-          localStorage.removeItem("jwt");
-        }
+      if (!jwtToken) {
+        console.error("JWT-token finns inte i localStorage.");
+        return null;
       }
-    });
+
+      try {
+        // Skicka en begäran till backend för att verifiera JWT och få användarinfo
+        const response = await fetch("http://127.0.0.1:5000/checktier", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern
+          },
+        });
+
+        // Kontrollera om svaret är OK (status 200)
+        if (response.ok) {
+          const data = await response.json();
+          const tier = data.tier ? data.tier.trim() : null; // Säkerställ att tier finns
+
+          if (tier) {
+            return tier;
+          } else {
+            console.error("Ingen tier-data mottogs från servern.");
+            return null;
+          }
+        } else {
+          console.error(
+            "Fel vid begäran till servern:",
+            response.status,
+            response.statusText
+          );
+          return null;
+        }
+      } catch (error) {
+        console.error("Något gick fel vid hämtning av tier:", error);
+        return null;
+      }
+    }
   </script>
 
   <style>

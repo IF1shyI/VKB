@@ -141,6 +141,7 @@ def tips():
 
 # Markdown-fil där användardata sparas
 DATA_FILE = "users.md"
+ADMIN_FILE = "admin.md"
 
 KEY = encryption_key  # Ersätt med en riktig nyckel
 SECRET_KEY = encryption_key
@@ -157,15 +158,15 @@ def decrypt_data(data: str) -> str:
     return cipher_suite.decrypt(data.encode()).decode()
 
 
-def write_to_md_file(encrypted_data: str):
-    with open(DATA_FILE, "a") as file:
+def write_to_md_file(encrypted_data: str, FILE):
+    with open(FILE, "a") as file:
         file.write(encrypted_data + "\n")
 
 
-def read_from_md_file():
-    if not os.path.exists(DATA_FILE):
+def read_from_md_file(FILE):
+    if not os.path.exists(FILE):
         return []
-    with open(DATA_FILE, "r") as file:
+    with open(FILE, "r") as file:
         lines = file.readlines()
     return [decrypt_data(line.strip()) for line in lines]
 
@@ -200,7 +201,7 @@ def register():
     password = data.get("password")
     Tier = "PP"
 
-    users = read_from_md_file()
+    users = read_from_md_file(DATA_FILE)
     for user_data in users:
         # Split the decrypted data into fields
         user_fields = user_data.split(", ")
@@ -215,7 +216,7 @@ def register():
     encrypted_data = encrypt_data(user_data)
 
     # Skriv krypterad data till .md-filen
-    write_to_md_file(encrypted_data)
+    write_to_md_file(encrypted_data, DATA_FILE)
 
     return jsonify({"message": "Användare registrerad och data sparad"}), 200
 
@@ -227,7 +228,7 @@ def login():
     password = data.get("password")
 
     # Läs användardata från filen
-    users = read_from_md_file()
+    users = read_from_md_file(DATA_FILE)
 
     # Kontrollera om användaren finns och om lösenordet stämmer
     for user in users:
@@ -319,7 +320,7 @@ def check_tier():
             return jsonify({"message": "Ingen användare i token"}), 401
 
         # Läs användardata från markdown-fil
-        users = read_from_md_file()
+        users = read_from_md_file(DATA_FILE)
 
         # Kontrollera om användaren finns och om lösenordet stämmer
         for user in users:
@@ -351,8 +352,67 @@ def check_tier():
         return jsonify({"message": "Ogiltig token"}), 401
 
 
+@app.route("/admin", methods=["POST"])
+def check_admin():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"message": "Ingen token tillhandahållen"}), 401
+
+    token = auth_header.split(" ")[1]
+
+    try:
+        # Dekryptera JWT för att få användardata
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        username_from_token = decoded_token.get("username")
+
+        if not username_from_token:
+            return jsonify({"message": "Ingen användare i token"}), 401
+
+        # Läs användardata från markdown-fil
+        users = read_from_md_file(DATA_FILE)
+
+        admin_users = read_from_md_file(ADMIN_FILE)
+        print(admin_users)
+
+        # Kontrollera om användaren finns och om lösenordet stämmer
+        for user in users:
+            # Dela upp den dekrypterade data för att få ut namn och lösenord
+            user_data = user.split(", ")
+            user_name = user_data[0].split(": ")[1]
+            if user_name == username_from_token:
+                for admins in admin_users:
+                    user_fields = admins.split(", ")
+                    admin_name = user_fields[0].split(": ")[1]  # Extract 'Name' field
+                    if user_name == admin_name:
+                        return jsonify({"message": "Autentiserad"}), 200
+        return jsonify({"message": "Oautentiserad"}), 401
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token har gått ut"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Ogiltig token"}), 401
+
+
+def create_admin(username):
+    admin_users = read_from_md_file(ADMIN_FILE)
+    for user_data in admin_users:
+        # Split the decrypted data into fields
+        user_fields = user_data.split(", ")
+        existing_name = user_fields[0].split(": ")[1]  # Extract 'Name' field
+        if existing_name == username:
+            return (
+                jsonify({"message": "Användarnamn är redan taget", "success": False}),
+                409,
+            )
+    user_data = f"Name: {username}"
+    encrypted_data = encrypt_data(user_data)
+
+    # Skriv krypterad data till .md-filen
+    write_to_md_file(encrypted_data, ADMIN_FILE)
+
+
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=False, port=5000)
 
 
 # if "user" not in session:

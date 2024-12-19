@@ -13,6 +13,7 @@ from flask_session import Session
 from datetime import datetime
 import requests
 import hashlib
+import json
 
 
 # http://127.0.0.1:4000/bilinfo?reg_plate=CWJ801
@@ -57,11 +58,51 @@ global_fskatt = "Error"
 drivmedel = "Error"
 co2 = "Error"
 
+CAR_FILE = "cardata.md"
+
 # Använd serverbaserade sessioner (sessioner som sparas på servern)
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["SESSION_COOKIE_SECURE"] = False
 
 Session(app)
+
+
+def save_to_json(data, filename="car_costs.json"):
+    try:
+        # Läsa in befintlig data från JSON-filen
+        try:
+            with open(filename, "r") as file:
+                car_data = json.load(file)
+        except FileNotFoundError:
+            car_data = {"bilar": []}  # Om filen inte finns, skapa en ny struktur
+
+        # Lägg till ny bilinformation i listan
+        car_data["bilar"].append(data)
+
+        # Spara den uppdaterade datan till fil
+        with open(filename, "w") as file:
+            json.dump(car_data, file, indent=4)
+    except Exception as e:
+        print(f"Error saving data to JSON: {e}")
+
+
+def read_from_json(filename="car_costs.json"):
+    try:
+        with open(filename, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {"bilar": []}
+    except Exception as e:
+        print(f"Error reading data from JSON: {e}")
+        return {"bilar": []}
+
+
+def search_by_regnumber(regnummer, filename="car_costs.json"):
+    car_data = read_from_json(filename)
+    for car in car_data["bilar"]:
+        if car["regnummer"] == regnummer:
+            return car
+    return None
 
 
 # Funktion för att skapa en hash av API-nyckeln
@@ -560,9 +601,11 @@ def calc_tot_cost(insurance, fskatt, maintenance):
 
 # Mainfunktion
 @app.route("/carcost", methods=["GET"])
-@cache.cached(timeout=120, query_string=True)
 def car_cost_month():
     reg_plate = request.args.get("reg_plate")
+    existing_car = search_by_regnumber(reg_plate)
+    if existing_car:
+        return jsonify(existing_car)
 
     # Fetch car info using Playwright
     try:
@@ -592,14 +635,6 @@ def car_cost_month():
         return jsonify({"error": f"Failed to fetch maintenance data: {str(e)}"}), 500
 
     # Calculate maintenance costs
-    print(
-        "Däck: ",
-        maintenance_data[1][1],
-        "lagning: ",
-        maintenance_data[2][1],
-        "underhåll: ",
-        maintenance_data[0][1],
-    )
     tirecost = get_tire_cost(maintenance_data[1][1])
     maintenance_month = calculate_monthly_costs(maintenance_data[0][1])
     repairs_month = calculate_monthly_costs(maintenance_data[2][1])
@@ -627,6 +662,7 @@ def car_cost_month():
         tot_cost = calc_tot_cost(insurance, tax_month, tot_maintenance)
         print(
             f"""
+            Regnummer: {reg_plate}
             Total cost: {round(tot_cost)}
             Total maintenance: {round(tot_maintenance)}
             Maintenance per month: {round(maintenance_month)}
@@ -637,22 +673,27 @@ def car_cost_month():
             Car tax: {round(tax_month)}
             """
         )
+        # Sammanställ data för den aktuella bilen
+        car_info = {
+            "regnummer": reg_plate,
+            "total_cost": round(tot_cost),
+            "tot_maintenance": round(tot_maintenance),
+            "maintenance_month": round(maintenance_month),
+            "repairs_month": round(repairs_month),
+            "tirecost_month": round(tirecost),
+            "insurance": round(insurance),
+            "car_tax": round(tax_month),
+            "car_name": global_car_model,
+            "fuel_consumption": global_besbruk,
+            "fuel_type": fuel_type,
+            "fuel_price": right_fuel_price,
+        }
 
-        return jsonify(
-            {
-                "total_cost": round(tot_cost),
-                "tot_maintenance": round(tot_maintenance),
-                "maintenance_month": round(maintenance_month),
-                "repairs_month": round(repairs_month),
-                "tirecost_month": round(tirecost),
-                "insurance": round(insurance),
-                "car_tax": round(tax_month),
-                "car_name": global_car_model,
-                "fuel_consumption": global_besbruk,
-                "fuel_type": fuel_type,
-                "fuel_price": right_fuel_price,
-            }
-        )
+        # Spara data till JSON
+        save_to_json(car_info)
+
+        return jsonify(car_info)
+
     except Exception as e:
         return jsonify({"error": f"Failed to calculate total cost: {str(e)}"}), 500
 
@@ -672,10 +713,7 @@ def create_key():
     add_api_key_to_file(user_name, raw_key, hashed_key)
 
     # Returnera den råa och hashade nyckeln som svar
-    return (
-        jsonify({"raw_key": raw_key}),
-        200,
-    )
+    return jsonify({"raw_key": raw_key}), 200
 
 
 atexit.register(on_shutdown)

@@ -28,31 +28,6 @@ import Cookie from "../components/all/cookie.astro";
     <Cookie />
   </body>
 </html>
-<script>
-  async function checkSession() {
-    const jwtToken = localStorage.getItem("jwt");
-    if (!jwtToken) {
-      console.log("Ingen användare är inloggad.");
-      return;
-    }
-
-    // Skicka token till backend för validering
-    const response = await fetch("http://127.0.0.1:5000/checksession", {
-      method: "GET",
-      headers: { Authorization: `Bearer ${jwtToken}` },
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      console.log(result.message); // Välkomstmeddelande från backend
-    } else {
-      localStorage.removeItem("jwt");
-      console.error("Sessionen är ogiltig eller har gått ut:", result.message);
-    }
-  }
-  checkSession();
-</script>
 <style is:global>
   @tailwind base;
   @tailwind components;
