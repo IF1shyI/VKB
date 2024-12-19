@@ -117,10 +117,9 @@ def create_api_key(user_name):
 
 
 # Funktion för att lägga till både råa och hashade nycklar till .md-filen
-def add_api_key_to_file(user_name, raw_key, hashed_key, file_path="api_keys.md"):
+def add_api_key_to_file(user_name, hashed_key, file_path="api_keys.md"):
     # Skapa en beskrivning för användaren och nyckeln
     entry = f"## User: {user_name}\n"
-    entry += f"- **API Key (Raw)**: {raw_key}\n"
     entry += f"- **API Key (Hashed)**: {hashed_key}\n"
     entry += f"- **Created on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
@@ -132,18 +131,115 @@ def add_api_key_to_file(user_name, raw_key, hashed_key, file_path="api_keys.md")
 
 
 def verify_api_key(input_key, file_path="api_keys.md"):
-    # Hasha input-nyckeln och jämför med filen
+    # Kontrollera om input_key är None eller tom
+    if not input_key:
+        print("API key is missing or invalid.")
+        return False
+
+    # Hasha input-nyckeln
     hashed_input_key = hashlib.sha256(input_key.encode("utf-8")).hexdigest()
 
-    with open(file_path, "r") as file:
-        content = file.read()
+    try:
+        with open(file_path, "r") as file:
+            # Läs filen rad för rad
+            lines = file.readlines()
 
-    if hashed_input_key in content:
-        print("API key is valid.")
-        return True
-    else:
+        # Iterera över rader och sök efter hashad nyckel
+        for line in lines:
+            if "API Key (Hashed)" in line and hashed_input_key in line:
+                print("API key is valid.")
+                return True
+
         print("Invalid API key.")
         return False
+
+    except FileNotFoundError:
+        print("API key file not found.")
+        return False
+
+
+# Funktion för att läsa och uppdatera API-nyckelns förfrågningar
+def update_api_request_count(api_key, file_path="api_requests.md"):
+    current_date = datetime.now()
+    current_month = current_date.strftime("%Y-%m")
+
+    # Läs in filen och kolla om nyckeln redan finns
+    api_data = {}
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            content = file.readlines()
+            user_key = None
+            requests_made = 0
+            last_reset = None
+
+            # Hitta rätt nyckel och uppdatera
+            for line in content:
+                if f"API Key: {api_key}" in line:
+                    user_key = api_key
+                    requests_made = int(line.split("Requests Made: ")[1].split("\n")[0])
+                    last_reset = line.split("Last Reset: ")[1].strip()
+                    break
+
+            # Om vi hittar användaren, öka antalet förfrågningar
+            if user_key:
+                requests_made += 1
+                # Uppdatera data för användaren
+                api_data[user_key] = {
+                    "requests_made": requests_made,
+                    "last_reset": last_reset,
+                }
+            else:
+                # Om nyckeln inte finns, skapa en ny
+                api_data[api_key] = {"requests_made": 1, "last_reset": current_month}
+
+    else:
+        # Om filen inte existerar, skapa en ny
+        api_data[api_key] = {"requests_made": 1, "last_reset": current_month}
+
+    # Skriv tillbaka till filen
+    with open(file_path, "w") as file:
+        for key, data in api_data.items():
+            file.write(f"## User: {key}\n")
+            file.write(f"- **API Key**: {key}\n")
+            file.write(f"- **Requests Made**: {data['requests_made']}\n")
+            file.write(f"- **Last Reset**: {data['last_reset']}\n\n")
+
+
+# Funktion för att nollställa förfrågningar varje månad
+def reset_request_counts(file_path="api_requests.md"):
+    current_date = datetime.now()
+    current_month = current_date.strftime("%Y-%m")
+
+    # Läs filen och kontrollera om det är dags att nollställa
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            content = file.readlines()
+
+        updated_content = []
+        reset_needed = False
+
+        # Iterera över varje användare och kolla om det är en ny månad
+        for line in content:
+            if "Last Reset" in line:
+                last_reset = line.split("Last Reset: ")[1].strip()
+                if last_reset != current_month:
+                    reset_needed = True
+                    updated_content.append(line.replace(last_reset, current_month))
+                else:
+                    updated_content.append(line)
+            else:
+                updated_content.append(line)
+
+        if reset_needed:
+            # Om vi nollställer, skriv tillbaka filen med nollade förfrågningar
+            with open(file_path, "w") as file:
+                for line in updated_content:
+                    if "Requests Made" in line:
+                        file.write(
+                            line.replace(line.split(": ")[1].split("\n")[0], "0")
+                        )
+                    else:
+                        file.write(line)
 
 
 def convert_currency_text_to_int(text):
@@ -603,99 +699,112 @@ def calc_tot_cost(insurance, fskatt, maintenance):
 @app.route("/carcost", methods=["GET"])
 def car_cost_month():
     reg_plate = request.args.get("reg_plate")
-    existing_car = search_by_regnumber(reg_plate)
-    if existing_car:
-        return jsonify(existing_car)
+    api_key = request.args.get("key")
+    is_valid = verify_api_key(api_key)
 
-    # Fetch car info using Playwright
-    try:
-        page_content = get_car_info_with_playwright(reg_plate)
-        if page_content is None:
-            return jsonify({"error": "Could not retrieve data"}), 500
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch car data: {str(e)}"}), 500
+    if is_valid:
+        existing_car = search_by_regnumber(reg_plate)
+        if existing_car:
+            update_api_request_count(api_key)
+            return jsonify(existing_car)
 
-    # Process car information using BeautifulSoup
-    soup = BeautifulSoup(page_content, "html.parser")
-    h1_tag = soup.find("h1")
+        # Fetch car info using Playwright
+        try:
+            page_content = get_car_info_with_playwright(reg_plate)
+            if page_content is None:
+                return jsonify({"error": "Could not retrieve data"}), 500
+        except Exception as e:
+            return jsonify({"error": f"Failed to fetch car data: {str(e)}"}), 500
 
-    if not h1_tag or h1_tag.text.strip() == "Kaffepaus":
-        return jsonify({"error": "Try again later or invalid vehicle info"}), 400
+        # Process car information using BeautifulSoup
+        soup = BeautifulSoup(page_content, "html.parser")
+        h1_tag = soup.find("h1")
 
-    car_model = h1_tag.find("a").text.strip() if h1_tag.find("a") else "No model found"
-    global global_car_model
-    global_car_model = car_model
+        if not h1_tag or h1_tag.text.strip() == "Kaffepaus":
+            return jsonify({"error": "Try again later or invalid vehicle info"}), 400
 
-    # Fetch maintenance data
-    try:
-        maintenance_data = maintenance()
-        if not maintenance_data:
-            return jsonify({"error": "Could not retrieve maintenance data"}), 400
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch maintenance data: {str(e)}"}), 500
-
-    # Calculate maintenance costs
-    tirecost = get_tire_cost(maintenance_data[1][1])
-    maintenance_month = calculate_monthly_costs(maintenance_data[0][1])
-    repairs_month = calculate_monthly_costs(maintenance_data[2][1])
-    tot_maintenance = repairs_month + maintenance_month + tirecost
-
-    # Calculate tax costs
-    tax_month = calculate_monthly_costs(global_fskatt)
-
-    # Fetch insurance data
-    try:
-        insurance = get_insurance()
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch insurance data: {str(e)}"}), 500
-
-    # Fetch fuel prices
-    try:
-        gasprice = get_fuel_prices()
-        fuel_type = get_fuel_type(drivmedel)
-        right_fuel_price = get_relative_fuelprice(gasprice, fuel_type)
-    except Exception as e:
-        return jsonify({"error": f"Failed to fetch fuel prices: {str(e)}"}), 500
-
-    # Calculate total cost
-    try:
-        tot_cost = calc_tot_cost(insurance, tax_month, tot_maintenance)
-        print(
-            f"""
-            Regnummer: {reg_plate}
-            Total cost: {round(tot_cost)}
-            Total maintenance: {round(tot_maintenance)}
-            Maintenance per month: {round(maintenance_month)}
-            Repairs per month: {round(repairs_month)}
-            Tire cost per month: {round(tirecost)}
-            Insurance: {round(insurance)}
-            Fuel price: {right_fuel_price}
-            Car tax: {round(tax_month)}
-            """
+        car_model = (
+            h1_tag.find("a").text.strip() if h1_tag.find("a") else "No model found"
         )
-        # Sammanställ data för den aktuella bilen
-        car_info = {
-            "regnummer": reg_plate,
-            "total_cost": round(tot_cost),
-            "tot_maintenance": round(tot_maintenance),
-            "maintenance_month": round(maintenance_month),
-            "repairs_month": round(repairs_month),
-            "tirecost_month": round(tirecost),
-            "insurance": round(insurance),
-            "car_tax": round(tax_month),
-            "car_name": global_car_model,
-            "fuel_consumption": global_besbruk,
-            "fuel_type": fuel_type,
-            "fuel_price": right_fuel_price,
-        }
+        global global_car_model
+        global_car_model = car_model
 
-        # Spara data till JSON
-        save_to_json(car_info)
+        # Fetch maintenance data
+        try:
+            maintenance_data = maintenance()
+            if not maintenance_data:
+                return jsonify({"error": "Could not retrieve maintenance data"}), 400
+        except Exception as e:
+            return (
+                jsonify({"error": f"Failed to fetch maintenance data: {str(e)}"}),
+                500,
+            )
 
-        return jsonify(car_info)
+        # Calculate maintenance costs
+        tirecost = get_tire_cost(maintenance_data[1][1])
+        maintenance_month = calculate_monthly_costs(maintenance_data[0][1])
+        repairs_month = calculate_monthly_costs(maintenance_data[2][1])
+        tot_maintenance = repairs_month + maintenance_month + tirecost
 
-    except Exception as e:
-        return jsonify({"error": f"Failed to calculate total cost: {str(e)}"}), 500
+        # Calculate tax costs
+        tax_month = calculate_monthly_costs(global_fskatt)
+
+        # Fetch insurance data
+        try:
+            insurance = get_insurance()
+        except Exception as e:
+            return jsonify({"error": f"Failed to fetch insurance data: {str(e)}"}), 500
+
+        # Fetch fuel prices
+        try:
+            gasprice = get_fuel_prices()
+            fuel_type = get_fuel_type(drivmedel)
+            right_fuel_price = get_relative_fuelprice(gasprice, fuel_type)
+        except Exception as e:
+            return jsonify({"error": f"Failed to fetch fuel prices: {str(e)}"}), 500
+
+        # Calculate total cost
+        try:
+            tot_cost = calc_tot_cost(insurance, tax_month, tot_maintenance)
+            print(
+                f"""
+                Regnummer: {reg_plate}
+                Total cost: {round(tot_cost)}
+                Total maintenance: {round(tot_maintenance)}
+                Maintenance per month: {round(maintenance_month)}
+                Repairs per month: {round(repairs_month)}
+                Tire cost per month: {round(tirecost)}
+                Insurance: {round(insurance)}
+                Fuel price: {right_fuel_price}
+                Car tax: {round(tax_month)}
+                """
+            )
+            # Sammanställ data för den aktuella bilen
+            car_info = {
+                "regnummer": reg_plate,
+                "total_cost": round(tot_cost),
+                "tot_maintenance": round(tot_maintenance),
+                "maintenance_month": round(maintenance_month),
+                "repairs_month": round(repairs_month),
+                "tirecost_month": round(tirecost),
+                "insurance": round(insurance),
+                "car_tax": round(tax_month),
+                "car_name": global_car_model,
+                "fuel_consumption": global_besbruk,
+                "fuel_type": fuel_type,
+                "fuel_price": right_fuel_price,
+            }
+
+            # Spara data till JSON
+            save_to_json(car_info)
+            update_api_request_count(api_key)
+
+            return jsonify(car_info)
+
+        except Exception as e:
+            return jsonify({"error": f"Failed to calculate total cost: {str(e)}"}), 500
+    else:
+        return jsonify({"error": "Not a valid key"}), 401
 
 
 @app.route("/create_api_key", methods=["POST"])
@@ -710,7 +819,7 @@ def create_key():
     raw_key, hashed_key = create_api_key(user_name)
 
     # Lägg till nyckeln till .md-filen
-    add_api_key_to_file(user_name, raw_key, hashed_key)
+    add_api_key_to_file(user_name, hashed_key)
 
     # Returnera den råa och hashade nyckeln som svar
     return jsonify({"raw_key": raw_key}), 200

@@ -12,6 +12,7 @@ from flask_session import Session
 import jwt
 from datetime import datetime as dt, timedelta  # Importera datetime som dt
 import hashlib
+import json
 
 
 # http://127.0.0.1:5000/
@@ -409,6 +410,97 @@ def create_admin(username):
 
     # Skriv krypterad data till .md-filen
     write_to_md_file(encrypted_data, ADMIN_FILE)
+
+
+# Sökdata fil
+SEARCH_DATA_FILE = "search_data.json"
+
+# Max antal sökningar per timme för olika grupper
+MAX_SEARCHES = {
+    "bas": 10,  # Administratörer får göra 100 sökningar per timme
+    "privat": 5,  # Vanliga användare får göra 10 sökningar per timme
+}
+UNLIMITED_SEARCH_GROUPS = ["ftag", "pro"]
+
+
+# Läs sökdata från fil
+def load_search_data():
+    if os.path.exists(SEARCH_DATA_FILE):
+        with open(SEARCH_DATA_FILE, "r") as file:
+            return json.load(file)
+    return {}
+
+
+# Spara sökdata till fil
+def save_search_data(data):
+    with open(SEARCH_DATA_FILE, "w") as file:
+        json.dump(data, file)
+
+
+# Kolla om användaren har överskridit max antal sökningar
+def check_search_limit(user_name, user_tier):
+    data = load_search_data()
+
+    # Om användaren inte finns, skapa en ny post
+    if user_name not in data:
+        data[user_name] = {
+            "search_count": 0,
+            "last_reset": dt.now().isoformat(),
+        }
+        save_search_data(data)
+
+    user_data = data[user_name]
+    last_reset = dt.fromisoformat(user_data["last_reset"])
+    current_time = dt.now()
+
+    # Om en timme har gått, återställ räknaren
+    if current_time - last_reset >= timedelta(hours=1):
+        user_data["search_count"] = 0
+        user_data["last_reset"] = current_time.isoformat()
+        save_search_data(data)
+
+    # Om användaren tillhör en obegränsad grupp, ge obegränsade sökningar
+    if user_tier in UNLIMITED_SEARCH_GROUPS:
+        return True, "Du har obegränsade sökningar."
+
+    # Kolla om användaren har överskridit gränsen
+    max_searches = MAX_SEARCHES.get(user_tier, 5)
+
+    if user_data["search_count"] >= max_searches:
+        return False, f"Max antal sökningar per timme är {max_searches} för din grupp."
+
+    # Annars, öka sökräknaren och spara
+    user_data["search_count"] += 1
+    save_search_data(data)
+    return (
+        True,
+        f"Du har {max_searches - user_data['search_count']} sökningar kvar denna timme.",
+    )
+
+
+@app.route("/can_search", methods=["GET"])
+def can_search():
+    auth_header = request.headers.get("Authorization")
+    user_tier = request.args.get("user_tier")
+    if not auth_header:
+        return jsonify({"message": "Ingen token tillhandahållen"}), 401
+
+    token = auth_header.split(" ")[1]
+
+    try:
+        # Dekryptera JWT för att få användardata
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        username_from_token = decoded_token.get("username")
+
+        # Kontrollera om användaren har överskridit max antal sökningar
+        is_allowed, message = check_search_limit(username_from_token, user_tier)
+
+        # Returnera en JSON med true/false beroende på om användaren kan söka
+        return jsonify({"can_search": is_allowed, "message": message})
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token har gått ut"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Ogiltig token"}), 401
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-import { getUserTier } from './usertier.js';
+import { getUserTier } from '../user/usertier.js';
 
 async function Results() {
     const totpris_display = document.getElementById("tot_pris");
@@ -20,26 +20,36 @@ async function Results() {
 
     const milage = localStorage.getItem("milage");
     const savedCarDataString = localStorage.getItem("cardata");
+
     if (savedCarDataString) {
       let cardata_display = JSON.parse(savedCarDataString);
       
       const tier = await getUserTier();
       
-      if (tier == "privat") {
+      if (tier == "privat" || tier==null) {
         //maintenance
         maintenance_display.textContent =
           cardata_display.tot_maintenance + " KR";
+        maintenance_display_service.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
+
+        tire_cost_display.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
 
         //fuel
-        const totalFuelCost =
-          ((milage * 10) / 100) *
+        const totalFuelCost = Math.round(
+          ((milage*10) / 100) *
           cardata_display.fuel_consumption *
-          cardata_display.fuel_price;
+          cardata_display.fuel_price
+        );
         
         localStorage.setItem("tot_fuel_cost", totalFuelCost);
         tot_bkostnad.textContent = totalFuelCost + " KR";
 
+        fuel_cost_display.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
+
         fuel_type_display.textContent = cardata_display.fuel_type;
+
+        fuel_consumption_display.innerHTML =
+          "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
 
         //other
         car_name.textContent = cardata_display.car_name;
