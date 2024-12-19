@@ -272,7 +272,6 @@ def convert_text_to_float(text):
     # Ersätta eventuella kommatecken om de finns
     text_without_liter = text_without_liter.replace(",", ".")
     text_without_liter = text_without_liter.replace(" ", "")
-    print(text_without_liter)
     try:
         value = float(text_without_liter)
     except ValueError:
@@ -353,17 +352,16 @@ def get_car_info_with_playwright(reg_plate):
         # Få HTML-innehållet för bilens informationssida
         page_content = page.content()
 
-        print("Hämtar Bensin förbrukning")
         col3_class = page.query_selector_all(
             ".col-md-3"
         )  # Hämtar alla element med klassen col-md-3
         for div_element in col3_class:
-            print("Testar: ", div_element)  # Skriv ut elementet för felsökning
+
             div_content = div_element.text_content().strip()  # Hämta textinnehållet
             if (
                 "Blandad förbrukning" in div_content
             ):  # Kontrollera om texten innehåller "Blandad förbrukning"
-                print("Match hittad")
+
                 # Hämta specifik information från den inre div med klassen "idva_float"
                 div_bbruk = div_element.query_selector(
                     ".idva_float"
@@ -372,25 +370,22 @@ def get_car_info_with_playwright(reg_plate):
                     besbruk_pre = div_bbruk.text_content().strip()
                     if besbruk_pre.endswith("100km"):
                         global_besbruk = convert_text_to_float(besbruk_pre)
-                        print("Global bensinförbrukning:", global_besbruk)
+
                         break
                 else:
                     global_besbruk = "Ingen förbrukning hittad"
-                    print(global_besbruk)
 
-        print("Hämtar Fordonsskatt")
         fskatt_class = page.query_selector_all(".featured_info_item")
         for item in fskatt_class:
             div_elements = item.query_selector_all(".btn_description")
             for div in div_elements:
                 div_text = div.text_content().strip()  # Extrahera och trimma texten
-                print("Div namn: ", div_text)
+
                 if div_text == "Fordonsskatt":
-                    print("Match found!")
+
                     fskatt_pre = item.query_selector(".btn_value").inner_text()
                     global_fskatt = convert_currency_text_to_int(fskatt_pre)
 
-        print("Hämtar drivmedel")
         fskatt_class = page.query_selector_all(".idva_float")
         for text in fskatt_class:
             dmedel = text.inner_text()
@@ -398,7 +393,6 @@ def get_car_info_with_playwright(reg_plate):
                 drivmedel = dmedel
                 break
 
-        print("Hämtar co2 utsläpp")
         co2_class = page.query_selector_all(".has_extra_info_modal")
         for text in co2_class:
             co2_name = (
@@ -406,14 +400,12 @@ def get_car_info_with_playwright(reg_plate):
             )  # Rensa strängen från mellanslag i början och slutet
             if co2_name.endswith("g/km"):
 
-                print(f"Original sträng: {repr(co2_name)}")
-
                 # Extrahera endast siffror följt av "g/km"
                 match = re.search(r"(\d+)\s*g/km", co2_name)
                 if match:
                     try:
                         co2 = int(match.group(1))  # Extrahera siffran från matchningen
-                        print(f"CO₂ hittat: {co2}")
+
                     except ValueError as e:
                         print(f"Fel vid konvertering av {repr(co2_name)}: {e}")
                 else:
@@ -426,12 +418,11 @@ def get_car_info_with_playwright(reg_plate):
         # Stäng webbläsaren
         context.close()
 
-        print(co2)
         return page_content
 
 
 def contact_ai(promt):
-    print("Prompten är:", promt)
+
     response = client.chat.completions.create(
         messages=[
             {
@@ -463,7 +454,6 @@ def maintenance():
 
     maintenancecost = response.choices[0].message.content
 
-    print("Svaret från ai: ", maintenancecost)
     # Använd regex för att hitta alla siffror i 'content'
     # Hitta innehåll inom 'content'
 
@@ -534,8 +524,6 @@ def get_insurance():
 
         response = contact_ai(insurance_prompt)
         average_price = response.choices[0].message.content
-        print("Genomsnittligt försäkringspris:", average_price)
-        print("Svaret från ai: ", average_price)
         # Använd regex för att hitta innehållet i 'content'
         average_price = int(average_price)
         if average_price is None:
@@ -766,19 +754,6 @@ def car_cost_month():
         # Calculate total cost
         try:
             tot_cost = calc_tot_cost(insurance, tax_month, tot_maintenance)
-            print(
-                f"""
-                Regnummer: {reg_plate}
-                Total cost: {round(tot_cost)}
-                Total maintenance: {round(tot_maintenance)}
-                Maintenance per month: {round(maintenance_month)}
-                Repairs per month: {round(repairs_month)}
-                Tire cost per month: {round(tirecost)}
-                Insurance: {round(insurance)}
-                Fuel price: {right_fuel_price}
-                Car tax: {round(tax_month)}
-                """
-            )
             # Sammanställ data för den aktuella bilen
             car_info = {
                 "regnummer": reg_plate,

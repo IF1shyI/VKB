@@ -1,0 +1,87 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/all/header.astro";
+---
+
+<Layout title="Lyckat">
+  <Header />
+  <div class="container">
+    <div class="message">
+      <h1>🎉 Betalningen lyckades! 🎉</h1>
+      <p class="fade-in">
+        Tack för ditt köp! Din beställning har behandlats och du har nu tillgång
+        till dina valda tjänster.
+      </p>
+      <p class="fade-in delay">
+        Om du har några frågor, kontakta oss gärna på <a href="/kontakt"
+          >vår kontaktsida</a
+        >.
+      </p>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .container {
+    max-width: 600px;
+    margin: 100px auto;
+    text-align: center;
+    padding: 20px;
+    border-radius: 8px;
+    background: #f4f4f9;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 1.5s ease-in-out;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    color: #4caf50;
+    margin-bottom: 20px;
+  }
+
+  p {
+    font-size: 1.2rem;
+    color: #333;
+    line-height: 1.6;
+  }
+
+  a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Animation for fading in the text */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fade-in 1.5s forwards ease-in-out;
+  }
+
+  .fade-in.delay {
+    animation-delay: 1.5s;
+  }
+
+  @keyframes fade-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Fade in for the container */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+</style>

@@ -1,3 +1,5 @@
+<script src="https://js.stripe.com/v3/"></script>
+
 <div class="opt_container">
   <!-- Kolumn 1 -->
   <div class="opt1_container optcommon">
@@ -40,7 +42,7 @@
     </ul>
     <div class="price_button">
       <p class="price">Pris: <strong>50 SEK/månad</strong></p>
-      <button class="buy_button">Beställ</button>
+      <button class="buy_button" data-tier="basanvandare">Beställ</button>
     </div>
   </div>
 
@@ -62,12 +64,13 @@
     </ul>
     <div class="price_button">
       <p class="price">Pris: <strong>200 SEK/månad</strong></p>
-      <button class="buy_button">Beställ</button>
+      <button class="buy_button" data-tier="professionell">Beställ</button>
     </div>
   </div>
 
   <!-- Kolumn 4 -->
-  <div class="opt4_container optcommon">
+  <div class="opt4_container
+        optcommon">
     <h4>Företagsanvändare</h4>
     <div class="rw1">
       <p class="text_info">
@@ -90,6 +93,14 @@
     </div>
   </div>
 
+  <div id="card-element">
+    <!-- A Stripe Element will be inserted here. -->
+  </div>
+
+  <!-- Placera ett felmeddelande för att visa om det finns några problem -->
+  <div id="card-errors" role="alert"></div>
+
+  <script type="module" src="./js/user/buy_tier.js" defer></script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const loginContainer = document.getElementById("login-container");

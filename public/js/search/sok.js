@@ -23,91 +23,139 @@ document.getElementById('milage-input').addEventListener('keyup', function (even
 let mskatt = 0;
 let totMaintenance;
 
-async function Search() {
-    
+async function Do_search(inputValue) {
+    const carInfoDiv = document.getElementById('car-info');
+    const loadingMessage = document.getElementById('loading-message');
+    loadingMessage.style.display = 'block';  // Visa laddningsmeddelandet
 
-    localStorage.removeItem('cardata')
+    try {
+        // Skicka GET-begäran till Flask-API:t
+        const carResponse = await fetch(`http://127.0.0.1:4000/carcost?reg_plate=${inputValue}&key=testperson-1734630806.015074`, {
+            method: "GET",
+        });
+
+        if (!carResponse.ok) {
+            throw new Error(`Network response was not ok: ${carResponse.statusText}`);
+        }
+
+        // Tilldela data till variabeln "carData"
+        const carData = await carResponse.json();
+
+        if (carData.error) {
+            console.log("API svarade med: ", carData.error);
+            carInfoDiv.innerHTML = `
+                <p>${carData.car_name ? carData.car_name : 'Problem uppstod. Försök igen senare'}</p>
+            `;
+        } else {
+            // API-svaret innehåller bilinformation
+            console.log(carData);
+            localStorage.setItem('cardata', JSON.stringify(carData));
+            console.log('Car data saved to localStorage:', carData);
+            carInfoDiv.innerHTML = `
+                <p>${carData.car_name ? carData.car_name : 'Hittar inte bilmodell. Försök igen senare'}</p>
+            `;
+        }
+
+        // Kontrollera om användaren ska kunna fortsätta
+        if (carData.message !== "Try again later") {
+            toggleStep();
+        } else {
+            console.log(`Kan inte söka: ${carData.message}`);
+            carInfoDiv.innerHTML = "Slut på sökningar, testa igen senare.";
+        }
+    } catch (error) {
+        // Felhantering om något går fel
+        console.error("Fel vid hämtning av data:", error);
+        carInfoDiv.innerHTML = `<p>Fel: ${error.message}</p>`;
+    } finally {
+        // Dölj laddningsmeddelandet när allt är klart
+        loadingMessage.style.display = 'none';
+    }
+}
+
+
+async function Search() {
+    // Ta bort tidigare bilinformation från localStorage
+    localStorage.removeItem('cardata');
+    
     // Hämta värdet från input-fältet
     const inputValue = document.getElementById('reg-number').value;
     const carInfoDiv = document.getElementById('car-info');
     const loadingMessage = document.getElementById('loading-message');
-    const bensinbrukval = document.getElementById('bbruk-display')
-
+    
     // Kontrollera om längden är exakt 6 tecken
     if (inputValue.length === 6) {
         // Visa laddningsmeddelande
         loadingMessage.style.display = 'block';
         carInfoDiv.innerHTML = '';  // Töm tidigare resultat
-        
 
-            try {
-                const jwtToken=localStorage.getItem('jwt')
-                const user_tier=await getUserTier()
-                const response = await fetch("http://localhost:5000/can_search?user_tier=" + user_tier, {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${jwtToken}`,
-                }
+        try {
+            const jwtToken = localStorage.getItem('jwt');
+
+            if (!jwtToken) {
+                // Hämta användarens IP-adress om det inte finns något JWT
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                console.log('Din IP-adress är:', data.ip);
+
+                // Kontrollera om användaren kan söka baserat på IP
+                const searchResponse = await fetch("http://localhost:5000/can_search_ip?user_ip=" + data.ip, {
+                    method: "GET",
                 });
 
-                const ok_search_data = await response.json();
+                const ok_search_data = await searchResponse.json();
                 if (ok_search_data.can_search) {
-                console.log("Användaren kan söka!");
-                try {
-                    // Skicka en HTTP GET-begäran till Flask-API:t
-                    const response = await fetch(`http://127.0.0.1:4000/carcost?reg_plate=${inputValue}&key=testperson-1734630806.015074`, {
-                        method: "GET", // GET används eftersom Flask-routen förväntar sig det
-                    });
-                    
-                    // Logga svaret för felsökning
-
-                    if (!response.ok) {
-                        throw new Error(`Network response was not ok: ${response.statusText}`);
-                    }
-
-                    // Tilldela global variabel "data" med API-svaret
-                    data = await response.json();
-                    if (data.error) {
-                        console.log("API svarade med: ", data.error);
-                        carInfoDiv.innerHTML = `
-                                <p>${data.car_name ? data.car_name : 'Problem uppstod. Försök igen senare'}</p>
-                                `;
-                    // Visa meddelande till användaren
-                    } else {
-                    // API-svaret innehåller bilinformationen
-                        console.log(data)
-                        localStorage.setItem('cardata', JSON.stringify(data));
-                        console.log('Car data saved to localStorage:', data);
-                        // Visa informationen på sidan
-                        carInfoDiv.innerHTML = `
-                            <p>${data.car_name ? data.car_name : 'Hittar inte bilmodell. Försök igen senare'}</p>
-                            `;
-                    }
-                } catch (error) {
-                    // Hantera fel och visa ett meddelande
-                    carInfoDiv.innerHTML = `<p>Fel: ${error.message}</p>`;
-                    console.error("Fel vid hämtning av data:", error);
-                } finally {
-                    // Dölj laddningsmeddelandet
-                    loadingMessage.style.display = 'none';
-                }
-                if (data.message != "Try again later"){
-                    toggleStep();
-                }
+                    console.log("Användaren kan söka via IP!");
+                    // Gör sökningen via IP
+                    await Do_search(inputValue);
                 } else {
-                console.log(`Kan inte söka: ${data.message}`);
-                const loading_message=document.getElementById('loading-message')
-                const error_info=document.getElementById('car-info')
-                error_info.textContent="Slut på sökningar, testa igen senare."
-                loading_message.classList.add('hidden')
-                }
-            } catch (error) {
-                console.error("Error:", error);
-            }
-        
+                    console.log("Användaren kan inte söka via IP, kollar istället JWT...");
+                    // Om användaren inte kan söka via IP, kolla användartier
+                    const user_tier = await getUserTier();
+                    const tokenResponse = await fetch("http://localhost:5000/can_search?user_tier=" + user_tier, {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${jwtToken}`,
+                        },
+                    });
 
-        
-        
+                    const token_search_data = await tokenResponse.json();
+                    if (token_search_data.can_search) {
+                        console.log("Användaren kan söka via JWT!");
+                        // Gör sökningen via JWT
+                        await Do_search(inputValue);
+                    } else {
+                        console.log("Användaren kan inte söka via JWT eller IP.");
+                        carInfoDiv.innerHTML = '<p>Du har inte tillstånd att söka.</p>';
+                    }
+                }
+            } else {
+                // Om det finns ett JWT-token, kontrollera om användaren kan söka baserat på det
+                const user_tier = await getUserTier();
+                const tokenResponse = await fetch("http://localhost:5000/can_search?user_tier=" + user_tier, {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${jwtToken}`,
+                    },
+                });
+
+                const token_search_data = await tokenResponse.json();
+                if (token_search_data.can_search) {
+                    console.log("Användaren kan söka via JWT!");
+                    // Gör sökningen via JWT
+                    await Do_search(inputValue);
+                } else {
+                    console.log("Användaren kan inte söka via JWT.");
+                    carInfoDiv.innerHTML = '<p>Du har inte tillstånd att söka.</p>';
+                }
+            }
+        } catch (error) {
+            console.error("Fel vid hämtning av data:", error);
+            carInfoDiv.innerHTML = `<p>Fel vid hämtning av data: ${error.message}</p>`;
+        } finally {
+            // Dölj laddningsmeddelandet
+            loadingMessage.style.display = 'none';
+        }
     } else {
         carInfoDiv.innerHTML = '<p>Registreringsnumret måste vara exakt 6 tecken långt.</p>';
         loadingMessage.style.display = 'none';

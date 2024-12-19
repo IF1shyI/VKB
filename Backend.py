@@ -13,6 +13,8 @@ import jwt
 from datetime import datetime as dt, timedelta  # Importera datetime som dt
 import hashlib
 import json
+import stripe
+import jwt
 
 
 # http://127.0.0.1:5000/
@@ -501,6 +503,206 @@ def can_search():
         return jsonify({"message": "Token har gått ut"}), 401
     except jwt.InvalidTokenError:
         return jsonify({"message": "Ogiltig token"}), 401
+
+
+@app.route("/can_search_ip", methods=["GET"])
+def can_search_ip():
+    user_ip = request.args.get("user_ip")
+    if not user_ip:
+        return jsonify({"message": "Ingen ip tillhandahållen"}), 401
+
+    try:
+
+        # Kontrollera om användaren har överskridit max antal sökningar
+        is_allowed, message = check_search_limit(user_ip, "none")
+
+        # Returnera en JSON med true/false beroende på om användaren kan söka
+        return jsonify({"can_search": is_allowed, "message": message})
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token har gått ut"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Ogiltig token"}), 401
+
+
+stripe.api_key = "sk_test_51QXro9GEVnY4b4YPm4Zb4g7xfYNJZqBBHoQ02daLR0Azg3dVB7ElxMeGdF7t0btgULNhg5gy0IzaG8IT9LGXHO0600Biwpz1C2"
+
+
+def decode_jwt(token):
+    try:
+        # Ersätt 'your_secret_key' med den nyckel som du använder för att signera JWT
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return decoded_token
+    except jwt.ExpiredSignatureError:
+        print("Token har gått ut")
+        return None
+    except jwt.InvalidTokenError:
+        print("Ogiltig token")
+        return None
+
+
+def get_user_by_jwt(token):
+    # Logik för att hämta användardata baserat på JWT
+    try:
+        # Antag att token är en JWT-sträng
+        payload = decode_jwt(
+            token
+        )  # Ersätt detta med din egna metod för att dekoda JWT
+
+        user_id = payload.get(
+            "user_id"
+        )  # Exempel på hur användardata kan dekodas från JWT
+        user_email = payload.get("email")  # Kontrollera att email är korrekt här
+
+        if not user_email:
+            print("Email saknas i JWT")
+            return None
+
+        # Här kan du hämta användaren från databasen om du använder en databas
+        # return fetch_user_from_database(user_id)
+        return {"id": user_id, "email": user_email, "name": payload.get("name")}
+    except Exception as e:
+        print(f"Fel vid dekodning av JWT: {str(e)}")
+        return None
+
+
+def update_user_tier(user_id, tier):
+    # Assuming you are updating the user data in a markdown file or database
+    users = read_from_md_file(DATA_FILE)
+
+    for index, user_data in enumerate(users):
+        user_fields = user_data.split(", ")
+        user_name = user_fields[0].split(": ")[1]
+        if user_name == user_id:
+            users[index] = (
+                f"Name: {user_name}, Password: {user_fields[1].split(': ')[1]}, Tier: {tier}"
+            )
+            write_to_md_file(
+                "\n".join(users), DATA_FILE
+            )  # Write the updated data back to the file
+            return True
+    return False
+
+
+@app.route("/initiate_payment", methods=["POST"])
+def initiate_payment():
+    try:
+        # Extrahera JWT från Authorization-headern
+        token = request.headers.get("Authorization").split(" ")[1]
+        print("Token mottagen:", token)  # Debug-utskrift
+
+        user = get_user_by_jwt(token)
+        print("Användardata:", user)  # Debug-utskrift
+
+        if not user:
+            return jsonify({"message": "Användaren kunde inte hittas."}), 400
+
+        # Få val av prenumerationsnivå från förfrågan
+        data = request.get_json()
+        tier = data.get("tier")
+        print("Tier vald:", tier)  # Debug-utskrift
+
+        # Karta tier till Price ID från Stripe
+        price_ids = {
+            "basanvandare": "price_1QXrpTGEVnY4b4YPwQrzV5wK",  # Byt ut mot riktiga Price IDs
+            "professionell": "price_1QXrq6GEVnY4b4YPnpC5PEIk",
+        }
+        price_id = price_ids.get(tier)
+
+        if not price_id:
+            print("Ogiltig tier:", tier)  # Debug-utskrift
+            return jsonify({"message": "Ogiltig prenumerationsnivå."}), 400
+
+        # Skapa Stripe-kund om den inte redan finns
+        customer = stripe.Customer.create(
+            email=user["email"],
+            name=user["name"],
+        )
+        print("Kund skapad:", customer)  # Debug-utskrift
+
+        # Skapa en prenumeration
+        subscription = stripe.Subscription.create(
+            customer=customer.id,
+            items=[{"price": price_id}],
+            expand=["latest_invoice.payment_intent"],  # Få betalningsdetaljer
+        )
+        print("Prenumeration skapad:", subscription)  # Debug-utskrift
+
+        # Returnera client_secret för att hantera betalningen på frontend
+        return jsonify(
+            {
+                "client_secret": subscription.latest_invoice.payment_intent.client_secret,
+                "subscription_id": subscription.id,
+            }
+        )
+
+    except Exception as e:
+        print("Ett fel uppstod:", str(e))  # Logga felet
+        return jsonify({"message": f"Ett fel uppstod: {str(e)}"}), 500
+
+
+# När betalningen är klar, uppdatera användarens tier
+@app.route("/update_tier", methods=["POST"])
+def update_tier():
+    try:
+        # Extract JWT from Authorization header
+        token = request.headers.get("Authorization").split(" ")[1]
+        user = get_user_by_jwt(
+            token
+        )  # Assuming this function returns user data from JWT
+
+        if not user:
+            return jsonify({"message": "Användaren kunde inte hittas."}), 400
+
+        # Get the new tier from the request data
+        data = request.get_json()
+        tier = data.get("tier")
+
+        # Update the user's tier in your database or storage
+        update_user_tier(
+            user["id"], tier
+        )  # Assuming this function updates the user's tier
+
+        return jsonify({"message": "Tier uppdaterad!"})
+
+    except Exception as e:
+        return jsonify({"message": f"Ett fel uppstod: {str(e)}"}), 500
+
+
+@app.route("/webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get("Stripe-Signature")
+    event = None
+
+    try:
+        # Construct the event from the payload and signature
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, "your_webhook_secret"
+        )
+
+    except ValueError as e:
+        # Invalid payload
+        return "Invalid payload", 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return "Invalid signature", 400
+
+    # Handle successful payment confirmation
+    if event["type"] == "payment_intent.succeeded":
+        payment_intent = event["data"][
+            "object"
+        ]  # The payment_intent object contains payment data
+
+        # Retrieve user details and tier information from metadata
+        user_id = payment_intent["metadata"]["user_id"]
+        tier = payment_intent["metadata"]["tier"]
+
+        # Update the user's tier in your database
+        update_user_tier(user_id, tier)
+
+        return "", 200  # Respond with a success message
+
+    return "", 400  # Respond with an error if event type is not handled
 
 
 if __name__ == "__main__":

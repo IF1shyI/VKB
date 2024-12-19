@@ -1,0 +1,204 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/all/header.astro";
+---
+
+<script src="https://js.stripe.com/v3/"></script>
+
+<Layout title="Betala">
+  <div class="container">
+    <h1>Färdigställ betalning</h1>
+    <h3>Plan: <span id="tier-name">[Vald Plan]</span></h3>
+    <div class="summary">
+      <p><strong>Pris:</strong> <span id="tier-price">[Pris]</span> SEK</p>
+      <p>
+        <strong>Beskrivning:</strong> Tillgång till valda tjänster och förmåner.
+      </p>
+    </div>
+
+    <!-- Lägg till ett formulär för att samla in e-postadress -->
+    <h3>Betalningsinformation</h3>
+    <div class="form-group">
+      <label for="email">E-postadress:</label>
+      <input
+        type="email"
+        id="email"
+        class="form-control"
+        placeholder="Ange din e-postadress"
+        required
+      />
+    </div>
+
+    <div id="card-element">
+      <!-- Stripe Elements input -->
+    </div>
+    <div id="card-errors" class="error" role="alert"></div>
+    <button id="submit" class="btn">Betala</button>
+
+    <div class="loading">
+      <img
+        src="https://loading.io/spinners/double-ring/lg.double-ring-spinner.gif"
+        alt="Loading..."
+      />
+      <p>Bearbetar betalning...</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async function () {
+    const stripe = Stripe(
+      "pk_test_51QXqp2PQ6w7PSUmjNHzMW7sUgH95SRjDvgYIIPAZ3tQeVTlZWOyvrSwqmld0xohuw5X6PnZL4Dsl9kzNhTEWowFw00GJ3Js0wG"
+    ); // Din Stripe public key
+    const elements = stripe.elements();
+
+    // Skapa Stripe Elements card
+    const cardElement = elements.create("card", {
+      style: {
+        base: {
+          color: "#32325d",
+          fontFamily: "Roboto, sans-serif",
+          fontSize: "16px",
+          "::placeholder": { color: "#aab7c4" },
+        },
+        invalid: { color: "#fa755a" },
+      },
+    });
+    cardElement.mount("#card-element");
+
+    // Hantera event för felmeddelanden
+    cardElement.on("change", function (event) {
+      const displayError = document.getElementById("card-errors");
+      if (event.error) {
+        displayError.textContent = event.error.message;
+      } else {
+        displayError.textContent = "";
+      }
+    });
+
+    // Hämta client_secret från localStorage
+    const clientSecret = localStorage.getItem("client_secret");
+    const tierName = localStorage.getItem("tier_name");
+    const tierPrice = localStorage.getItem("tier_price");
+
+    // Visa produktinformation
+    if (tierName && tierPrice) {
+      document.getElementById("tier-name").textContent = tierName;
+      document.getElementById("tier-price").textContent = tierPrice;
+    } else {
+      alert("Ingen betalningsinformation hittades.");
+      window.location.href = "/";
+      return;
+    }
+
+    // Hantera betalning
+    document
+      .getElementById("submit")
+      .addEventListener("click", async function () {
+        const email = document.getElementById("email").value;
+
+        // Kontrollera att e-postadress är angiven
+        if (!email) {
+          alert("Vänligen ange din e-postadress.");
+          return;
+        }
+
+        const loadingIndicator = document.querySelector(".loading");
+        loadingIndicator.style.display = "block";
+
+        const { error, paymentIntent } = await stripe.confirmCardPayment(
+          clientSecret,
+          {
+            payment_method: {
+              card: cardElement,
+              billing_details: {
+                name: "Användarens namn",
+                email: email, // Skicka med e-postadressen här
+              },
+            },
+          }
+        );
+
+        loadingIndicator.style.display = "none";
+
+        if (error) {
+          alert("Fel vid betalning: " + error.message);
+        } else if (paymentIntent.status === "succeeded") {
+          alert("Betalningen genomfördes!");
+          window.location.href = "/success"; // Omdirigera till success-sida
+        }
+      });
+  });
+</script>
+
+<style>
+  .container {
+    max-width: 600px;
+    margin: 50px auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    background-color: var(--gra);
+  }
+  h1,
+  h2,
+  h3 {
+    text-align: center;
+    color: #333;
+  }
+  .summary {
+    text-align: left;
+    margin-bottom: 20px;
+  }
+  .summary p {
+    font-size: 16px;
+    margin: 5px 0;
+    color: #555;
+  }
+  #card-element {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+    background: #f9f9f9;
+  }
+  .error {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    background: #007bff;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  .btn:hover {
+    background: #0056b3;
+  }
+  .loading {
+    display: none;
+    text-align: center;
+    margin-top: 10px;
+  }
+  .loading img {
+    width: 50px;
+  }
+  .form-group {
+    margin-bottom: 15px;
+  }
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+</style>

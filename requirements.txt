@@ -13,3 +13,4 @@ jsonwebtoken
 Flask-Session
 PyJWT
 requests
+stripe
