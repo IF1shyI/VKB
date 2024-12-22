@@ -117,16 +117,23 @@
           ftag: document.querySelector(".opt4_container"),
         };
 
-        // Rensa tidigare markeringar
+        // Rensa tidigare markeringar och etiketter
         for (const key in columns) {
-          columns[key].classList.remove("active", "owned");
+          columns[key].classList.remove("active", "owned", "recommended");
           const label = columns[key].querySelector(".tier_label");
           if (label) {
             label.remove();
           }
+
+          // Ta bort rekommenderad etikett om användaren äger denna tier
+          const recommendedLabel =
+            columns[key].querySelector(".recommended_label");
+          if (recommendedLabel) {
+            recommendedLabel.style.display = "none"; // Ta bort rekommenderad etikett
+          }
         }
 
-        // Lägg till "Äger"-etikett och klasser
+        // Om användaren äger en tier, markera den som 'owned'
         const activeColumn = columns[tier];
 
         if (!activeColumn) {
@@ -136,20 +143,13 @@
 
         console.log("Aktiv kolumn hittad:", activeColumn);
 
-        // Rensa tidigare markeringar
-        document.querySelectorAll(".optcommon").forEach((col) => {
-          col.classList.remove("active", "owned");
-          const existingLabel = col.querySelector(".tier_label");
-          if (existingLabel) existingLabel.remove();
-        });
-
-        // Lägg till klassen för aktiv kolumn
+        // Lägg till klassen för aktiv kolumn och visa "owned"
         activeColumn.classList.add("active", "owned");
 
-        // Lägg till "Aktiv"-etiketten
+        // Lägg till "Äger"-etiketten
         const label = document.createElement("div");
         label.className = "tier_label";
-        label.textContent = "Aktiv";
+        label.textContent = "Äger";
 
         const astroCid = activeColumn
           .getAttributeNames()
@@ -158,6 +158,13 @@
           label.setAttribute(astroCid, ""); // Applicera samma attribut på den nya "label"
         }
         activeColumn.prepend(label);
+
+        // Ta bort rekommenderat etikett om användaren äger den tiern
+        if (tier === "pro") {
+          const recommendedColumn = document.querySelector(".opt2_container");
+          recommendedColumn.querySelector(".recommended_label").style.display =
+            "none"; // Ta bort rekommenderat etikett
+        }
       } else {
         // Om token inte är giltig, ta bort den
         console.warn("Token ogiltig, tar bort från localStorage.");

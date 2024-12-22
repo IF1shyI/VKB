@@ -7,7 +7,7 @@ from flask_cors import CORS
 import re
 import time
 from openai import OpenAI
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from flask_session import Session
 import jwt
 from datetime import datetime as dt, timedelta  # Importera datetime som dt
@@ -15,6 +15,16 @@ import hashlib
 import json
 import stripe
 import jwt
+import uuid
+import base64
+
+
+def fix_base64_padding(data: str) -> str:
+    # Lägg till padding om den saknas
+    padding = len(data) % 4
+    if padding != 0:
+        data += "=" * (4 - padding)
+    return data
 
 
 # http://127.0.0.1:5000/
@@ -38,6 +48,8 @@ PASSWORD = os.getenv("PASSWORD")
 APIKEY = os.getenv("APIKEY")
 encryption_key = os.getenv("ENCRTPT_KEY")
 Session_key = os.getenv("SESS_KEY")
+stripe_key = os.getenv("STRIPE_KEY")
+fernet_key = os.getenv("FERNET_KEY")
 
 client = OpenAI(
     # This is the default and can be omitted
@@ -146,11 +158,10 @@ def tips():
 DATA_FILE = "users.md"
 ADMIN_FILE = "admin.md"
 
-KEY = encryption_key  # Ersätt med en riktig nyckel
 SECRET_KEY = encryption_key
 ALGORITHM = "HS256"
 TOKEN_EXPIRATION_MINUTES = 120
-cipher_suite = Fernet(KEY)
+cipher_suite = Fernet(fernet_key)
 
 
 def encrypt_data(data: str) -> str:
@@ -158,20 +169,50 @@ def encrypt_data(data: str) -> str:
 
 
 def decrypt_data(data: str) -> str:
-    return cipher_suite.decrypt(data.encode()).decode()
+    try:
+        # Försök att fixa base64-padding innan dekryptering
+        fixed_data = fix_base64_padding(data)
+        return cipher_suite.decrypt(fixed_data.encode()).decode()
+    except InvalidToken:
+        raise ValueError("Ogiltig token eller fel vid dekryptering.")
 
 
-def write_to_md_file(encrypted_data: str, FILE):
-    with open(FILE, "a") as file:
-        file.write(encrypted_data + "\n")
+def write_to_md_file(data, DATA_FILE):
+    """
+    Skriver krypterad data till fil. Data bör vara en lista av krypterade strängar.
+    """
+    if not isinstance(data, (list, tuple)):
+        raise ValueError(
+            "Data måste vara en lista eller itererbar av krypterade strängar."
+        )
+
+    with open(DATA_FILE, "w") as file:
+        for encrypted_data in data:
+            file.write(str(encrypted_data) + "\n")
 
 
 def read_from_md_file(FILE):
+    """
+    Läser krypterad data från fil och försöker dekryptera varje rad.
+    Ignorerar rader som inte kan dekrypteras.
+    """
     if not os.path.exists(FILE):
         return []
+
+    decrypted_data = []
     with open(FILE, "r") as file:
         lines = file.readlines()
-    return [decrypt_data(line.strip()) for line in lines]
+
+    for line in lines:
+        try:
+            decrypted_line = decrypt_data(line.strip())
+            decrypted_data.append(decrypted_line)
+        except ValueError as e:
+            print(f"Fel vid dekryptering av rad: {line.strip()} - {str(e)}")
+            # Ignorera trasiga rader och fortsätt
+            continue
+
+    return decrypted_data
 
 
 # Hjälpfunktion för att generera JWT
@@ -187,13 +228,27 @@ def generate_jwt(username: str) -> str:
 
 # Hjälpfunktion för att verifiera JWT
 def verify_jwt(token: str):
+    """
+    Verifierar en JWT-token och returnerar dess payload om den är giltig.
+
+    :param token: JWT-token som ska verifieras
+    :return: Dictionary med payload-data om token är giltig, annars None
+    """
     try:
+        # Försök att dekoda token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload  # Returnerar användardata från tokenen
     except jwt.ExpiredSignatureError:
-        return None  # Token har gått ut
-    except jwt.InvalidTokenError:
-        return None  # Token är ogiltig
+        print("Fel: Token har gått ut.")  # Logga eller hantera utgången token
+        return None
+    except jwt.InvalidTokenError as e:
+        print(
+            f"Fel: Ogiltig token. Detaljer: {str(e)}"
+        )  # Logga eller hantera ogiltig token
+        return None
+    except Exception as e:
+        print(f"Ett oväntat fel inträffade: {str(e)}")  # För generella fel
+        return None
 
 
 # Registreringsrutt
@@ -202,26 +257,43 @@ def register():
     data = request.get_json()
     name = data.get("name")
     password = data.get("password")
-    Tier = "PP"
+    mail = data.get("email")
+    tier = "PP"
 
+    # Läs existerande användare
     users = read_from_md_file(DATA_FILE)
+
+    # Kontrollera om användarnamnet redan finns
     for user_data in users:
-        # Split the decrypted data into fields
         user_fields = user_data.split(", ")
-        existing_name = user_fields[0].split(": ")[1]  # Extract 'Name' field
+        existing_name = user_fields[1].split(": ")[1]  # Extract 'username' field
         if existing_name == name:
             return (
                 jsonify({"message": "Användarnamn är redan taget", "success": False}),
                 409,
             )
-    # Kryptera data
-    user_data = f"Name: {name}, Password: {password}, Tier: {Tier}"
+
+    # Generera ett unikt user_id
+    user_id = str(uuid.uuid4())
+
+    # Skapa användardata i klartext
+    user_data = f"UserID: {user_id}, username: {name}, password: {password}, Tier: {tier}, mail: {mail}"
+
+    # Kryptera användardata
     encrypted_data = encrypt_data(user_data)
 
-    # Skriv krypterad data till .md-filen
-    write_to_md_file(encrypted_data, DATA_FILE)
+    # Lägg till den nya krypterade användardatan i listan
+    users.append(encrypted_data)
 
-    return jsonify({"message": "Användare registrerad och data sparad"}), 200
+    # Skriv tillbaka hela listan till filen
+    write_to_md_file(users, DATA_FILE)
+
+    return (
+        jsonify(
+            {"message": "Användare registrerad och data sparad", "user_id": user_id}
+        ),
+        200,
+    )
 
 
 @app.route("/login", methods=["POST"])
@@ -237,8 +309,8 @@ def login():
     for user in users:
         # Dela upp den dekrypterade data för att få ut namn och lösenord
         user_data = user.split(", ")
-        user_name = user_data[0].split(": ")[1]
-        user_password = user_data[1].split(": ")[1]
+        user_name = user_data[1].split(": ")[1]
+        user_password = user_data[2].split(": ")[1]
 
         # Jämför namn och lösenord
         if user_name == username and user_password == password:
@@ -329,8 +401,8 @@ def check_tier():
         for user in users:
             # Dela upp den dekrypterade data för att få ut namn och lösenord
             user_data = user.split(", ")
-            user_name = user_data[0].split(": ")[1]
-            user_tier = user_data[2].split(": ")[1]
+            user_name = user_data[1].split(": ")[1]
+            user_tier = user_data[3].split(": ")[1]
 
             if user_tier == "FA":
                 return_tier = "ftag"
@@ -524,185 +596,166 @@ def can_search_ip():
         return jsonify({"message": "Ogiltig token"}), 401
 
 
-stripe.api_key = "sk_test_51QXro9GEVnY4b4YPm4Zb4g7xfYNJZqBBHoQ02daLR0Azg3dVB7ElxMeGdF7t0btgULNhg5gy0IzaG8IT9LGXHO0600Biwpz1C2"
-
-
-def decode_jwt(token):
-    try:
-        # Ersätt 'your_secret_key' med den nyckel som du använder för att signera JWT
-        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return decoded_token
-    except jwt.ExpiredSignatureError:
-        print("Token har gått ut")
-        return None
-    except jwt.InvalidTokenError:
-        print("Ogiltig token")
-        return None
-
-
 def get_user_by_jwt(token):
-    # Logik för att hämta användardata baserat på JWT
+    """
+    Hämtar användardata baserat på en JWT-token.
+    :param token: JWT-token
+    :return: Dictionary med användar-ID och namn, eller None om misslyckas
+    """
     try:
-        # Antag att token är en JWT-sträng
-        payload = decode_jwt(
-            token
-        )  # Ersätt detta med din egna metod för att dekoda JWT
-
-        user_id = payload.get(
-            "user_id"
-        )  # Exempel på hur användardata kan dekodas från JWT
-        user_email = payload.get("email")  # Kontrollera att email är korrekt här
-
-        if not user_email:
-            print("Email saknas i JWT")
+        # Steg 1: Kontrollera JWT-token
+        payload = verify_jwt(token)
+        if not payload:
+            print("JWT-token är ogiltig eller har gått ut.")
             return None
 
-        # Här kan du hämta användaren från databasen om du använder en databas
-        # return fetch_user_from_database(user_id)
-        return {"id": user_id, "email": user_email, "name": payload.get("name")}
+        print("Decoded payload:", payload)
+
+        # Steg 2: Hämta användarnamn från payload
+        username = payload.get("username")
+        if not username:
+            print("Username saknas i JWT-payload.")
+            return None
+
+        # Steg 3: Läs och validera användardata från filen
+        users = read_from_md_file(DATA_FILE)
+        if not users:
+            print("Inga användare hittades i filen.")
+            return None
+
+        for user in users:
+            try:
+                user_fields = user.split(", ")
+
+                user_id = user_fields[0].split(": ")[1]
+                user_name = user_fields[1].split(": ")[1]
+                user_email = user_fields[4].split(": ")[1]
+
+                if user_name == username:
+                    print(f"Användare hittad: {username}")
+                    return {"id": user_id, "name": user_name, "email": user_email}
+            except Exception as e:
+                print(f"Fel vid bearbetning av användardata: {str(e)}")
+                continue
+
+        print("Ingen användare matchade det angivna användarnamnet.")
+        return None
+
     except Exception as e:
         print(f"Fel vid dekodning av JWT: {str(e)}")
         return None
 
 
-def update_user_tier(user_id, tier):
-    # Assuming you are updating the user data in a markdown file or database
+@app.route("/update_tier", methods=["POST"])
+def update_tier():
+    # Hämta JWT från headers (om du använder JWT för autentisering)
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"message": "Ingen autentisering tillhandahölls."}), 403
+
+    token = auth_header.split(" ")[1]  # Anta att JWT är i formatet 'Bearer <token>'
+
+    # Verifiera JWT-token och hämta användaren
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        username_from_token = decoded_token.get("username")
+        if not username_from_token:
+            return jsonify({"message": "Ingen användare i token"}), 401
+    except jwt.ExpiredSignatureError:
+        return jsonify({"message": "Token har gått ut"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"message": "Ogiltig token"}), 401
+
+    # Hämta new_tier från request body
+    data = request.get_json()
+    new_tier = data.get("new_tier")
+    print("Tier: ", new_tier)
+
+    if new_tier == "basanvandare":
+        new_tier = "BA"
+    elif new_tier == "professionell":
+        new_tier = "PA"
+
+    if not new_tier:
+        return jsonify({"message": "Ingen ny tier angavs."}), 400
+
+    # Läs användardata från markdown-fil
     users = read_from_md_file(DATA_FILE)
 
-    for index, user_data in enumerate(users):
-        user_fields = user_data.split(", ")
-        user_name = user_fields[0].split(": ")[1]
-        if user_name == user_id:
-            users[index] = (
-                f"Name: {user_name}, Password: {user_fields[1].split(': ')[1]}, Tier: {tier}"
-            )
-            write_to_md_file(
-                "\n".join(users), DATA_FILE
-            )  # Write the updated data back to the file
-            return True
-    return False
+    # Kontrollera om användaren finns och uppdatera deras tier
+    user_found = False
+    updated_data = []
+
+    print(users)
+
+    for user in users:
+        print(user)
+        # Dela upp den dekrypterade data för att få ut användarnamn och tier
+        user_fields = user.split(", ")
+        user_name = user_fields[1].split(": ")[1]  # Extract 'Name' field
+        user_tier = user_fields[3].split(": ")[1]  # Extract 'Tier' field
+        user_id = user_fields[0].split(": ")[1]  # Extract 'UserID' field
+
+        # Om användaren matchar den från token, uppdatera tier
+        if user_name == username_from_token:
+            user_found = True
+            updated_user_data = f"UserID: {user_id}, username: {user_name}, password: {user_fields[2].split(': ')[1]}, Tier: {new_tier}, mail: {user_fields[4].split(': ')[1]}"
+            encrypted_data = encrypt_data(updated_user_data)
+            updated_data.append(encrypted_data)
+        else:
+            updated_data.append(user)
+
+    if not user_found:
+        return jsonify({"message": "Användare ej hittad"}), 404
+
+    # Skriv tillbaka den uppdaterade användardatan i filen
+    write_to_md_file(updated_data, DATA_FILE)
+
+    return jsonify({"message": f"Tier uppdaterad till {new_tier}."}), 200
 
 
-@app.route("/initiate_payment", methods=["POST"])
-def initiate_payment():
+stripe.api_key = stripe_key
+
+
+@app.route("/secret_key", methods=["POST"])
+def secret_key():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"message": "Ingen autentisering tillhandahölls."}), 403
+
+    data = request.get_json()
+    tierPrice = data.get("tierPrice")
+    customerName = data.get("customerName")  # Få kundens namn från begäran
+    customerEmail = data.get("customerEmail")  # Få kundens e-post från begäran
+
+    if not tierPrice:
+        return jsonify({"message": "TierPrice saknas i begäran."}), 400
+
     try:
-        # Extrahera JWT från Authorization-headern
-        token = request.headers.get("Authorization").split(" ")[1]
-        print("Token mottagen:", token)  # Debug-utskrift
-
-        user = get_user_by_jwt(token)
-        print("Användardata:", user)  # Debug-utskrift
-
-        if not user:
-            return jsonify({"message": "Användaren kunde inte hittas."}), 400
-
-        # Få val av prenumerationsnivå från förfrågan
-        data = request.get_json()
-        tier = data.get("tier")
-        print("Tier vald:", tier)  # Debug-utskrift
-
-        # Karta tier till Price ID från Stripe
-        price_ids = {
-            "basanvandare": "price_1QXrpTGEVnY4b4YPwQrzV5wK",  # Byt ut mot riktiga Price IDs
-            "professionell": "price_1QXrq6GEVnY4b4YPnpC5PEIk",
-        }
-        price_id = price_ids.get(tier)
-
-        if not price_id:
-            print("Ogiltig tier:", tier)  # Debug-utskrift
-            return jsonify({"message": "Ogiltig prenumerationsnivå."}), 400
-
-        # Skapa Stripe-kund om den inte redan finns
+        # Skapa en kund i Stripe
         customer = stripe.Customer.create(
-            email=user["email"],
-            name=user["name"],
+            name=customerName,
+            email=customerEmail,
         )
-        print("Kund skapad:", customer)  # Debug-utskrift
+        print(customer)
 
-        # Skapa en prenumeration
-        subscription = stripe.Subscription.create(
-            customer=customer.id,
-            items=[{"price": price_id}],
-            expand=["latest_invoice.payment_intent"],  # Få betalningsdetaljer
+        # Skapa en PaymentIntent kopplad till kunden
+        payment_intent = stripe.PaymentIntent.create(
+            amount=int(tierPrice) * 100,  # Belopp i öre (100 = 1 SEK)
+            currency="sek",
+            customer=customer.id,  # Koppla PaymentIntent till kunden
         )
-        print("Prenumeration skapad:", subscription)  # Debug-utskrift
 
-        # Returnera client_secret för att hantera betalningen på frontend
+        # Skicka tillbaka client_secret
         return jsonify(
             {
-                "client_secret": subscription.latest_invoice.payment_intent.client_secret,
-                "subscription_id": subscription.id,
+                "client_secret": payment_intent.client_secret,
+                "customer_id": customer.id,  # Skicka tillbaka kundens ID (valfritt)
             }
         )
 
     except Exception as e:
-        print("Ett fel uppstod:", str(e))  # Logga felet
-        return jsonify({"message": f"Ett fel uppstod: {str(e)}"}), 500
-
-
-# När betalningen är klar, uppdatera användarens tier
-@app.route("/update_tier", methods=["POST"])
-def update_tier():
-    try:
-        # Extract JWT from Authorization header
-        token = request.headers.get("Authorization").split(" ")[1]
-        user = get_user_by_jwt(
-            token
-        )  # Assuming this function returns user data from JWT
-
-        if not user:
-            return jsonify({"message": "Användaren kunde inte hittas."}), 400
-
-        # Get the new tier from the request data
-        data = request.get_json()
-        tier = data.get("tier")
-
-        # Update the user's tier in your database or storage
-        update_user_tier(
-            user["id"], tier
-        )  # Assuming this function updates the user's tier
-
-        return jsonify({"message": "Tier uppdaterad!"})
-
-    except Exception as e:
-        return jsonify({"message": f"Ett fel uppstod: {str(e)}"}), 500
-
-
-@app.route("/webhook", methods=["POST"])
-def stripe_webhook():
-    payload = request.get_data(as_text=True)
-    sig_header = request.headers.get("Stripe-Signature")
-    event = None
-
-    try:
-        # Construct the event from the payload and signature
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, "your_webhook_secret"
-        )
-
-    except ValueError as e:
-        # Invalid payload
-        return "Invalid payload", 400
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
-        return "Invalid signature", 400
-
-    # Handle successful payment confirmation
-    if event["type"] == "payment_intent.succeeded":
-        payment_intent = event["data"][
-            "object"
-        ]  # The payment_intent object contains payment data
-
-        # Retrieve user details and tier information from metadata
-        user_id = payment_intent["metadata"]["user_id"]
-        tier = payment_intent["metadata"]["tier"]
-
-        # Update the user's tier in your database
-        update_user_tier(user_id, tier)
-
-        return "", 200  # Respond with a success message
-
-    return "", 400  # Respond with an error if event type is not handled
+        return jsonify(error=str(e)), 400
 
 
 if __name__ == "__main__":

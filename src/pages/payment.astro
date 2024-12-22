@@ -10,15 +10,26 @@ import Header from "../components/all/header.astro";
     <h1>Färdigställ betalning</h1>
     <h3>Plan: <span id="tier-name">[Vald Plan]</span></h3>
     <div class="summary">
-      <p><strong>Pris:</strong> <span id="tier-price">[Pris]</span> SEK</p>
+      <p>
+        <strong>Pris:</strong>
+        <span id="tier-price">[Pris]</span> SEK/månaden
+      </p>
       <p>
         <strong>Beskrivning:</strong> Tillgång till valda tjänster och förmåner.
       </p>
     </div>
 
-    <!-- Lägg till ett formulär för att samla in e-postadress -->
+    <!-- Betalningsinformation -->
     <h3>Betalningsinformation</h3>
     <div class="form-group">
+      <label for="name-input">Namn:</label>
+      <input
+        type="text"
+        id="name-input"
+        class="form-control"
+        placeholder="John Doe"
+        required
+      />
       <label for="email">E-postadress:</label>
       <input
         type="email"
@@ -29,17 +40,16 @@ import Header from "../components/all/header.astro";
       />
     </div>
 
+    <!-- Kortbetalning -->
     <div id="card-element">
-      <!-- Stripe Elements input -->
+      <!-- Stripe Elements kortinmatning här -->
     </div>
     <div id="card-errors" class="error" role="alert"></div>
     <button id="submit" class="btn">Betala</button>
 
-    <div class="loading">
-      <img
-        src="https://loading.io/spinners/double-ring/lg.double-ring-spinner.gif"
-        alt="Loading..."
-      />
+    <!-- Loading Indicator -->
+    <div class="loading" style="display: none;">
+      <img src="/animations/loading.gif" alt="Loading..." />
       <p>Bearbetar betalning...</p>
     </div>
   </div>
@@ -48,8 +58,8 @@ import Header from "../components/all/header.astro";
 <script>
   document.addEventListener("DOMContentLoaded", async function () {
     const stripe = Stripe(
-      "pk_test_51QXqp2PQ6w7PSUmjNHzMW7sUgH95SRjDvgYIIPAZ3tQeVTlZWOyvrSwqmld0xohuw5X6PnZL4Dsl9kzNhTEWowFw00GJ3Js0wG"
-    ); // Din Stripe public key
+      "pk_test_51QXro9GEVnY4b4YPAIRxLX8BxeXHEnzmuQiII0jX9u15IU8JFgN02owEuYrbA2zqrQz0x9kHvVAMumHPvvbs9kEo003q2zvx9A" // Din Stripe public key
+    );
     const elements = stripe.elements();
 
     // Skapa Stripe Elements card
@@ -75,19 +85,51 @@ import Header from "../components/all/header.astro";
         displayError.textContent = "";
       }
     });
+    const jwtToken = localStorage.getItem("jwt");
 
-    // Hämta client_secret från localStorage
-    const clientSecret = localStorage.getItem("client_secret");
+    if (!jwtToken) {
+      console.log("ingen token");
+      window.location.href = "/login";
+      return;
+    }
+
     const tierName = localStorage.getItem("tier_name");
     const tierPrice = localStorage.getItem("tier_price");
 
+    console.log("Tier Name:", tierName); // Kontrollera om detta är korrekt
+    console.log("Tier Price:", tierPrice);
+
+    const userName = document.getElementById("name-input");
+    const email = document.getElementById("email");
+
+    const response = await fetch("http://127.0.0.1:5000/secret_key", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwtToken}`, // JWT-token för autentisering (om tillämpligt)
+      },
+      body: JSON.stringify({
+        tierPrice: tierPrice, // Pris för tier (obligatoriskt)
+        customerName: userName, // Kundens namn
+        customerEmail: email, // Kundens e-post
+      }),
+    });
+
+    const result = await response.json();
+    console.log(result);
+    console.log(result);
+    if (!result) {
+      return;
+    }
+    // Hämta client_secret och andra betalningsdetaljer från localStorage
+    const clientSecret = result["client_secret"];
     // Visa produktinformation
     if (tierName && tierPrice) {
       document.getElementById("tier-name").textContent = tierName;
       document.getElementById("tier-price").textContent = tierPrice;
     } else {
       alert("Ingen betalningsinformation hittades.");
-      window.location.href = "/";
+      window.location.href = "/abonemang";
       return;
     }
 
@@ -97,37 +139,50 @@ import Header from "../components/all/header.astro";
       .addEventListener("click", async function () {
         const email = document.getElementById("email").value;
 
-        // Kontrollera att e-postadress är angiven
-        if (!email) {
-          alert("Vänligen ange din e-postadress.");
+        // Validera e-postadress
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailPattern.test(email)) {
+          alert("Vänligen ange en giltig e-postadress.");
           return;
         }
 
         const loadingIndicator = document.querySelector(".loading");
         loadingIndicator.style.display = "block";
 
-        const { error, paymentIntent } = await stripe.confirmCardPayment(
-          clientSecret,
-          {
-            payment_method: {
-              card: cardElement,
-              billing_details: {
-                name: "Användarens namn",
-                email: email, // Skicka med e-postadressen här
+        try {
+          // Skicka betalningsbegäran via Stripe API
+          const { error, paymentIntent } = await stripe.confirmCardPayment(
+            clientSecret,
+            {
+              payment_method: {
+                card: cardElement,
+                billing_details: {
+                  email: email, // Användarens e-postadress
+                  name: result["customer_id"],
+                },
               },
-            },
+            }
+          );
+
+          if (error) {
+            displayErrorMessage(error.message);
+          } else if (paymentIntent.status === "succeeded") {
+            window.location.href = "/success"; // Omdirigera till success-sidan
           }
-        );
-
-        loadingIndicator.style.display = "none";
-
-        if (error) {
-          alert("Fel vid betalning: " + error.message);
-        } else if (paymentIntent.status === "succeeded") {
-          alert("Betalningen genomfördes!");
-          window.location.href = "/success"; // Omdirigera till success-sida
+        } catch (error) {
+          displayErrorMessage(
+            "Något gick fel under betalningsprocessen. Vänligen försök igen."
+          );
+        } finally {
+          loadingIndicator.style.display = "none";
         }
       });
+
+    // Funktion för att visa felmeddelande
+    function displayErrorMessage(message) {
+      const displayError = document.getElementById("card-errors");
+      displayError.textContent = message;
+    }
   });
 </script>
 
@@ -144,7 +199,7 @@ import Header from "../components/all/header.astro";
   h2,
   h3 {
     text-align: center;
-    color: #333;
+    color: wheat;
   }
   .summary {
     text-align: left;
@@ -153,7 +208,7 @@ import Header from "../components/all/header.astro";
   .summary p {
     font-size: 16px;
     margin: 5px 0;
-    color: #555;
+    color: whitesmoke;
   }
   #card-element {
     border: 1px solid #ccc;
@@ -169,8 +224,7 @@ import Header from "../components/all/header.astro";
   .btn {
     display: block;
     width: 100%;
-    background: #007bff;
-    color: #fff;
+    color: var(--guld);
     text-align: center;
     padding: 10px;
     font-size: 16px;
@@ -180,7 +234,7 @@ import Header from "../components/all/header.astro";
     margin-top: 20px;
   }
   .btn:hover {
-    background: #0056b3;
+    background: black;
   }
   .loading {
     display: none;
@@ -194,7 +248,7 @@ import Header from "../components/all/header.astro";
     margin-bottom: 15px;
   }
   .form-control {
-    width: 100%;
+    width: 96%;
     padding: 10px;
     margin-top: 5px;
     font-size: 16px;

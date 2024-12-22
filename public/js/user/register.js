@@ -6,13 +6,22 @@ document
       const name = document.getElementById("name").value;
       const password =document.getElementById("password")
         .value;
-
-      const response = await fetch("http://127.0.0.1:5000/register", {
+        const password2 =document.getElementById("password2")
+        .value;
+        const email=document.getElementById("email").value
+        const SucsessDIV = document.getElementById("SucsessDIV");
+      
+      if (password !== password2) {
+        SucsessDIV.innerHTML = `
+          <h1 style="color: red;">Lösenord matchar inte</h1>
+        `;
+      } else{
+        const response = await fetch("http://127.0.0.1:5000/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, password }),
+        body: JSON.stringify({ name, password, email }),
       });
-      const SucsessDIV = document.getElementById("SucsessDIV");
+
       const result = await response.json();
       if (result.message === "Användare registrerad och data sparad") {
         SucsessDIV.innerHTML = `
@@ -25,5 +34,6 @@ document
         SucsessDIV.innerHTML = `
                     <h1>${result.message}</h1>
                     `;
+      }
       }
     });
