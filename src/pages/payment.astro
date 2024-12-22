@@ -85,6 +85,7 @@ import Header from "../components/all/header.astro";
         displayError.textContent = "";
       }
     });
+
     const jwtToken = localStorage.getItem("jwt");
 
     if (!jwtToken) {
@@ -96,33 +97,6 @@ import Header from "../components/all/header.astro";
     const tierName = localStorage.getItem("tier_name");
     const tierPrice = localStorage.getItem("tier_price");
 
-    console.log("Tier Name:", tierName); // Kontrollera om detta är korrekt
-    console.log("Tier Price:", tierPrice);
-
-    const userName = document.getElementById("name-input");
-    const email = document.getElementById("email");
-
-    const response = await fetch("http://127.0.0.1:5000/secret_key", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${jwtToken}`, // JWT-token för autentisering (om tillämpligt)
-      },
-      body: JSON.stringify({
-        tierPrice: tierPrice, // Pris för tier (obligatoriskt)
-        customerName: userName, // Kundens namn
-        customerEmail: email, // Kundens e-post
-      }),
-    });
-
-    const result = await response.json();
-    console.log(result);
-    console.log(result);
-    if (!result) {
-      return;
-    }
-    // Hämta client_secret och andra betalningsdetaljer från localStorage
-    const clientSecret = result["client_secret"];
     // Visa produktinformation
     if (tierName && tierPrice) {
       document.getElementById("tier-name").textContent = tierName;
@@ -133,18 +107,44 @@ import Header from "../components/all/header.astro";
       return;
     }
 
+    console.log("Tier Name:", tierName); // Kontrollera om detta är korrekt
+    console.log("Tier Price:", tierPrice);
+
     // Hantera betalning
     document
       .getElementById("submit")
       .addEventListener("click", async function () {
+        const userName = document.getElementById("name-input").value;
         const email = document.getElementById("email").value;
 
+        console.log("Name: ", userName, "email: ", email);
         // Validera e-postadress
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!email || !emailPattern.test(email)) {
           alert("Vänligen ange en giltig e-postadress.");
           return;
         }
+        const response = await fetch("http://127.0.0.1:5000/secret_key", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${jwtToken}`, // Om JWT-token används för autentisering
+          },
+          body: JSON.stringify({
+            tierPrice: tierPrice,
+            customerName: userName,
+            customerEmail: email,
+          }),
+        });
+
+        const result = await response.json();
+        console.log(result);
+        if (!result) {
+          return;
+        }
+
+        // Hämta client_secret och andra betalningsdetaljer från servern
+        const clientSecret = result["client_secret"];
 
         const loadingIndicator = document.querySelector(".loading");
         loadingIndicator.style.display = "block";
@@ -158,7 +158,7 @@ import Header from "../components/all/header.astro";
                 card: cardElement,
                 billing_details: {
                   email: email, // Användarens e-postadress
-                  name: result["customer_id"],
+                  name: userName, // Användarens namn här
                 },
               },
             }
@@ -167,7 +167,7 @@ import Header from "../components/all/header.astro";
           if (error) {
             displayErrorMessage(error.message);
           } else if (paymentIntent.status === "succeeded") {
-            window.location.href = "/success"; // Omdirigera till success-sidan
+            window.location.href = "/success"; // Omdirigera till framgångssidan
           }
         } catch (error) {
           displayErrorMessage(

@@ -728,6 +728,8 @@ def secret_key():
     customerName = data.get("customerName")  # Få kundens namn från begäran
     customerEmail = data.get("customerEmail")  # Få kundens e-post från begäran
 
+    print("Namn: ", customerName, "Mail: ", customerEmail)
+
     if not tierPrice:
         return jsonify({"message": "TierPrice saknas i begäran."}), 400
 
