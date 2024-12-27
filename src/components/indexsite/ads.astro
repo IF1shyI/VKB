@@ -1,6 +1,28 @@
-<div class="ad_container ad1">Annons 1</div>
-<div class="ad_container ad2">Annons 2</div>
-<div class="ad_container ad3">Annons 3</div>
+<div id="ad_container" class="ad_container ad1">Annons 1</div>
+<div id="ad_container" class="ad_container ad2">Annons 2</div>
+<div id="ad_container" class="ad_container ad3">Annons 3</div>
+
+<script type="module">
+  import { getUserTier } from "./js/user/usertier.js";
+
+  document.addEventListener("DOMContentLoaded", async function () {
+    // Hämta alla element med klassen "ad_container"
+    const ad_containers = document.getElementsByClassName("ad_container");
+
+    try {
+      const tier = await getUserTier();
+
+      // Om användaren har nivån "pro", döljer vi alla annonser
+      if (tier === "pro") {
+        Array.from(ad_containers).forEach((ad_container) => {
+          ad_container.classList.add("hide");
+        });
+      }
+    } catch (error) {
+      console.error("Fel vid hämtning av användarens nivå:", error);
+    }
+  });
+</script>
 
 <style>
   .ad_container {
