@@ -1,0 +1,168 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Ställ en fråga">
+  <div class="contact-container">
+    <h1>Ställ en fråga</h1>
+    <div class="underline"></div>
+    <form class="contact-form">
+      <!-- Kontaktinformation -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="contact-person">Kontaktperson</label>
+          <input type="text" id="contact-person" placeholder="Ange ditt namn" />
+        </div>
+        <div class="form-group">
+          <label for="company">Företag</label>
+          <input type="text" id="company" placeholder="Ange ditt företag" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">E-post</label>
+          <input type="email" id="email" placeholder="Ange din e-postadress" />
+        </div>
+        <div class="form-group">
+          <label for="phone">Telefonnummer</label>
+          <input type="tel" id="phone" placeholder="Ange ditt telefonnummer" />
+        </div>
+      </div>
+
+      <!-- Meddelande -->
+      <div class="form-group">
+        <label for="message">Meddelande</label>
+        <textarea id="message" rows="5" placeholder="Ange ditt meddelande"
+        ></textarea>
+      </div>
+
+      <!-- Skicka-knapp -->
+      <button type="submit" class="send-btn">Skicka</button>
+    </form>
+
+    <!-- Informationstext -->
+    <p class="info-text">
+      Uppgifterna lagras endast för att kunna svara på din förfrågan och kommer
+      inte att säljas vidare eller användas för att skicka nyhetsbrev eller
+      andra typer av reklam. Uppgifterna lagras enligt våra <a href="/terms"
+        >användarvillkor</a
+      >.
+    </p>
+  </div>
+</Layout>
+
+<style>
+  body {
+    display: flex;
+    align-items: center;
+  }
+
+  .contact-container {
+    max-width: 600px;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+    color: #333;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .underline {
+    width: 50px;
+    height: 3px;
+    background-color: var(--guld);
+    margin: 0 auto 20px;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+  }
+
+  .form-group {
+    flex: 1 1 calc(50% - 20px); /* Ensures each input takes up 50% of the width minus the gap */
+    display: flex;
+    flex-direction: column;
+  }
+
+  label {
+    margin-bottom: 5px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  input,
+  textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    width: 95%;
+  }
+
+  input {
+    padding-right: 0;
+  }
+
+  textarea {
+    resize: none;
+    padding-right: 15px;
+  }
+
+  .send-btn {
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+    margin: 0;
+  }
+
+  .send-btn:hover {
+    background-color: darkorange;
+  }
+
+  .info-text {
+    font-size: 12px;
+    color: #666;
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .info-text a {
+    color: orange;
+    text-decoration: none;
+  }
+
+  .info-text a:hover {
+    text-decoration: underline;
+  }
+
+  /* Media Query for smaller screens */
+  @media (max-width: 600px) {
+    .form-row {
+      flex-direction: column;
+    }
+
+    .form-group {
+      flex: 1 1 100%;
+    }
+  }
+</style>

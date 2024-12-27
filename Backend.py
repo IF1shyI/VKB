@@ -802,6 +802,16 @@ def secret_key():
         return jsonify(error=str(e)), 400
 
 
+@app.route("/get_info_profile", methods=["POST"])
+def get_info_profile():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"message": "Ingen autentisering tillhandahölls."}), 403
+    token = auth_header.split(" ")[1]
+    data = get_user_by_jwt(token)
+    return data
+
+
 if __name__ == "__main__":
     app.run(debug=False, port=5000)
 
