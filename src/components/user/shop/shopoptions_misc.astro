@@ -1,0 +1,217 @@
+<div class="val" id="ValID">
+  <div class="filter">
+    <button class="filter_button" id="toggleButton">
+      <div class="button_Image"><img src="/bilder/options.svg" alt="" /></div>
+      <div class="button_text">Filter</div>
+    </button>
+    <div class="options options_display_none">
+      <button id="All" class="option_button dropdown_button">Motorolja</button>
+      <button id="Summer" class="option_button">Tändstift</button>
+      <button id="Winter" class="option_button">Luftfilter</button>
+    </div>
+  </div>
+
+  <select name="Dropdown" id="dropdownSort" class="styled-dropdown">
+    <option value="1">Rekommenderat</option>
+    <option value="2">Populär</option>
+    <option value="3">Lägst - Högst</option>
+    <option value="4">Högst - Lägst</option>
+  </select>
+</div>
+
+<script src="/js/shop/toggleoptions.js" is:inline></script>
+<style>
+  :root {
+    --realwidth: calc(100vw - var(--margin-m));
+
+    --ButtonWidthoptions: 150px;
+    --ButtonHeightoptions: 40px;
+    --ButtonFontSzoptions: 1rem;
+    --ButtonPaddingoptions: 5px;
+
+    --DroppdownWidthoptions: 10%;
+    --DroppdownHeightoptions: calc(var(var(--DroppdownWidthoptions) * 1));
+
+    --filterWidth: 75%;
+    --filterHeight: 44px;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .show {
+    display: flex;
+  }
+
+  .options_display_flex {
+    display: flex;
+  }
+
+  .options_height_real {
+    height: 150px;
+  }
+  .filter {
+    display: block;
+    width: var(--filterWidth);
+    height: var(--filterHeight);
+  }
+  .val {
+    position: relative;
+    width: var(--realwidth);
+    margin-left: var(--margin-m);
+    margin-top: var(--margin-s);
+    margin-bottom: var(--margin-s);
+
+    display: flex;
+    flex-wrap: wrap;
+
+    .option_button {
+      color: var(--svart);
+      text-decoration: none;
+      font-size: var(--ButtonFontSzoptions);
+      font-weight: bold;
+      background-color: var(--vit);
+      border-radius: 1rem;
+
+      width: var(--ButtonWidthoptions);
+      height: var(--ButtonHeightoptions);
+
+      padding: var(--ButtonPaddingoptions);
+      margin-right: var(--margin-s);
+      margin-bottom: var(--margin-s);
+
+      &&:hover {
+        background-color: beige;
+        cursor: pointer;
+      }
+    }
+  }
+  .styled-dropdown {
+    width: 150px; /* Bredd på dropdown */
+    padding: 10px;
+    font-size: 14px;
+    color: #333; /* Textfärg */
+    background-color: #f9f9f9; /* Ljus bakgrund */
+    border: 2px solid #007bff; /* Blå kant */
+    border-radius: 8px; /* Runda hörn */
+    appearance: none; /* Tar bort standardpilen */
+    -webkit-appearance: none; /* För Safari */
+    -moz-appearance: none; /* För Firefox */
+    cursor: pointer; /* Muspekare för att indikera klickbart */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='gray' d='M5 7l5 5 5-5H5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Pilens position */
+    background-size: 16px; /* Pilens storlek */
+
+    position: absolute;
+    right: 20px;
+
+    /* Vid hover eller fokus */
+    .styled-dropdown:hover {
+      border-color: #0056b3; /* Mörkare blå vid hover */
+    }
+
+    .styled-dropdown:focus {
+      outline: none; /* Ta bort standardfokus */
+      border-color: #0056b3; /* Fokusfärg */
+      box-shadow: 0 0 5px rgba(0, 91, 179, 0.5); /* Lätt glow-effekt */
+    }
+
+    /* Styling för <option>-element */
+    .styled-dropdown option {
+      padding: 10px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+  }
+
+  .active {
+    background-color: var(--gra) !important;
+    color: var(--vit) !important;
+    &&:hover {
+      color: var(--svart) !important;
+      background-color: slategrey !important;
+    }
+  }
+
+  .filter_button {
+    display: none;
+    align-items: center;
+    gap: 0.6rem;
+
+    width: 150px;
+    height: 80%;
+
+    border-radius: 1rem;
+
+    .button_Image {
+      width: 50px;
+      height: 100%;
+
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    .button_text {
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+  }
+
+  .val_toggled {
+    height: 200px;
+  }
+
+  .options {
+    background-color: var(--svart);
+    z-index: 9999999;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-content: center;
+    flex-direction: row;
+  }
+  .dropdown_button {
+    width: 150px;
+    height: 100px;
+  }
+  @media screen and (max-width: 800px) {
+    .filter {
+      display: block;
+    }
+    .outside_button {
+      display: none;
+    }
+
+    .filter_button {
+      display: flex;
+    }
+
+    .options_display_none {
+      display: none;
+    }
+
+    .options {
+      width: 100%;
+      margin-top: 5%;
+      margin-left: 10%;
+    }
+  }
+
+  @media screen and (min-width: 801px) {
+    .option {
+      margin-top: var(--margin-xl);
+      height: var(--filterHeight);
+    }
+
+    .val_toggled {
+      height: var(--filterHeight);
+    }
+    .options_height_real {
+      height: var(--filterHeight);
+      display: block;
+      width: 100%;
+    }
+  }
+</style>

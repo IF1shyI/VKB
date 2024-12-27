@@ -1,0 +1,35 @@
+<div class="ad_container ad1">Annons 1</div>
+<div class="ad_container ad2">Annons 2</div>
+<div class="ad_container ad3">Annons 3</div>
+
+<style>
+  .ad_container {
+    position: absolute;
+    background-color: #fff;
+    width: 20%;
+    height: 380px;
+    bottom: 2%;
+    color: black;
+    text-align: center;
+  }
+
+  .ad1 {
+    right: var(--margin-xl);
+
+    margin-top: var(--margin-xl);
+  }
+
+  .ad2 {
+    left: var(--margin-xl);
+
+    margin-top: var(--margin-xl);
+  }
+  .ad3 {
+    left: 50%;
+
+    transform: translate(-50%);
+
+    width: 50%;
+    height: 150px;
+  }
+</style>

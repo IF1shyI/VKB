@@ -14,6 +14,8 @@ from datetime import datetime
 import requests
 import hashlib
 import json
+import uuid
+import stripe
 
 
 # http://127.0.0.1:4000/bilinfo?reg_plate=CWJ801
@@ -35,11 +37,14 @@ load_dotenv()
 USERNAME = os.getenv("USERN")
 PASSWORD = os.getenv("PASSWORD")
 APIKEY = os.getenv("APIKEY")
+stripe_key = os.getenv("STRIPE_KEY")
 
 client = OpenAI(
     # This is the default and can be omitted
     api_key=APIKEY,
 )
+
+stripe.api_key = stripe_key
 
 global_car_model = "No model found"
 
@@ -67,7 +72,7 @@ app.config["SESSION_COOKIE_SECURE"] = False
 Session(app)
 
 
-def save_to_json(data, filename="car_costs.json"):
+def save_to_json(data, filename):
     try:
         # Läsa in befintlig data från JSON-filen
         try:
@@ -86,7 +91,7 @@ def save_to_json(data, filename="car_costs.json"):
         print(f"Error saving data to JSON: {e}")
 
 
-def read_from_json(filename="car_costs.json"):
+def read_from_json(filename):
     try:
         with open(filename, "r") as file:
             return json.load(file)
@@ -97,7 +102,7 @@ def read_from_json(filename="car_costs.json"):
         return {"bilar": []}
 
 
-def search_by_regnumber(regnummer, filename="car_costs.json"):
+def search_by_regnumber(regnummer, filename):
     car_data = read_from_json(filename)
     for car in car_data["bilar"]:
         if car["regnummer"] == regnummer:
@@ -117,9 +122,14 @@ def create_api_key(user_name):
 
 
 # Funktion för att lägga till både råa och hashade nycklar till .md-filen
-def add_api_key_to_file(user_name, hashed_key, file_path="api_keys.md"):
+def add_api_key_to_file(user_name, user_mail, hashed_key, file_path="api_keys.md"):
+    """
+    Lägger till en ny API-nyckel i filen med extra användardetaljer.
+    """
     # Skapa en beskrivning för användaren och nyckeln
     entry = f"## User: {user_name}\n"
+    entry += f"- **Email**: {user_mail}\n"
+    entry += f"- **User ID**: {uuid.uuid4()}\n"  # Genererar ett unikt användar-ID
     entry += f"- **API Key (Hashed)**: {hashed_key}\n"
     entry += f"- **Created on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
@@ -128,6 +138,59 @@ def add_api_key_to_file(user_name, hashed_key, file_path="api_keys.md"):
         file.write(entry)
 
     print(f"Ny API-nyckel för {user_name} har lagts till i filen.")
+
+
+def check_if_customer_exists(email):
+    """
+    Kontrollera om kunden finns i Stripe baserat på deras e-postadress.
+    """
+    customers = stripe.Customer.list(email=email)
+
+    if customers.data:
+        print("Kund finns redan.")
+        return customers.data[
+            0
+        ]  # Returnera den första kunden som matchar e-postadressen
+    else:
+        print("Kund finns inte.")
+        return None
+
+
+def read_user_data_md(file_path):
+    """
+    Läs användardata från en markdown-fil och returnera en lista av dictionaries med användarinformation.
+    """
+    users = []
+
+    # Läs filen
+    with open(file_path, "r") as file:
+        content = file.read()
+
+    # Mönster för att extrahera användardata
+    user_pattern = re.compile(
+        r"## User: (.+?)\n"  # Användarnamn (finns efter "User: ")
+        r"- \*\*Email\*\*: (.+?)\n"  # E-post
+        r"- \*\*User ID\*\*: (.+?)\n"  # Användar-ID
+        r"- \*\*API Key \(Hashed\)\*\*: (.+?)\n"  # API-nyckel (Hashed)
+        r"- \*\*Created on\*\*: (.+?)\n",  # Skapad på
+        re.DOTALL,  # Gör så att punkt (.) matchar radbrytningar
+    )
+
+    # Hitta alla användardata i filen
+    matches = user_pattern.findall(content)
+
+    # För varje match, skapa ett dictionary och lägg till i användarlistan
+    for match in matches:
+        user = {
+            "username": match[0],
+            "email": match[1],
+            "user_id": match[2],
+            "api_key": match[3],
+            "created_on": match[4],
+        }
+        users.append(user)
+
+    return users
 
 
 def verify_api_key(input_key, file_path="api_keys.md"):
@@ -158,88 +221,193 @@ def verify_api_key(input_key, file_path="api_keys.md"):
         return False
 
 
-# Funktion för att läsa och uppdatera API-nyckelns förfrågningar
 def update_api_request_count(api_key, file_path="api_requests.md"):
+    """
+    Uppdaterar antalet API-förfrågningar och hanterar reset vid månadsskifte.
+    """
     current_date = datetime.now()
     current_month = current_date.strftime("%Y-%m")
+    requests_made = 0
 
-    # Läs in filen och kolla om nyckeln redan finns
-    api_data = {}
+    # Läs innehåll från filen
     if os.path.exists(file_path):
         with open(file_path, "r") as file:
             content = file.readlines()
-            user_key = None
-            requests_made = 0
-            last_reset = None
-
-            # Hitta rätt nyckel och uppdatera
-            for line in content:
-                if f"API Key: {api_key}" in line:
-                    user_key = api_key
-                    requests_made = int(line.split("Requests Made: ")[1].split("\n")[0])
-                    last_reset = line.split("Last Reset: ")[1].strip()
-                    break
-
-            # Om vi hittar användaren, öka antalet förfrågningar
-            if user_key:
-                requests_made += 1
-                # Uppdatera data för användaren
-                api_data[user_key] = {
-                    "requests_made": requests_made,
-                    "last_reset": last_reset,
-                }
-            else:
-                # Om nyckeln inte finns, skapa en ny
-                api_data[api_key] = {"requests_made": 1, "last_reset": current_month}
-
     else:
-        # Om filen inte existerar, skapa en ny
-        api_data[api_key] = {"requests_made": 1, "last_reset": current_month}
+        content = []
+
+    # Flagga för att se om nyckeln hittades
+    key_found = False
+
+    # Uppdatera eller hitta rätt nyckel
+    for index, line in enumerate(content):
+        match = re.search(r"- \*\*API Key\*\*: (.+)", line)
+        if match and match.group(1) == api_key:
+            key_found = True
+            # Hitta och uppdatera "Requests Made"
+            try:
+                requests_made = int(content[index + 1].split(": ")[1].strip()) + 1
+                content[index + 1] = f"- **Requests Made**: {requests_made}\n"
+            except IndexError:
+                # Om vi inte hittar Requests Made, skapa en ny post
+                content.append(f"- **Requests Made**: 1\n")
+
+            # Uppdatera "Last Reset"
+            content[index + 2] = f"- **Last Reset**: {current_month}\n"
+            break
+
+    # Om nyckeln inte hittades, lägg till en ny post
+    if not key_found:
+        requests_made = 1
+        content.append(f"## User: {api_key}\n")
+        content.append(f"- **API Key**: {api_key}\n")
+        content.append(f"- **Requests Made**: {requests_made}\n")
+        content.append(f"- **Last Reset**: {current_month}\n\n")
 
     # Skriv tillbaka till filen
     with open(file_path, "w") as file:
-        for key, data in api_data.items():
-            file.write(f"## User: {key}\n")
-            file.write(f"- **API Key**: {key}\n")
-            file.write(f"- **Requests Made**: {data['requests_made']}\n")
-            file.write(f"- **Last Reset**: {data['last_reset']}\n\n")
+        file.writelines(content)
+
+    return {"requests_made": requests_made, "last_reset": current_month}
+
+
+def check_user_pay(
+    api_key,
+    requests_made,
+    file_path="api_requests.md",
+    cost_per_request=0.1,
+    invoice_limit=1000,
+):
+    """
+    Kontrollerar om användaren behöver faktureras baserat på användning.
+    """
+
+    # Beräkna totalkostnad
+    total_cost = requests_made * cost_per_request
+    print(
+        f"Användare {api_key}: {requests_made} förfrågningar, kostnad hittills: {total_cost:.2f} kr."
+    )
+
+    # Kontrollera om fakturering krävs
+    if total_cost >= invoice_limit:
+        get_invoice_info(api_key, total_cost)
+    else:
+        print(
+            f"Ingen faktura behövs för {api_key} (kostnad hittills: {total_cost:.2f} kr)."
+        )
+
+
+def get_invoice_info(api_key, invoice_cost):
+    data = read_user_data_md("api_keys.md")
+    if data:
+        hashed_key = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+        for user in data:
+            if user["api_key"] == hashed_key:
+
+                send_invoice_now(api_key, invoice_cost, user["username"], user["email"])
+
+
+def send_invoice_now(api_key, invoice_cost, name, email):
+    """
+    Skickar en faktura till användaren via Stripe.
+    """
+    print(f"Skickar faktura till användare {api_key} på {invoice_cost:.2f} kr.")
+
+    # Kontrollera om kunden redan finns
+    customer = check_if_customer_exists(email)
+
+    if customer["name"] == "VKBilen":
+        reset_user_balance(api_key)
+        return
+    # Om kunden inte finns, skapa en ny kund
+    if not customer:
+        try:
+            customer = stripe.Customer.create(
+                name=name,
+                email=email,
+            )
+            print(
+                f"Stripe kund skapad för {name} med email {email}. Customer ID: {customer.id}"
+            )
+        except stripe.error.StripeError as e:
+            print(f"Fel vid skapande av kund: {e.user_message}")
+            return {"error": e.user_message}, 400
+
+    try:
+        # Skapa en faktura för denna kund
+        invoice_item = stripe.InvoiceItem.create(
+            customer=customer.id,
+            amount=int(
+                invoice_cost * 100
+            ),  # Stripe tar emot belopp i cent (multiplicera med 100)
+            currency="sek",  # Valuta (sek=svenska kronor)
+            description=f"Faktura för VKBilens API-tjänst: {api_key}",
+        )
+
+        # Skapa själva fakturan
+        invoice = stripe.Invoice.create(
+            customer=customer.id,
+            auto_advance=True,  # Fakturan kommer att skickas automatiskt när den är klar
+            collection_method="send_invoice",
+            days_until_due=30,  # Förfallotid på 30 dagar
+        )
+
+        # Skicka fakturan via Stripe
+        invoice.send_invoice()
+
+        print(f"Faktura skickad till {email} för {invoice_cost:.2f} kr.")
+        reset_user_balance(api_key)
+        return {"message": f"Faktura skickad till {email}."}, 200
+    except stripe.error.StripeError as e:
+        # Hantera Stripe-fel
+        print(f"Stripe Error: {e.user_message}")
+        return {"error": e.user_message}, 400
 
 
 # Funktion för att nollställa förfrågningar varje månad
-def reset_request_counts(file_path="api_requests.md"):
-    current_date = datetime.now()
-    current_month = current_date.strftime("%Y-%m")
-
-    # Läs filen och kontrollera om det är dags att nollställa
-    if os.path.exists(file_path):
+def reset_user_balance(api_key, file_path="api_requests.md"):
+    try:
+        # Läs in innehållet från markdown-filen
         with open(file_path, "r") as file:
-            content = file.readlines()
+            file_content = file.read()
 
-        updated_content = []
-        reset_needed = False
+        # Debug: Skriv ut innehållet för att se hur det ser ut
+        print("Original file content:")
+        print(file_content)
 
-        # Iterera över varje användare och kolla om det är en ny månad
-        for line in content:
-            if "Last Reset" in line:
-                last_reset = line.split("Last Reset: ")[1].strip()
-                if last_reset != current_month:
-                    reset_needed = True
-                    updated_content.append(line.replace(last_reset, current_month))
-                else:
-                    updated_content.append(line)
-            else:
-                updated_content.append(line)
+        # Skapa ett reguljärt uttryck för att hitta användarens sektion i filen
+        user_pattern = re.compile(
+            rf"(## User: {re.escape(api_key)}.*?)(?=^## User:|\Z)",
+            re.DOTALL | re.MULTILINE,
+        )
 
-        if reset_needed:
-            # Om vi nollställer, skriv tillbaka filen med nollade förfrågningar
+        # Debug: Kontrollera om regex hittar något
+        match = re.search(user_pattern, file_content)
+        if match:
+            print("Match found:")
+            print(match.group(0))  # Skriv ut den matchande sektionen
+        else:
+            print("No match found for the given API key.")
+
+        # Ta bort användarens sektion (det matchande området)
+        updated_content = re.sub(user_pattern, "", file_content)
+
+        # Debug: Kontrollera om innehållet har uppdaterats
+        if updated_content != file_content:
+            print("File content updated.")
+        else:
+            print("No changes made to the file content.")
+
+        # Skriv tillbaka den uppdaterade filen om ändringar har gjorts
+        if updated_content != file_content:
             with open(file_path, "w") as file:
-                for line in updated_content:
-                    if "Requests Made" in line:
-                        file.write(
-                            line.replace(line.split(": ")[1].split("\n")[0], "0")
-                        )
-                    else:
-                        file.write(line)
+                file.write(updated_content)
+            print("File saved successfully.")
+        else:
+            print("No changes to save.")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 def convert_currency_text_to_int(text):
@@ -691,9 +859,10 @@ def car_cost_month():
     is_valid = verify_api_key(api_key)
 
     if is_valid:
-        existing_car = search_by_regnumber(reg_plate)
+        existing_car = search_by_regnumber(reg_plate, "car_costs.json")
         if existing_car:
-            update_api_request_count(api_key)
+            user_data = update_api_request_count(api_key)
+            check_user_pay(api_key, user_data["requests_made"])
             return jsonify(existing_car)
 
         # Fetch car info using Playwright
@@ -768,11 +937,13 @@ def car_cost_month():
                 "fuel_consumption": global_besbruk,
                 "fuel_type": fuel_type,
                 "fuel_price": right_fuel_price,
+                "Co2_emission": co2,
             }
 
             # Spara data till JSON
-            save_to_json(car_info)
-            update_api_request_count(api_key)
+            save_to_json(car_info, "car_costs.json")
+            user_data = update_api_request_count(api_key)
+            check_user_pay(api_key, user_data["requests_made"])
 
             return jsonify(car_info)
 
@@ -782,22 +953,64 @@ def car_cost_month():
         return jsonify({"error": "Not a valid key"}), 401
 
 
+@app.route("/car_info_parts", methods=["GET"])
+def car_info_parts():
+    reg_plate = request.args.get("reg_plate")
+    api_key = request.args.get("key")
+    is_valid = verify_api_key(api_key)
+
+    if is_valid:
+        existing_car = search_by_regnumber(reg_plate, "car_parts_info.json")
+        if existing_car:
+            update_api_request_count(api_key)
+            return jsonify(existing_car)
+
+        try:
+            page_content = get_car_info_with_playwright(reg_plate)
+            if page_content is None:
+                return jsonify({"error": "Could not retrieve data"}), 500
+        except Exception as e:
+            return jsonify({"error": f"Failed to fetch car data: {str(e)}"}), 500
+
+        # Process car information using BeautifulSoup
+        soup = BeautifulSoup(page_content, "html.parser")
+        h1_tag = soup.find("h1")
+
+        if not h1_tag or h1_tag.text.strip() == "Kaffepaus":
+            return jsonify({"error": "Try again later or invalid vehicle info"}), 400
+
+        car_model = (
+            h1_tag.find("a").text.strip() if h1_tag.find("a") else "No model found"
+        )
+        global global_car_model
+        global_car_model = car_model
+        save_to_json(car_info, "car_parts_info.json")
+
+
 @app.route("/create_api_key", methods=["POST"])
 def create_key():
-    # Ta emot användarnamnet från begäran
+    """
+    Skapar en API-nyckel för en ny användare.
+    """
+    # Ta emot användardata från begäran
     user_name = request.json.get("user_name")
+    user_mail = request.json.get("user_mail")
 
-    if not user_name:
-        return jsonify({"error": "user_name is required"}), 400
+    # Validera indata
+    if not user_name or not user_mail:
+        return jsonify({"error": "user_name and user_mail are required"}), 400
 
     # Skapa API-nyckeln
     raw_key, hashed_key = create_api_key(user_name)
 
-    # Lägg till nyckeln till .md-filen
-    add_api_key_to_file(user_name, hashed_key)
+    # Lägg till nyckeln till .md-filen med användarinformation
+    add_api_key_to_file(user_name, user_mail, hashed_key)
 
-    # Returnera den råa och hashade nyckeln som svar
-    return jsonify({"raw_key": raw_key}), 200
+    # Returnera den råa nyckeln som svar
+    return (
+        jsonify({"raw_key": raw_key, "message": f"API key created for {user_name}"}),
+        200,
+    )
 
 
 atexit.register(on_shutdown)

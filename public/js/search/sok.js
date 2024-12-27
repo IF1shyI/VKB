@@ -30,7 +30,7 @@ async function Do_search(inputValue) {
 
     try {
         // Skicka GET-begäran till Flask-API:t
-        const carResponse = await fetch(`http://127.0.0.1:4000/carcost?reg_plate=${inputValue}&key=testperson-1734630806.015074`, {
+        const carResponse = await fetch(`http://127.0.0.1:4000/carcost?reg_plate=${inputValue}&key=VKBilen-1735298762.566119`, {
             method: "GET",
         });
 
@@ -105,7 +105,6 @@ async function Search() {
 
                 const ok_search_data = await searchResponse.json();
                 if (ok_search_data.can_search) {
-                    console.log("Användaren kan söka via IP!");
                     // Gör sökningen via IP
                     await Do_search(inputValue);
                 } else {
@@ -121,12 +120,11 @@ async function Search() {
 
                     const token_search_data = await tokenResponse.json();
                     if (token_search_data.can_search) {
-                        console.log("Användaren kan söka via JWT!");
                         // Gör sökningen via JWT
                         await Do_search(inputValue);
                     } else {
                         console.log("Användaren kan inte söka via JWT eller IP.");
-                        carInfoDiv.innerHTML = '<p>Du har inte tillstånd att söka.</p>';
+                        carInfoDiv.innerHTML = '<p>Slut på sökningar, testa senare igen.</p>' +'<button onclick="window.location.href=\'/abonemang\'">Köp fler sökningar</button>';
                     }
                 }
             } else {
@@ -146,7 +144,7 @@ async function Search() {
                     await Do_search(inputValue);
                 } else {
                     console.log("Användaren kan inte söka via JWT.");
-                    carInfoDiv.innerHTML = '<p>Du har inte tillstånd att söka.</p>';
+                    carInfoDiv.innerHTML = '<p>Slut på sökningar, testa senare igen.</p>' +'<button onclick="window.location.href=\'/abonemang\'">Köp fler sökningar</button>';
                 }
             }
         } catch (error) {

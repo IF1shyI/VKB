@@ -1,7 +1,8 @@
-async function handleGenerateKey(userName) {
+async function handleGenerateKey(userName, userEmail) {
     const key_display = document.getElementById("key_display");
-    if (!userName) {
-      console.error("Användarnamn krävs");
+
+    if (!userName || !userEmail) {
+      console.error("Användarnamn och e-postadress krävs");
       return;
     }
 
@@ -11,42 +12,56 @@ async function handleGenerateKey(userName) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_name: userName }),
+        body: JSON.stringify({ user_name: userName, user_mail: userEmail }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create API key: " + response.statusText);
+        throw new Error("Misslyckades med att skapa API-nyckel: " + response.statusText);
       }
 
       const data = await response.json();
       console.log("API-nyckel skapad:", data.raw_key);
-      key_display.textContent = "Din API-nykel: " + data.raw_key;
+      key_display.textContent = "Din API-nyckel: " + data.raw_key;
     } catch (error) {
       console.error("Ett fel uppstod:", error);
     }
-  }
+}
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const inputField = document.getElementById("new_api_user_username");
+document.addEventListener("DOMContentLoaded", function () {
+    const usernameField = document.getElementById("new_api_user_username");
+    const emailField = document.getElementById("new_api_user_email");
     const button = document.getElementById("submit_btn");
+    const key_display = document.getElementById("key_display");
 
-    if (inputField && button) {
-      // Check if elements exist
+    if (usernameField && emailField && button) {
+      // Kollar om elementen finns
       button.addEventListener("click", function () {
-        const username = inputField.value;
-        console.log("Knappen trycktes. Användarnamn:", username);
-        handleGenerateKey(username);
+        const userName = usernameField.value;
+        const userEmail = emailField.value;
+        console.log("Knappen trycktes. Användarnamn:", userName, "E-postadress:", userEmail);
+        handleGenerateKey(userName, userEmail);
       });
 
-      inputField.addEventListener("keydown", function (e) {
+      usernameField.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
-          const username = inputField.value;
+          const userName = usernameField.value;
+          const userEmail = emailField.value;
           e.preventDefault();
-          console.log("Enter trycktes. Användarnamn:", username);
-          handleGenerateKey(username);
+          console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail);
+          handleGenerateKey(userName, userEmail);
+        }
+      });
+
+      emailField.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          const userName = usernameField.value;
+          const userEmail = emailField.value;
+          e.preventDefault();
+          console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail);
+          handleGenerateKey(userName, userEmail);
         }
       });
     } else {
       console.log("Elementen finns inte i DOM.");
     }
-  });
+});

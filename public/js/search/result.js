@@ -59,7 +59,7 @@ async function Results() {
         const tot_pris_real = totalFuelCost + cardata_display.total_cost;
         totpris_display.textContent = tot_pris_real + " KR";
         emission_display.textContent =
-          Co2_Emission(milage, cardata_display.fuel_type) + " KG";
+          Co2_Emission_calc(milage, cardata_display.Co2_emission) + " KG";
       } else {
         //maintenance
         maintenance_display.textContent =
@@ -91,29 +91,21 @@ async function Results() {
         const tot_pris_real = totalFuelCost + cardata_display.total_cost;
         totpris_display.textContent = tot_pris_real + " KR";
 
+        console.log(cardata_display.Co2_emission)
         emission_display.textContent =
-          Co2_Emission(milage, cardata_display.fuel_type) + " KG";
+          Co2_Emission_calc(milage, cardata_display.Co2_emission) + " KG";
       }
     } else {
       console.log("No car details found in local storage.");
     }
   }
 
-  function Co2_Emission(milage, drivmedel) {
+  function Co2_Emission_calc(milage, CO2_emission) {
+    console.log(milage, CO2_emission)
     const int_milage = parseInt(milage);
     const driving_distance_km = int_milage * 10;
-
-    
-    if (drivmedel == "Diesel") {
-      const Co2_bruk = 120;
-      const total_emisson = (driving_distance_km * Co2_bruk) / 1000;
-      return total_emisson;
-    }
-    if (drivmedel == "Bensin") {
-      const Co2_bruk = 140;
-      const total_emisson = (driving_distance_km * Co2_bruk) / 1000;
-      return total_emisson;
-    }
+    const total_emisson = (driving_distance_km * CO2_emission) / 1000;
+    return total_emisson;
   }
 
 Results();

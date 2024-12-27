@@ -38,6 +38,38 @@ import Header from "../components/all/header.astro";
         placeholder="Ange din e-postadress"
         required
       />
+      <form>
+        <!-- Faktureringsadress -->
+        <label for="address-line1">Adress:</label>
+        <input
+          type="text"
+          id="address-line1"
+          class="form-control"
+          placeholder="Gatuadress"
+          required
+        />
+        <label for="address-city">Stad:</label>
+        <input
+          type="text"
+          id="address-city"
+          class="form-control"
+          placeholder="Stad"
+          required
+        />
+        <label for="address-zip">Postnummer:</label>
+        <input
+          type="text"
+          id="address-zip"
+          class="form-control"
+          placeholder="Postnummer"
+          required
+        />
+        <label for="address-country">Land:</label>
+        <select id="address-country" class="form-control" required>
+          <option value="SE">Sverige</option>
+          <!-- Lägg till andra länder här om nödvändigt -->
+        </select>
+      </form>
     </div>
 
     <!-- Kortbetalning -->
@@ -117,13 +149,20 @@ import Header from "../components/all/header.astro";
         const userName = document.getElementById("name-input").value;
         const email = document.getElementById("email").value;
 
-        console.log("Name: ", userName, "email: ", email);
+        // Hämta faktureringsadressen
+        const addressLine1 = document.getElementById("address-line1").value;
+        const city = document.getElementById("address-city").value;
+        const zip = document.getElementById("address-zip").value;
+        const country = document.getElementById("address-country").value;
+
         // Validera e-postadress
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!email || !emailPattern.test(email)) {
           alert("Vänligen ange en giltig e-postadress.");
           return;
         }
+
+        // Skicka begäran till servern för att få client_secret
         const response = await fetch("http://127.0.0.1:5000/secret_key", {
           method: "POST",
           headers: {
@@ -158,7 +197,13 @@ import Header from "../components/all/header.astro";
                 card: cardElement,
                 billing_details: {
                   email: email, // Användarens e-postadress
-                  name: userName, // Användarens namn här
+                  name: userName, // Användarens namn
+                  address: {
+                    line1: addressLine1, // Gatuadress
+                    city: city, // Stad
+                    postal_code: zip, // Postnummer
+                    country: country, // Land
+                  },
                 },
               },
             }
@@ -254,5 +299,21 @@ import Header from "../components/all/header.astro";
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
+  }
+
+  form {
+    position: relative;
+    margin-top: var(--margin-m);
+    margin-bottom: var(--margin-m);
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    height: fit-content;
+
+    input,
+    select {
+      width: 95% !important;
+      margin: 0 auto;
+    }
   }
 </style>

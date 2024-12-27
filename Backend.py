@@ -10,21 +10,19 @@ from openai import OpenAI
 from cryptography.fernet import Fernet, InvalidToken
 from flask_session import Session
 import jwt
-from datetime import datetime as dt, timedelta  # Importera datetime som dt
+from datetime import datetime as dt, timedelta, timezone  # Importera datetime som dt
 import hashlib
 import json
 import stripe
 import jwt
 import uuid
 import base64
+import ast
 
 
 def fix_base64_padding(data: str) -> str:
-    # Lägg till padding om den saknas
-    padding = len(data) % 4
-    if padding != 0:
-        data += "=" * (4 - padding)
-    return data
+    # Lägg till nödvändiga padding-tecken till base64-strängen
+    return data + "=" * (4 - len(data) % 4) if len(data) % 4 else data
 
 
 # http://127.0.0.1:5000/
@@ -164,8 +162,17 @@ TOKEN_EXPIRATION_MINUTES = 120
 cipher_suite = Fernet(fernet_key)
 
 
-def encrypt_data(data: str) -> str:
-    return cipher_suite.encrypt(data.encode()).decode()
+def encrypt_data(data):
+    # Om data är en lista, konvertera den till en JSON-sträng
+    if isinstance(data, list):
+        data = json.dumps(data)  # Konvertera listan till en JSON-sträng
+
+    # Kryptera strängen
+    encrypted_data = cipher_suite.encrypt(
+        data.encode()
+    ).decode()  # Kryptera och konvertera till sträng
+
+    return encrypted_data
 
 
 def decrypt_data(data: str) -> str:
@@ -217,7 +224,8 @@ def read_from_md_file(FILE):
 
 # Hjälpfunktion för att generera JWT
 def generate_jwt(username: str) -> str:
-    expiration = dt.utcnow() + timedelta(minutes=TOKEN_EXPIRATION_MINUTES)
+    expiration = dt.now(timezone.utc) + timedelta(minutes=TOKEN_EXPIRATION_MINUTES)
+
     payload = {
         "username": username,
         "exp": expiration,
@@ -403,6 +411,7 @@ def check_tier():
             user_data = user.split(", ")
             user_name = user_data[1].split(": ")[1]
             user_tier = user_data[3].split(": ")[1]
+            print("User tier: ", user_tier)
 
             if user_tier == "FA":
                 return_tier = "ftag"
@@ -439,26 +448,32 @@ def check_admin():
         # Dekryptera JWT för att få användardata
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         username_from_token = decoded_token.get("username")
+        token_data = get_user_by_jwt(token)
 
-        if not username_from_token:
+        if not token_data:
             return jsonify({"message": "Ingen användare i token"}), 401
 
         # Läs användardata från markdown-fil
         users = read_from_md_file(DATA_FILE)
 
         admin_users = read_from_md_file(ADMIN_FILE)
-        print(admin_users)
 
         # Kontrollera om användaren finns och om lösenordet stämmer
         for user in users:
             # Dela upp den dekrypterade data för att få ut namn och lösenord
             user_data = user.split(", ")
-            user_name = user_data[0].split(": ")[1]
-            if user_name == username_from_token:
+            user_id = user_data[0].split(": ")[1]
+            if user_id == token_data["id"]:
                 for admins in admin_users:
-                    user_fields = admins.split(", ")
-                    admin_name = user_fields[0].split(": ")[1]  # Extract 'Name' field
-                    if user_name == admin_name:
+                    # Förvandla strängen till en dictionary
+                    admin_data = ast.literal_eval(
+                        admins
+                    )  # Omvandla strängen till en dictionary
+                    admin_name = admin_data.get("Name")  # Extrahera värdet av 'Name'
+
+                    if (
+                        token_data["id"] == admin_name
+                    ):  # Här kontrollerar du om ID:t matchar
                         return jsonify({"message": "Autentiserad"}), 200
         return jsonify({"message": "Oautentiserad"}), 401
 
@@ -466,25 +481,46 @@ def check_admin():
         return jsonify({"message": "Token har gått ut"}), 401
     except jwt.InvalidTokenError:
         return jsonify({"message": "Ogiltig token"}), 401
+    except Exception as e:
+        return jsonify({"message": f"Fel: {str(e)}"}), 500
 
 
 def create_admin(username):
     admin_users = read_from_md_file(ADMIN_FILE)
+    users = read_from_md_file(DATA_FILE)
+
     for user_data in admin_users:
         # Split the decrypted data into fields
-        user_fields = user_data.split(", ")
-        existing_name = user_fields[0].split(": ")[1]  # Extract 'Name' field
-        if existing_name == username:
+        admin_data = ast.literal_eval(
+            admin_data
+        )  # Omvandla strängen till en dictionary
+        admin_id = admin_data.get("Name")  # Extract 'Name' field
+        if admin_id == username:
             return (
                 jsonify({"message": "Användarnamn är redan taget", "success": False}),
                 409,
             )
-    user_data = f"Name: {username}"
-    encrypted_data = encrypt_data(user_data)
 
-    # Skriv krypterad data till .md-filen
-    write_to_md_file(encrypted_data, ADMIN_FILE)
+    for user in users:
+        user_fields = user.split(", ")
+        user_name = user_fields[1].split(": ")[1]
+        user_id = user_fields[0].split(": ")[1]
 
+        if username == user_name:
+            # Skapa en dictionary med 'Name' som nyckel och user_id som värde
+            user_data = {"Name": user_id}
+
+            # Kryptera användardata (konvertera till sträng innan kryptering)
+            encrypted_data = encrypt_data(str(user_data))
+
+            # Lägg till den nya krypterade användardatan i listan
+            admin_users.append(encrypted_data)
+
+            # Skriv krypterad data till .md-filen
+            write_to_md_file(admin_users, ADMIN_FILE)
+
+
+# create_admin("ArvidAlund")
 
 # Sökdata fil
 SEARCH_DATA_FILE = "search_data.json"
@@ -686,11 +722,8 @@ def update_tier():
     user_found = False
     updated_data = []
 
-    print(users)
-
     for user in users:
-        print(user)
-        # Dela upp den dekrypterade data för att få ut användarnamn och tier
+        # Dela upp användardatan för att få ut användarnamn och tier
         user_fields = user.split(", ")
         user_name = user_fields[1].split(": ")[1]  # Extract 'Name' field
         user_tier = user_fields[3].split(": ")[1]  # Extract 'Tier' field
@@ -700,16 +733,25 @@ def update_tier():
         if user_name == username_from_token:
             user_found = True
             updated_user_data = f"UserID: {user_id}, username: {user_name}, password: {user_fields[2].split(': ')[1]}, Tier: {new_tier}, mail: {user_fields[4].split(': ')[1]}"
-            encrypted_data = encrypt_data(updated_user_data)
-            updated_data.append(encrypted_data)
+            updated_data.append(
+                updated_user_data
+            )  # Lägg till den uppdaterade användaren
+            print(f"Användare uppdaterad: {updated_user_data}")
         else:
-            updated_data.append(user)
+            updated_data.append(user)  # Lägg till användaren utan ändringar
 
     if not user_found:
         return jsonify({"message": "Användare ej hittad"}), 404
 
-    # Skriv tillbaka den uppdaterade användardatan i filen
-    write_to_md_file(updated_data, DATA_FILE)
+    # Kryptera den uppdaterade användardatan
+    encrypted_data = encrypt_data(
+        updated_data
+    )  # Här krypteras hela listan av användardata
+
+    # Skriv tillbaka den uppdaterade och krypterade användardatan i filen
+    write_to_md_file(
+        [encrypted_data], DATA_FILE
+    )  # Skicka listan av krypterade strängar
 
     return jsonify({"message": f"Tier uppdaterad till {new_tier}."}), 200
 

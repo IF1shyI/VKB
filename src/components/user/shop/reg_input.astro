@@ -1,0 +1,165 @@
+<div class="input-wrapper">
+  <div class="blue-strip">
+    <img src="/bilder/stars.svg" alt="Stars" class="stars-circle" />
+    <div class="country-code">S</div>
+  </div>
+  <input
+    type="text"
+    id="reg-number"
+    class="registration-input"
+    placeholder="ABC123"
+    maxlength="6"
+  />
+  <div class="arrow-knapp" onclick="Search()">
+    <img
+      src="/bilder/arrow_r.svg"
+      alt="arrow"
+      class="sok-knapp"
+      id="sok-knapp"
+    />
+  </div>
+</div>
+
+<style>
+  .input-wrapper {
+    display: block;
+    position: relative;
+    width: var(--input-sok-sz);
+    aspect-ratio: 4/1;
+    padding-right: 4rem;
+    border-radius: 4px;
+
+    overflow: hidden;
+    margin: 0 auto;
+
+    box-shadow: 0 4px 8px 2px rgba(0, 0, 0, 0.2);
+    border: 2px solid #000;
+  }
+
+  input {
+    width: var(--input-sok-sz);
+    height: 100%;
+
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    font-size: 2rem;
+    font-weight: 600;
+
+    text-align: center;
+    letter-spacing: 5px;
+    font-family: var(--font);
+    text-transform: uppercase;
+    padding: 0;
+    border: 0;
+  }
+  .sok-knapp {
+    position: absolute;
+    left: var(--input-sok-sz);
+    background-color: var(--guld_2);
+    top: 50%;
+    transform: translateY(-50%);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: right center;
+    height: 100%;
+    cursor: pointer;
+    z-index: 60;
+  }
+
+  img:hover {
+    opacity: 0.8;
+  }
+
+  .registration-input::placeholder {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .blue-strip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 99999;
+    overflow: hidden;
+
+    background: #003399;
+    width: calc(var(--input-sok-sz) * 0.15);
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+
+  .country-code {
+    position: absolute;
+    font-size: 20px;
+    font-weight: bold;
+    bottom: 7px;
+  }
+
+  .stars-circle {
+    position: absolute;
+    top: 8%;
+    width: 30px;
+    height: 30px;
+  }
+  @media (max-width: 600px) {
+    .input-wrapper {
+      width: 70%; /* Justera bredden här */
+      height: 25%;
+      padding-right: 2rem; /* Minska padding om nödvändigt */
+    }
+
+    input {
+      font-size: 1.5rem; /* Justera fontstorlek */
+      width: 80%;
+    }
+
+    .reg-num-label,
+    .mile-label {
+      font-size: 0.8rem; /* Justera storleken på etiketterna */
+    }
+
+    img {
+      height: 100%; /* Justera storleken på ikonen */
+      left: 80%; /* Placera om ikonen */
+    }
+
+    .blue-strip {
+      width: 15%;
+
+      .country-code {
+        font-size: 15px;
+      }
+
+      .stars-circle {
+        left: 2px;
+        top: 8px;
+        width: 85%;
+      }
+    }
+
+    .arrow-knapp {
+      position: absolute;
+      right: 0;
+      top: 0;
+
+      width: 20%;
+      height: 100%;
+      img {
+        position: absolute;
+        top: 50%;
+        left: 0;
+
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .registration-input {
+      padding-left: 20px;
+    }
+  }
+</style>

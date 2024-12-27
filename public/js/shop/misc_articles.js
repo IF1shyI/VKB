@@ -1,36 +1,33 @@
-// Håll reda på aktiva filter
-let activeFilters = [];
-
 // Funktion för att hämta JSON-data
-async function fetchTiresData() {
+async function fetchAdData() {
   try {
-    const response = await fetch('/json/tire_ads.json'); // Ange rätt sökväg till JSON-filen
-    const tiresData = await response.json(); // Konvertera till JS-objekt
-    initializeTires(tiresData); // Initiera visningen
+    const response = await fetch('/json/misc_ads.json'); // Ange rätt sökväg till JSON-filen
+    const ADData = await response.json(); // Konvertera till JS-objekt
+    initializeTires(ADData); // Initiera visningen
   } catch (error) {
     console.error('Fel vid hämtning av JSON:', error);
   }
 }
 
 // Funktion för att initiera däckvisningen
-function initializeTires(tiresData) {
+function initializeTires(ADData) {
   // Sortera och filtrera direkt vid sidladdning
-  sortAndFilterTires(tiresData);
+  sortAndFilterTires(ADData);
 
   // Lägg till event listeners på filterknappar
-  document.getElementById('All').addEventListener('click', () => toggleFilter('All', tiresData));
-  document.getElementById('Summer').addEventListener('click', () => toggleFilter('Summer', tiresData));
-  document.getElementById('Winter').addEventListener('click', () => toggleFilter('Winter', tiresData));
+  document.getElementById('All').addEventListener('click', () => toggleFilter('All', ADData));
+  document.getElementById('Summer').addEventListener('click', () => toggleFilter('Summer', ADData));
+  document.getElementById('Winter').addEventListener('click', () => toggleFilter('Winter', ADData));
 
   // Lägg till event listener på dropdown-menyn
-  document.getElementById('dropdownSort').addEventListener('change', () => sortAndFilterTires(tiresData));
+  document.getElementById('dropdownSort').addEventListener('change', () => sortAndFilterTires(ADData));
 }
 
 // Funktion för att sortera och filtrera däck
-function sortAndFilterTires(tiresData) {
+function sortAndFilterTires(ADData) {
   const dropdownValue = document.getElementById('dropdownSort').value;
 
-  let filteredTires = tiresData;
+  let filteredTires = ADData;
 
   // Filtrera baserat på aktiva filter
   if (activeFilters.length > 0) {
@@ -184,9 +181,8 @@ function createStyledCard(tire) {
 }
 
 
-
 // Funktion för att hantera filterknappar
-function toggleFilter(type, tiresData) {
+function toggleFilter(type, ADData) {
   const index = activeFilters.indexOf(type);
   if (index > -1) {
     activeFilters.splice(index, 1); // Ta bort filtret om det redan är aktivt
@@ -195,7 +191,7 @@ function toggleFilter(type, tiresData) {
     activeFilters.push(type); // Lägg till filtret om det inte är aktivt
     document.getElementById(type).classList.add('active'); // Lägg till aktiv klass
   }
-  sortAndFilterTires(tiresData); // Uppdatera listan
+  sortAndFilterTires(ADData); // Uppdatera listan
 }
 
 // Hämta och initiera däckvisning vid sidladdning

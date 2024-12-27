@@ -9,9 +9,10 @@ console.log(tot_fuel_cost)
 
         const high_fuel = cardata_display.fuel_consumption * 0.8
         const low_fuel = cardata_display.fuel_consumption * 0.7
+        console.log("Fhigh: ",high_fuel, "Flow: ", low_fuel)
 
-        const high_cost =high_fuel * milage * cardata_display.fuel_price
-        const low_cost =low_fuel * milage*cardata_display.fuel_price
+        const high_cost =high_fuel * ((milage*10) / 100) * cardata_display.fuel_price
+        const low_cost =low_fuel * ((milage*10) / 100)*cardata_display.fuel_price
         console.log(high_cost, low_cost)
 
         // const totprisH = totfbrukH * cardata_display.fuel_price
@@ -22,6 +23,8 @@ console.log(tot_fuel_cost)
 
         const Tspar = (SparH + SparL)/2
 
+
+        console.log(total_emisson)
         const Co2sH = total_emisson*0.3
         const Co2sL = total_emisson*0.2
 
