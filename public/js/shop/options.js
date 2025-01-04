@@ -118,6 +118,7 @@ function createStyledCard(tire) {
   const img = document.createElement('img');
   img.src = tire.Img;
   img.alt = 'Tire Image';
+  img.classList.add('zoom-image');
   Object.assign(img.style, {
     position: 'absolute',
     top: '0',

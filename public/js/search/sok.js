@@ -30,7 +30,7 @@ async function Do_search(inputValue) {
 
     try {
         // Skicka GET-begäran till Flask-API:t
-        const carResponse = await fetch(`http://127.0.0.1:4000/carcost?reg_plate=${inputValue}&key=VKBilen-1735298762.566119`, {
+        const carResponse = await fetch(`http://127.0.0.1:4000/carcost?reg_plate=${inputValue}&key=VKBilen-1736020869.979689`, {
             method: "GET",
         });
 

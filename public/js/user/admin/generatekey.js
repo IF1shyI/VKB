@@ -1,4 +1,4 @@
-async function handleGenerateKey(userName, userEmail) {
+async function handleGenerateKey(userName, userEmail, userOption, userSum) {
     const key_display = document.getElementById("key_display");
 
     if (!userName || !userEmail) {
@@ -12,7 +12,7 @@ async function handleGenerateKey(userName, userEmail) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_name: userName, user_mail: userEmail }),
+        body: JSON.stringify({ user_name: userName, user_mail: userEmail, user_option: userOption, user_sum:userSum }),
       });
 
       if (!response.ok) {
@@ -30,6 +30,8 @@ async function handleGenerateKey(userName, userEmail) {
 document.addEventListener("DOMContentLoaded", function () {
     const usernameField = document.getElementById("new_api_user_username");
     const emailField = document.getElementById("new_api_user_email");
+    const dropdown = document.getElementById("paymentMethod");
+    const sumInputDiv = document.getElementById("amount");
     const button = document.getElementById("submit_btn");
     const key_display = document.getElementById("key_display");
 
@@ -38,17 +40,33 @@ document.addEventListener("DOMContentLoaded", function () {
       button.addEventListener("click", function () {
         const userName = usernameField.value;
         const userEmail = emailField.value;
-        console.log("Knappen trycktes. Användarnamn:", userName, "E-postadress:", userEmail);
-        handleGenerateKey(userName, userEmail);
+        const userSum= sumInputDiv.value;
+ 
+
+          if (userSum) {
+              console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail, "dropdown:",dropdown.value, "userSum:",userSum);
+              handleGenerateKey(userName, userEmail, dropdown.value, userSum);
+          }else{
+              console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail, "dropdown:",dropdown.value, "userSum:",0);
+              handleGenerateKey(userName, userEmail, dropdown.value, 0);
+          }
       });
 
       usernameField.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
           const userName = usernameField.value;
           const userEmail = emailField.value;
-          e.preventDefault();
-          console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail);
-          handleGenerateKey(userName, userEmail);
+          const userSum= sumInputDiv.value;
+       
+          if (userSum) {
+
+              console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail, "dropdown:",dropdown.value, "userSum:",userSum);
+              handleGenerateKey(userName, userEmail, dropdown.value, userSum);
+          }else{
+   
+              console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail, "dropdown:",dropdown.value, "userSum:",userSum);
+              handleGenerateKey(userName, userEmail, dropdown.value, 0);
+          }
         }
       });
 
@@ -56,9 +74,18 @@ document.addEventListener("DOMContentLoaded", function () {
         if (e.key === "Enter") {
           const userName = usernameField.value;
           const userEmail = emailField.value;
-          e.preventDefault();
-          console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail);
-          handleGenerateKey(userName, userEmail);
+          const userSum= sumInputDiv.value;
+          
+
+          if (userSum) {
+          
+              console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail, "dropdown:",dropdown.value, "userSum:",userSum);
+              handleGenerateKey(userName, userEmail, dropdown.value, userSum);
+          }else{
+         
+              console.log("Enter trycktes. Användarnamn:", userName, "E-postadress:", userEmail, "dropdown:",dropdown.value, "userSum:",userSum);
+              handleGenerateKey(userName, userEmail, dropdown.value, 0);
+          }
         }
       });
     } else {

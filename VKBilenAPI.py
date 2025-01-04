@@ -16,6 +16,8 @@ import hashlib
 import json
 import uuid
 import stripe
+import calendar
+import schedule
 
 
 # http://127.0.0.1:4000/bilinfo?reg_plate=CWJ801
@@ -71,6 +73,35 @@ app.config["SESSION_COOKIE_SECURE"] = False
 
 Session(app)
 
+#######################################################################################
+#                                      MISC
+#######################################################################################
+
+
+# Funktion som körs när applikationen stängs av
+def on_shutdown():
+    if os.path.exists(SESSION_FILE):
+        print("Raderar session.json eftersom applikationen stängs av...")
+        os.remove(SESSION_FILE)
+
+
+def is_last_day_of_month(date):
+    """Kontrollerar om det är sista dagen i månaden."""
+    year = date.year
+    month = date.month
+    last_day = calendar.monthrange(year, month)[1]
+    return date.day == last_day
+
+
+def check_and_run_month():
+    """Kontrollera om funktionen ska köras."""
+    today = datetime.now()
+    if is_last_day_of_month(today):
+        print("Sista dagen i månaden, kör funktionen.")
+        get_all_monthly_api_users()
+    else:
+        print("Inte sista dagen i månaden. Ingen åtgärd.")
+
 
 def save_to_json(data, filename):
     try:
@@ -122,7 +153,9 @@ def create_api_key(user_name):
 
 
 # Funktion för att lägga till både råa och hashade nycklar till .md-filen
-def add_api_key_to_file(user_name, user_mail, hashed_key, file_path="api_keys.md"):
+def add_api_key_to_file(
+    user_name, user_mail, hashed_key, payment, max_payment, file_path="api_keys.md"
+):
     """
     Lägger till en ny API-nyckel i filen med extra användardetaljer.
     """
@@ -131,6 +164,8 @@ def add_api_key_to_file(user_name, user_mail, hashed_key, file_path="api_keys.md
     entry += f"- **Email**: {user_mail}\n"
     entry += f"- **User ID**: {uuid.uuid4()}\n"  # Genererar ett unikt användar-ID
     entry += f"- **API Key (Hashed)**: {hashed_key}\n"
+    entry += f"- **Payment method**: {payment}\n"
+    entry += f"- **Max payment**: {max_payment}\n"
     entry += f"- **Created on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
     # Skriv till filen
@@ -166,12 +201,14 @@ def read_user_data_md(file_path):
     with open(file_path, "r") as file:
         content = file.read()
 
-    # Mönster för att extrahera användardata
+    # Mönster för att extrahera användardata (nu med betalningsmetod och maxbetalning)
     user_pattern = re.compile(
         r"## User: (.+?)\n"  # Användarnamn (finns efter "User: ")
         r"- \*\*Email\*\*: (.+?)\n"  # E-post
         r"- \*\*User ID\*\*: (.+?)\n"  # Användar-ID
         r"- \*\*API Key \(Hashed\)\*\*: (.+?)\n"  # API-nyckel (Hashed)
+        r"- \*\*Payment method\*\*: (.+?)\n"  # Betalningsmetod
+        r"- \*\*Max payment\*\*: (\d+)\n"  # Maxbetalning
         r"- \*\*Created on\*\*: (.+?)\n",  # Skapad på
         re.DOTALL,  # Gör så att punkt (.) matchar radbrytningar
     )
@@ -186,7 +223,11 @@ def read_user_data_md(file_path):
             "email": match[1],
             "user_id": match[2],
             "api_key": match[3],
-            "created_on": match[4],
+            "payment_method": match[4],  # Nytt fält: betalningsmetod
+            "max_payment": int(
+                match[5]
+            ),  # Nytt fält: maxbetalning (om den är 0 så ignoreras den senare)
+            "created_on": match[6],
         }
         users.append(user)
 
@@ -219,6 +260,11 @@ def verify_api_key(input_key, file_path="api_keys.md"):
     except FileNotFoundError:
         print("API key file not found.")
         return False
+
+
+#######################################################################################
+#                                      PAYMENTS
+#######################################################################################
 
 
 def update_api_request_count(api_key, file_path="api_requests.md"):
@@ -271,47 +317,70 @@ def update_api_request_count(api_key, file_path="api_requests.md"):
     return {"requests_made": requests_made, "last_reset": current_month}
 
 
+cost_per_request = 0.1
+
+
 def check_user_pay(
     api_key,
     requests_made,
-    file_path="api_requests.md",
-    cost_per_request=0.1,
-    invoice_limit=1000,
 ):
     """
-    Kontrollerar om användaren behöver faktureras baserat på användning.
+    Kontrollerar om användaren behöver faktureras baserat på användning och överenskommelser.
     """
+    # Hämta betalningsinformation för användaren
+    choice = find_payment_method(api_key)
 
-    # Beräkna totalkostnad
-    total_cost = requests_made * cost_per_request
-    print(
-        f"Användare {api_key}: {requests_made} förfrågningar, kostnad hittills: {total_cost:.2f} kr."
-    )
+    if choice is None:
+        print(f"Ingen betalningsinformation hittades för användaren {api_key}.")
+        return
 
-    # Kontrollera om fakturering krävs
-    if total_cost >= invoice_limit:
-        get_invoice_info(api_key, total_cost)
-    else:
+    # Kontrollera om max_payment finns och inte är 0
+    if "max_payment" in choice and choice["max_payment"] != 0:
+        # Beräkna totalkostnad
+        total_cost = requests_made * cost_per_request
         print(
-            f"Ingen faktura behövs för {api_key} (kostnad hittills: {total_cost:.2f} kr)."
+            f"Användare {api_key}: {requests_made} förfrågningar, kostnad hittills: {total_cost:.2f} kr."
         )
+
+        # Kontrollera om fakturering krävs
+        if total_cost >= choice["max_payment"]:
+            get_invoice_info(api_key, total_cost)
+        else:
+            print(
+                f"Ingen faktura behövs för {api_key} (kostnad hittills: {total_cost:.2f} kr)."
+            )
 
 
 def get_invoice_info(api_key, invoice_cost):
     data = read_user_data_md("api_keys.md")
     if data:
-        hashed_key = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
-        for user in data:
-            if user["api_key"] == hashed_key:
+        try:
+            # Kontrollera om nyckeln redan verkar hashad (längd och tecken som indikation)
+            if len(api_key) == 64 and all(
+                c in "0123456789abcdef" for c in api_key.lower()
+            ):
+                hashed_key = api_key  # Nyckeln är redan hashad
+            else:
+                # Hasha den råa API-nyckeln
+                hashed_key = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
 
-                send_invoice_now(api_key, invoice_cost, user["username"], user["email"])
+            # Sök efter användaren baserat på hashad nyckel
+            for user in data:
+                if user["api_key"] == hashed_key:
+                    send_invoice_now(
+                        hashed_key, invoice_cost, user["username"], user["email"]
+                    )
+                    return  # Avsluta när rätt användare hittats
+            print("Ingen matchande API-nyckel hittades.")
+
+        except Exception as e:
+            print(f"Ett fel inträffade vid bearbetning av API-nyckeln: {e}")
 
 
 def send_invoice_now(api_key, invoice_cost, name, email):
     """
     Skickar en faktura till användaren via Stripe.
     """
-    print(f"Skickar faktura till användare {api_key} på {invoice_cost:.2f} kr.")
 
     # Kontrollera om kunden redan finns
     customer = check_if_customer_exists(email)
@@ -341,7 +410,7 @@ def send_invoice_now(api_key, invoice_cost, name, email):
                 invoice_cost * 100
             ),  # Stripe tar emot belopp i cent (multiplicera med 100)
             currency="sek",  # Valuta (sek=svenska kronor)
-            description=f"Faktura för VKBilens API-tjänst: {api_key}",
+            description=f"Faktura för VKBilens API-tjänst",
         )
 
         # Skapa själva fakturan
@@ -367,47 +436,194 @@ def send_invoice_now(api_key, invoice_cost, name, email):
 # Funktion för att nollställa förfrågningar varje månad
 def reset_user_balance(api_key, file_path="api_requests.md"):
     try:
+        # Kontrollera om filen existerar
+        if not os.path.exists(file_path):
+            print(f"Filen {file_path} finns inte.")
+            return
+
         # Läs in innehållet från markdown-filen
         with open(file_path, "r") as file:
             file_content = file.read()
 
-        # Debug: Skriv ut innehållet för att se hur det ser ut
-        print("Original file content:")
-        print(file_content)
-
-        # Skapa ett reguljärt uttryck för att hitta användarens sektion i filen
+        # Hitta alla användarsektioner
         user_pattern = re.compile(
-            rf"(## User: {re.escape(api_key)}.*?)(?=^## User:|\Z)",
-            re.DOTALL | re.MULTILINE,
+            r"## User: (.+?)\n(.*?)(?=^## User:|\Z)", re.DOTALL | re.MULTILINE
         )
+        matches = user_pattern.findall(file_content)
 
-        # Debug: Kontrollera om regex hittar något
-        match = re.search(user_pattern, file_content)
-        if match:
-            print("Match found:")
-            print(match.group(0))  # Skriv ut den matchande sektionen
-        else:
-            print("No match found for the given API key.")
+        # Iterera över alla användare och jämför hash
+        match_found = False
+        for user_name, user_section in matches:
+            # Hasha användarnamnet
+            hashed_name = hashlib.sha256(user_name.encode("utf-8")).hexdigest()
 
-        # Ta bort användarens sektion (det matchande området)
-        updated_content = re.sub(user_pattern, "", file_content)
+            # Jämför med den givna API-nyckeln
+            if hashed_name == api_key:
+                match_found = True
 
-        # Debug: Kontrollera om innehållet har uppdaterats
-        if updated_content != file_content:
-            print("File content updated.")
-        else:
-            print("No changes made to the file content.")
+                # Ta bort användarens sektion från innehållet
+                file_content = file_content.replace(
+                    f"## User: {user_name}\n{user_section}", ""
+                )
+                break
 
-        # Skriv tillbaka den uppdaterade filen om ändringar har gjorts
-        if updated_content != file_content:
-            with open(file_path, "w") as file:
-                file.write(updated_content)
-            print("File saved successfully.")
-        else:
-            print("No changes to save.")
+        if not match_found:
+            print("Ingen matchande användare hittades för den angivna API-nyckeln.")
+            return
+
+        # Spara det uppdaterade innehållet i filen
+        with open(file_path, "w") as file:
+            file.write(file_content)
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"Ett fel inträffade: {e}")
+
+
+def get_all_monthly_api_users(file_path="api_keys.md"):
+    if not os.path.exists(file_path):
+        print(f"Filen {file_path} finns inte.")
+        return None
+
+    with open(file_path, "r") as file:
+        content = file.read()
+
+    # Mönster för att hitta användare med "monthly" som betalningsmetod
+    pattern = re.compile(
+        r"## User: (.+?)\n.*?-\s\*\*Payment method\*\*: (monthly).*?-\s\*\*API Key \(Hashed\)\*: (.+?)\n",
+        re.DOTALL,
+    )
+
+    # Hitta alla matchningar
+    matches = pattern.findall(content)
+
+    if matches:
+        print("Användare med 'monthly' betalningsmetod:")
+        for user_name, payment_method, hashed_api_key in matches:
+            print(f"Användare: {user_name} - Betalningsmetod: {payment_method}")
+
+            # Här kan du lägga till logik för att beräkna fakturakostnaden för användaren
+            invoice_cost = calc_invoice_cost(
+                user_name
+            )  # Anpassa denna funktion vid behov
+            apikey_user = hashed_api_key  # Använd den hashade API-nyckeln
+            get_invoice_info(apikey_user, invoice_cost)
+    else:
+        print("Inga användare med 'monthly' betalningsmetod hittades.")
+
+
+def find_payment_method(api_key, file_path="api_keys.md"):
+    """
+    Hittar betalningsmetoden och maxbetalning för en specifik användare baserat på API-nyckeln (som inte är hashad) i file_path_paymentoption.
+
+    Args:
+        api_key (str): API-nyckeln för användaren (ej hashad).
+        file_path_paymentoption (str): Sökvägen till filen som innehåller betalningsalternativen.
+
+    Returns:
+        dict: En dictionary med betalningsmetod och maxbetalning (om den inte är 0).
+    """
+    # Kontrollera om filen finns
+    if not os.path.exists(file_path):
+        print(f"Fel: Filen {file_path} finns inte.")
+        return None
+
+    # Hasha den skickade API-nyckeln
+    try:
+        hashed_api_key = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+    except Exception as e:
+        print(f"Fel vid hashing av API-nyckeln: {e}")
+        return None
+
+    try:
+        # Läs filens innehåll
+        with open(file_path, "r") as file:
+            content = file.read()
+    except Exception as e:
+        print(f"Fel vid läsning av filen {file_path}: {e}")
+        return None
+
+    # Mönster för att hitta användarens API-nyckel (hashad), betalningsmetod och maxbetalning
+    pattern = re.compile(
+        rf"## User: .*\n- \*\*API Key \(Hashed\)\*\*: {re.escape(hashed_api_key)}\n.*?- \*\*Payment method\*\*: (.+?)\n.*?- \*\*Max payment\*\*: (\d+)",
+        re.DOTALL,
+    )
+
+    # Sök efter matchningar
+    match = pattern.search(content)
+
+    if match:
+        payment_method = match.group(1)  # Betalningsmetod
+        max_payment = int(match.group(2))  # Maxbetalning
+
+        # Kontrollera om maxbetalning är 0 eller inte
+        if max_payment != 0:
+            return {"payment_method": payment_method, "max_payment": max_payment}
+        else:
+            return {"payment_method": payment_method}
+    else:
+        print(
+            f"Ingen betalningsmetod eller maxbetalning hittades för den hashede API-nyckeln {hashed_api_key}."
+        )
+        return None
+
+
+def calc_invoice_cost(user_name, file_path="api_requests.md"):
+    """
+    Hämta antalet Requests Made för en specifik användare från filen, och räknar ut kostnad för faktura.
+    """
+    if not os.path.exists(file_path):
+        print(f"Filen {file_path} finns inte.")
+        return None
+
+    with open(file_path, "r") as file:
+        content = file.read()
+
+    # Regex för att hitta användaren och deras "Requests Made"
+    pattern = re.compile(
+        rf"## User: {re.escape(user_name)}\n.*?- \*\*Requests Made\*\*: (\d+)",
+        re.DOTALL,  # Tillåter att matchningen går över flera rader
+    )
+
+    match = pattern.search(content)
+    if match:
+        requests_made = int(match.group(1))  # Extrahera och konvertera till ett heltal
+        cost = requests_made * cost_per_request
+        return cost
+    else:
+        print(f"Inga Requests Made hittades för användaren {user_name}.")
+        return None
+
+
+def get_apikey_from_name(user_name, file_path="api_keys.md"):
+    """
+    Hämta API Key (Hashed) för en specifik användare från filen.
+    """
+    if not os.path.exists(file_path):
+        print(f"Filen {file_path} finns inte.")
+        return None
+
+    with open(file_path, "r") as file:
+        content = file.read()
+
+    # Regex för att hitta användaren och deras API Key
+    pattern = re.compile(
+        rf"## User: {re.escape(user_name)}\n.*?- \*\*API Key \(Hashed\)\*\*: ([a-f0-9]+)",
+        re.DOTALL,  # Tillåter att matchningen går över flera rader
+    )
+
+    match = pattern.search(content)
+    if match:
+        api_key_hashed = match.group(1)  # Extrahera den hashade API Key
+        key = hashlib.sha256(api_key_hashed.encode("utf-8")).hexdigest()
+        return key
+    else:
+        print(f"Ingen API Key hittades för användaren {user_name}.")
+        return None
+
+
+#######################################################################################
+#                                      API
+#######################################################################################
 
 
 def convert_currency_text_to_int(text):
@@ -790,13 +1006,6 @@ def get_electricity_price(year, month, day, price_class="SE3"):
         return None
 
 
-# Funktion som körs när applikationen stängs av
-def on_shutdown():
-    if os.path.exists(SESSION_FILE):
-        print("Raderar session.json eftersom applikationen stängs av...")
-        os.remove(SESSION_FILE)
-
-
 def get_fuel_type(vehicle_info):
     """
     Identifierar bränsletypen för ett fordon baserat på en given sträng.
@@ -995,6 +1204,8 @@ def create_key():
     # Ta emot användardata från begäran
     user_name = request.json.get("user_name")
     user_mail = request.json.get("user_mail")
+    user_option = request.json.get("user_option")
+    user_sum = request.json.get("user_sum")
 
     # Validera indata
     if not user_name or not user_mail:
@@ -1004,7 +1215,7 @@ def create_key():
     raw_key, hashed_key = create_api_key(user_name)
 
     # Lägg till nyckeln till .md-filen med användarinformation
-    add_api_key_to_file(user_name, user_mail, hashed_key)
+    add_api_key_to_file(user_name, user_mail, hashed_key, user_option, user_sum)
 
     # Returnera den råa nyckeln som svar
     return (
@@ -1015,8 +1226,10 @@ def create_key():
 
 atexit.register(on_shutdown)
 
+schedule.every().day.at("10:00").do(check_and_run_month)
 
 if __name__ == "__main__":
+    schedule.run_pending()
     app.run(debug=False, port=4000)
 
 
