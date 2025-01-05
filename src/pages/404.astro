@@ -10,6 +10,11 @@ import Layout from "../layouts/Layout.astro";
   </div>
 </Layout>
 
+<script type="module" is:inline>
+  import { logoutnow } from "./js/user/logout.js";
+  logoutnow();
+</script>
+
 <style>
   body {
     text-align: center;

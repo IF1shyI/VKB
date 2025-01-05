@@ -189,13 +189,21 @@ def write_to_md_file(data, DATA_FILE):
     Skriver krypterad data till fil. Data bör vara en lista av krypterade strängar.
     """
     if not isinstance(data, (list, tuple)):
-        raise ValueError(
-            "Data måste vara en lista eller itererbar av krypterade strängar."
-        )
+        # Om data inte är en lista, gör den till en lista med ett enda element
+        data = [data]
 
+    # Kontrollera att varje element i data är en krypterad sträng
+    for item in data:
+        if not isinstance(item, str):  # Kontrollera att det är en sträng
+            raise ValueError("Varje element i data måste vara en krypterad sträng.")
+
+    # Skriv data till fil
     with open(DATA_FILE, "w") as file:
         for encrypted_data in data:
-            file.write(str(encrypted_data) + "\n")
+            # Skriv den krypterade strängen direkt utan att använda str()
+            file.write(
+                encrypted_data + "\n"
+            )  # "\n" läggs till här för att separera varje rad
 
 
 def read_from_md_file(FILE):
@@ -204,13 +212,14 @@ def read_from_md_file(FILE):
     Ignorerar rader som inte kan dekrypteras.
     """
     if not os.path.exists(FILE):
-        return []
+        return
 
     decrypted_data = []
     with open(FILE, "r") as file:
         lines = file.readlines()
 
     for line in lines:
+        print(line)
         try:
             decrypted_line = decrypt_data(line.strip())
             decrypted_data.append(decrypted_line)
@@ -218,8 +227,28 @@ def read_from_md_file(FILE):
             print(f"Fel vid dekryptering av rad: {line.strip()} - {str(e)}")
             # Ignorera trasiga rader och fortsätt
             continue
+    real_data = make_list_from_string(decrypted_data)
 
-    return decrypted_data
+    return real_data
+
+
+def make_list_from_string(data):
+    print("datastring: ", data)
+
+    # Kontrollera om data är en lista, och om så, gör om till en sträng
+    if isinstance(data, list):
+        data_str = "".join(data)  # Om det är en lista, sammanfoga till en sträng
+    else:
+        data_str = data  # Om data redan är en sträng
+
+    # Dela upp strängen där vi hittar '',' och ta bort överskottstecken
+    split_data = data_str.split("','")
+
+    # Rensa bort ' från första och sista elementet om det finns
+    split_data = [item.strip("'") for item in split_data]
+
+    print("splitdata: ", split_data)
+    return split_data
 
 
 # Hjälpfunktion för att generera JWT
@@ -259,6 +288,154 @@ def verify_jwt(token: str):
         return None
 
 
+###########################################################################################################################
+#                                                   Profile
+###########################################################################################################################
+
+
+@app.route("/profileinfo", methods=["POST"])
+def profileinfo():
+    try:
+        # Hämta Authorization-headern från begäran
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"message": "Token saknas eller är ogiltig"}), 401
+
+        # Extrahera JWT-token
+        token = auth_header.split(" ")[1]
+
+        # Verifiera JWT-token
+        data = get_user_by_jwt(token)
+        data.pop("id", None)
+        return data
+    except Exception as e:
+        return jsonify({"message": f"Något gick fel: {str(e)}"}), 500
+
+
+@app.route("/updateprofile", methods=["POST"])
+def updateprofile():
+    # Hämta data från begäran
+    firstname = request.json.get("firstname")
+    lastname = request.json.get("lastname")
+    username = request.json.get("username")
+    email = request.json.get("email")
+
+    try:
+        # Hämta Authorization-headern från begäran
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"message": "Token saknas eller är ogiltig"}), 401
+
+        # Extrahera JWT-token
+        token = auth_header.split(" ")[1]
+
+        # Verifiera JWT-token och hämta användardata
+        current_data = get_user_by_jwt(token)
+
+        if not current_data:
+            return jsonify({"message": "Ogiltig eller utgången token"}), 401
+
+        # Uppdatera användardatan med nya värden om de finns
+        updated_data = current_data.copy()
+
+        print("Namn: ", firstname)
+
+        if firstname is not None:
+            updated_data["firstname"] = firstname
+
+        if lastname is not None:
+            updated_data["lastname"] = lastname
+
+        if username is not None:
+            updated_data["username"] = username
+
+        if email is not None:
+            updated_data["email"] = email
+
+        print("uppdated data: ", updated_data)
+        # Spara uppdaterad data till databas eller fil
+        save_user_data(updated_data)
+
+        return (
+            jsonify({"message": "Profil uppdaterad", "updated_data": updated_data}),
+            200,
+        )
+    except Exception as e:
+        return jsonify({"message": f"Något gick fel: {str(e)}"}), 500
+
+
+def save_user_data(data):
+    try:
+        # Läs och validera användardata från filen
+        users = read_from_md_file(DATA_FILE)
+        if not users:
+            print("Inga användare hittades i filen.")
+            return None
+
+        updated_users = []  # Lista för att hålla uppdaterad användardata
+
+        for user in users:
+            try:
+                user_fields = user.split(", ")
+
+                user_id = user_fields[0].split(": ")[1]
+                user_name = user_fields[1].split(": ")[1]
+                user_psw = user_fields[2].split(": ")[1]
+                user_tier = user_fields[3].split(": ")[1]
+                user_mail = user_fields[4].split(": ")[1]
+                user_firstname = user_fields[5].split(": ")[1]
+                user_lastname = user_fields[6].split(": ")[1]
+
+                # Kontrollera om användar-ID matchar
+                if user_id == data.get("id"):
+                    print("Match hittad", data)
+
+                    # Hämta värden med standardvärden om nycklar saknas
+                    username = data.get("username", user_name)
+                    password = data.get("password", user_psw)
+                    tier = data.get("tier", user_tier)
+                    email = data.get("email", user_mail)
+                    firstname = data.get("firstname", user_firstname)
+                    lastname = data.get("lastname", user_lastname)
+
+                    # Formatera den uppdaterade användardatan
+                    user_data = (
+                        f"UserID: {user_id}, "
+                        f"username: {username}, "
+                        f"password: {password}, "
+                        f"Tier: {tier}, "
+                        f"mail: {email}, "
+                        f"firstname: {firstname}, "
+                        f"lastname: {lastname}"
+                    )
+
+                    print("Userdata: ", user_data)
+
+                    # Kryptera användardata
+                    encrypted_data = encrypt_data(user_data)
+
+                    # Lägg till uppdaterad data till listan
+                    updated_users.append(encrypted_data)
+                else:
+                    # Lägg till befintlig data för användare som inte matchar
+                    updated_users.append(user)
+            except Exception as e:
+                print(f"Fel vid bearbetning av användardata: {str(e)}")
+                continue
+
+        # Skriv tillbaka hela listan till filen
+        write_to_md_file(updated_users, DATA_FILE)
+        print("Användardata har sparats.")
+    except Exception as e:
+        print(f"Fel vid bearbetning av användardata: {str(e)}")
+        return None
+
+
+###########################################################################################################################
+#                                                   LOGIN/LOGOUT
+###########################################################################################################################
+
+
 # Registreringsrutt
 @app.route("/register", methods=["POST"])
 def register():
@@ -271,6 +448,9 @@ def register():
     # Läs existerande användare
     users = read_from_md_file(DATA_FILE)
 
+    print("Users before: ", users)
+
+    new_userdata = []
     # Kontrollera om användarnamnet redan finns
     for user_data in users:
         user_fields = user_data.split(", ")
@@ -280,21 +460,41 @@ def register():
                 jsonify({"message": "Användarnamn är redan taget", "success": False}),
                 409,
             )
+        else:
+            new_userdata.append(user_data)
 
     # Generera ett unikt user_id
     user_id = str(uuid.uuid4())
 
     # Skapa användardata i klartext
-    user_data = f"UserID: {user_id}, username: {name}, password: {password}, Tier: {tier}, mail: {mail}"
+    user_data = (
+        f"UserID: {user_id}, username: {name}, password: {password}, Tier: {tier}, mail: {mail}, firstname: "
+        ", lastname: "
+        ""
+    )
 
-    # Kryptera användardata
-    encrypted_data = encrypt_data(user_data)
+    users.append(user_data)
 
-    # Lägg till den nya krypterade användardatan i listan
-    users.append(encrypted_data)
+    newstring = ""
+
+    for i, content in enumerate(users):
+        # Kolla om innehållet redan har ' i början och slutet
+        if not content.startswith("'") or not content.endswith("'"):
+            data = f"'{content}'"
+        else:
+            data = content
+
+        # Om det inte är sista raden, lägg till ett komma
+        if i < len(users) - 1:
+            data += ","
+
+        newstring += data
+
+    print("newstring: ", newstring)
+    encrypted_data = encrypt_data(newstring)
 
     # Skriv tillbaka hela listan till filen
-    write_to_md_file(users, DATA_FILE)
+    write_to_md_file(encrypted_data, DATA_FILE)
 
     return (
         jsonify(
@@ -312,6 +512,8 @@ def login():
 
     # Läs användardata från filen
     users = read_from_md_file(DATA_FILE)
+
+    print(users)
 
     # Kontrollera om användaren finns och om lösenordet stämmer
     for user in users:
@@ -645,8 +847,7 @@ def get_user_by_jwt(token):
             print("JWT-token är ogiltig eller har gått ut.")
             return None
 
-        print("Decoded payload:", payload)
-
+        print(payload)
         # Steg 2: Hämta användarnamn från payload
         username = payload.get("username")
         if not username:
@@ -659,26 +860,73 @@ def get_user_by_jwt(token):
             print("Inga användare hittades i filen.")
             return None
 
+        print("get user by jwt users: ", users)
+
         for user in users:
             try:
                 user_fields = user.split(", ")
 
                 user_id = user_fields[0].split(": ")[1]
                 user_name = user_fields[1].split(": ")[1]
+                user_psw = user_fields[2].split(": ")[1]
+                user_tier = user_fields[3].split(": ")[1]
                 user_email = user_fields[4].split(": ")[1]
 
+                # Ta bort ']' om det finns i e-postadressen
+                if user_email.endswith("]"):
+                    user_email = user_email[:-1]  # Ta bort sista tecknet
+
+                # Ta bort eventuellt '"' från slutet av e-postadressen
+                if user_email.endswith('"'):
+                    user_email = user_email[:-1]
+
+                firstname = None  # Defaultvärde om firstname inte finns
+                lastname = None  # Defaultvärde om lastname inte finns
+
+                # Försök hämta firstname om det finns
+                if len(user_fields) > 5:
+                    firstname = user_fields[5].split(": ")[1]
+
+                # Försök hämta lastname om det finns
+                if len(user_fields) > 6:
+                    lastname = user_fields[6].split(": ")[1]
+
+                if lastname.endswith("]"):
+                    lastname = lastname[:-1]
+
+                if lastname.endswith('"'):
+                    lastname = lastname[:-1]
+
                 if user_name == username:
-                    print(f"Användare hittad: {username}")
-                    return {"id": user_id, "name": user_name, "email": user_email}
+                    # Returnera användardatan, inkludera firstname och lastname endast om de finns
+                    user_data = {
+                        "id": user_id,
+                        "name": user_name,
+                        "email": user_email,
+                        "password": user_psw,
+                        "tier": user_tier,
+                        "firstname": "",
+                        "lastname": "",
+                    }
+
+                    # Lägg till firstname och lastname om de finns
+                    if firstname:
+                        user_data["firstname"] = firstname
+                    if lastname:
+                        user_data["lastname"] = lastname
+
+                    print(user_data, user_email)
+                    return user_data
             except Exception as e:
                 print(f"Fel vid bearbetning av användardata: {str(e)}")
                 continue
 
+        # Om ingen användare matchar
         print("Ingen användare matchade det angivna användarnamnet.")
         return None
 
     except Exception as e:
-        print(f"Fel vid dekodning av JWT: {str(e)}")
+        print(f"Fel vid bearbetning av JWT-token: {str(e)}")
         return None
 
 

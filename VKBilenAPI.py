@@ -879,8 +879,16 @@ def maintenance():
 
 # år till månad
 def calculate_monthly_costs(data):
-
-    month_cost = int(data / 12)
+    print("data", data)
+    if isinstance(data, (int, float)):
+        month_cost = data / 12
+    else:
+        try:
+            # Försök att konvertera till flyttal om det inte är ett heltal
+            month_cost = float(data) / 12
+        except ValueError:
+            print(f"Fel: '{data}' är inte ett giltigt nummer. Sätt standardvärde.")
+            month_cost = 0  # Sätt ett standardvärde vid fel
 
     return month_cost
 
@@ -1113,6 +1121,7 @@ def car_cost_month():
         tot_maintenance = repairs_month + maintenance_month + tirecost
 
         # Calculate tax costs
+        print("Skatt:", global_fskatt)
         tax_month = calculate_monthly_costs(global_fskatt)
 
         # Fetch insurance data
@@ -1132,6 +1141,10 @@ def car_cost_month():
         # Calculate total cost
         try:
             tot_cost = calc_tot_cost(insurance, tax_month, tot_maintenance)
+            if global_besbruk == "Error":
+                car_besbruk = 4.5
+            else:
+                car_besbruk = global_besbruk
             # Sammanställ data för den aktuella bilen
             car_info = {
                 "regnummer": reg_plate,
@@ -1143,7 +1156,7 @@ def car_cost_month():
                 "insurance": round(insurance),
                 "car_tax": round(tax_month),
                 "car_name": global_car_model,
-                "fuel_consumption": global_besbruk,
+                "fuel_consumption": car_besbruk,
                 "fuel_type": fuel_type,
                 "fuel_price": right_fuel_price,
                 "Co2_emission": co2,

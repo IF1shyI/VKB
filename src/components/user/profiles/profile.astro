@@ -3,31 +3,22 @@
     <!-- Inställningar -->
     <section class="settings">
       <h2>Inställningar</h2>
-      <form>
+      <form id="settings-form">
         <div class="form-group">
           <label for="first-name">Förnamn</label>
-          <input type="text" id="first-name" value="Arvid" />
+          <input type="text" id="first-name" value="" />
         </div>
         <div class="form-group">
           <label for="last-name">Efternamn</label>
-          <input type="text" id="last-name" value="Ålund" />
-        </div>
-        <div class="form-group">
-          <label for="display-name">Visningsnamn</label>
-          <input type="text" id="display-name" value="Arvid Ålund" />
+          <input type="text" id="last-name" value="" />
         </div>
         <div class="form-group">
           <label for="username">Användarnamn</label>
-          <input type="text" id="username" value="arvidalund53" />
+          <input type="text" id="username" value="" />
         </div>
         <div class="form-group">
           <label for="email">Primär e-post</label>
-          <input
-            type="email"
-            id="email"
-            value="arvid.alund@gmail.com"
-            readonly
-          />
+          <input type="email" id="email" value="" readonly />
         </div>
         <div class="form-actions">
           <button type="button" class="save-btn">Spara inställningar</button>
@@ -43,13 +34,26 @@
         <div class="avatar">
           <a href=""><img src="./bilder/no-picture.svg" alt="" /></a>
         </div>
-        <p>Arvid Ålund</p>
+        <p id="picture_username"></p>
         <a href="#" class="change-picture">Byt profilbild</a>
       </div>
     </section>
   </div>
 
-  <!-- E-post -->
+  <div id="warning-container" class="warning-container">
+    <div class="warning-content">
+      <h3>Varning</h3>
+      <p>
+        Ditt användarnamn kommer att ändras och inloggningsdetaljerna kommer att
+        uppdateras. (Du kommer loggas ut)
+      </p>
+      <p>Det nya användarnamnet kommer vara:</p>
+      <p id="newusername"></p>
+      <button id="confirm-change">Bekräfta</button>
+      <button id="cancel-change">Avbryt</button>
+    </div>
+  </div>
+  <!-- E-post
   <section class="email-settings">
     <h2>E-post</h2>
     <table>
@@ -67,7 +71,7 @@
       </tr>
     </table>
     <button class="add-email-btn">Lägg till ny e-postadress</button>
-  </section>
+  </section> -->
 
   <!-- Nyhetsbrev -->
   <section class="newsletter">
@@ -78,6 +82,101 @@
     </div>
   </section>
 </div>
+
+<script type="module" is:inline>
+  import { getinfo } from "/js/user/profile/getinfo.js";
+  import { updatedata } from "/js/user/profile/updateinfo.js";
+
+  document.addEventListener("DOMContentLoaded", async function () {
+    const firstname = document.getElementById("first-name");
+    const lastname = document.getElementById("last-name");
+    const username = document.getElementById("username");
+    const email = document.getElementById("email");
+    const picture_username = document.getElementById("picture_username");
+    let firstnamedata = "";
+    let lastnamedata = "";
+    try {
+      const data = await getinfo();
+      if (data["firstname"]) {
+        firstnamedata = data["firstname"];
+      }
+      if (data["lastname"]) {
+        lastnamedata = data["lastname"];
+      }
+
+      firstname.value = firstnamedata;
+      lastname.value = lastnamedata;
+      username.value = data["name"];
+      email.value = data["email"];
+      picture_username.textContent = data["name"];
+    } catch (error) {
+      console.error("Fel vid hämtning av användarens nivå:", error);
+    }
+
+    const form = document.getElementById("settings-form");
+    const warningContainer = document.getElementById("warning-container");
+    const confirmButton = document.getElementById("confirm-change");
+    const cancelButton = document.getElementById("cancel-change");
+    const saveButton = document.querySelector(".save-btn");
+    const newusername = document.getElementById("newusername");
+
+    let newUsername = "";
+
+    if (!form) {
+      console.error("Formuläret med id 'settings-form' hittades inte.");
+      return;
+    }
+
+    const changedData = {}; // Object for storing changed inputs
+
+    // Lyssna på ändringar i alla inputfält
+    form.addEventListener("input", (event) => {
+      const target = event.target;
+
+      // Om det är en input-fält och inte readonly
+      if (target.tagName.toLowerCase() === "input" && !target.readOnly) {
+        changedData[target.id] = target.value;
+      }
+    });
+
+    // Lyssna på inputförändringar för användarnamn
+    const usernameInput = document.getElementById("username");
+
+    usernameInput.addEventListener("input", () => {
+      newUsername = usernameInput.value;
+    });
+
+    // Spara inställningar
+    saveButton.addEventListener("click", () => {
+      // Om användarnamnet har ändrats, visa varningskontainern
+      if (newUsername && newUsername !== usernameInput.defaultValue) {
+        newusername.textContent = newUsername;
+        warningContainer.style.display = "block"; // Visa varning
+      } else {
+        // Spara direkt om användarnamnet inte ändrats
+        console.log("Sparar inställningar...");
+        updatedata(changedData);
+        // Lägg till kod för att spara inställningarna (skicka till server eller lokal lagring)
+      }
+    });
+
+    // Bekräfta förändring av användarnamn
+    confirmButton.addEventListener("click", () => {
+      // Gör ändringen
+      console.log("Användarnamn ändrat till:", newUsername);
+      updatedata(changedData);
+      // Lägg till kod för att uppdatera användarnamnet på servern eller där det behövs
+      // Dölja varningskontainern
+      warningContainer.style.display = "none";
+    });
+
+    // Avbryt ändringen
+    cancelButton.addEventListener("click", () => {
+      // Dölja varningskontainern utan att göra några ändringar
+      warningContainer.style.display = "none";
+    });
+  });
+</script>
 
 <style>
   .account-container {
@@ -218,5 +317,61 @@
   .newsletter input[type="checkbox"] {
     width: 20px;
     height: 20px;
+  }
+
+  .warning-container {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 1);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
+
+  .warning-content {
+    text-align: center;
+  }
+
+  .warning-container button {
+    background-color: #ff4e4e;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+
+  .warning-container button:hover {
+    background-color: #ff1a1a;
+  }
+
+  #confirm-change {
+    background-color: #4caf50;
+  }
+
+  #confirm-change:hover {
+    background-color: #45a049;
+  }
+
+  #cancel-change {
+    background-color: #f44336;
+  }
+
+  #cancel-change:hover {
+    background-color: #e53935;
+  }
+
+  h3 {
+    color: #f44336;
+  }
+
+  #newusername {
+    font-size: 2rem;
   }
 </style>
