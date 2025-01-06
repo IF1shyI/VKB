@@ -53,7 +53,7 @@ async function Results() {
 
         //other
         car_name.textContent = cardata_display.car_name;
-        insurance_display.textContent = cardata_display.insurance + " KR";
+        insurance_display.textContent = cardata_display.insurance["full"]["over_25"] + " KR";
         skatt_display.textContent = cardata_display.car_tax + " KR";
 
         const tot_pris_real = totalFuelCost + cardata_display.total_cost;

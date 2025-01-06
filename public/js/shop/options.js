@@ -108,12 +108,6 @@ function createStyledCard(tire) {
     cursor: 'pointer', // Gör att kortet ser klickbart ut
   });
 
-  // Lägg till klickfunktion på hela kortet
-  card.onclick = () => {
-    // Skicka till en dynamisk URL för produkten
-    window.location.href = `/produkt/${encodeURIComponent(tire.Title)}`;
-  };
-
   // Bild
   const img = document.createElement('img');
   img.src = tire.Img;
@@ -172,6 +166,14 @@ function createStyledCard(tire) {
     color: whiteColor,
     borderRadius: '1rem',
     cursor: 'pointer',
+  });
+
+  button.addEventListener('click', () => {
+    if (tire.Link && tire.Link.startsWith('http')) {
+      window.location.href = tire.Link;
+    } else {
+      alert('Ogiltig länk.');
+    }
   });
 
   // Sätt ihop kortet

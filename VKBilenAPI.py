@@ -104,12 +104,19 @@ def check_and_run_month():
 
 
 def save_to_json(data, filename):
+    """
+    Sparar data till en JSON-fil. Hanterar fil som inte finns och ogiltig JSON-data.
+    """
     try:
         # Läsa in befintlig data från JSON-filen
-        try:
-            with open(filename, "r") as file:
-                car_data = json.load(file)
-        except FileNotFoundError:
+        if os.path.exists(filename):
+            try:
+                with open(filename, "r") as file:
+                    car_data = json.load(file)
+            except json.JSONDecodeError:
+                print(f"Ogiltig JSON i {filename}. Skapar ny fil.")
+                car_data = {"bilar": []}
+        else:
             car_data = {"bilar": []}  # Om filen inte finns, skapa en ny struktur
 
         # Lägg till ny bilinformation i listan
@@ -118,8 +125,11 @@ def save_to_json(data, filename):
         # Spara den uppdaterade datan till fil
         with open(filename, "w") as file:
             json.dump(car_data, file, indent=4)
+        print(f"Data sparad till {filename}")
+
     except Exception as e:
-        print(f"Error saving data to JSON: {e}")
+        print(f"Fel vid sparning av data till JSON: {e}")
+        raise  # Skicka vidare undantaget om du vill hantera det högre upp
 
 
 def read_from_json(filename):
@@ -814,67 +824,81 @@ def contact_ai(promt):
                 "content": promt,
             }
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
     )
     return response
 
 
 # Underhåll
 def maintenance():
+    """
+    Hämtar genomsnittliga årliga underhållskostnader för en bilmodell och extraherar kostnader för underhåll,
+    däckbyte och andra reparationer. Felsökning och loggning har förbättrats för att hantera eventuella fel.
+    """
+    try:
+        # Skapa prompten för att fråga om underhållskostnader
+        maintenance_prompt = f"""
+        Please provide only the annual costs for a {global_car_model} in the following categories in Swedish kronor (SEK), formatted exactly as shown below:
 
-    maintenance_prompt = f"""
-        What is the average annual maintenance cost for a {global_car_model} in Swedish kronor?
-        Please provide only an integer for each category without any delimiters (e.g., spaces or commas), 
-        and offer only the amount with no additional explanations.
-
-        For the following:
-        - Maintenance (service, oil changes, etc.): [Enter amount]
+        - Maintenance: [Enter amount]
         - Tire replacement cost: [Enter amount]
-        - Other repairs (brake pads, etc.): [Enter amount]
+        - Other repairs: [Enter amount]
 
-        Please only return the amounts for the above categories, and DO NOT include any total or summary information.
+        Provide only the numbers for each category without any delimiters (e.g., commas or spaces), and DO NOT include a total or summary.
+
         """
-    response = contact_ai(maintenance_prompt)
 
-    maintenancecost = response.choices[0].message.content
+        # Skicka förfrågan till AI-modellen
+        response = contact_ai(maintenance_prompt)
 
-    # Använd regex för att hitta alla siffror i 'content'
-    # Hitta innehåll inom 'content'
+        # Hämta svaret från AI-modellen
+        maintenancecost = response.choices[0].message.content
+        print(
+            "Raw response from AI:", maintenancecost
+        )  # Skriv ut hela svaret för felsökning
 
-    if maintenancecost:
-        # Extrahera alla siffror från innehållet
+        # Om ingen data returnerades
+        if not maintenancecost.strip():
+            print("Ingen data mottogs från AI.")
+            return None
+
+        # Förbered för att extrahera data med hjälp av regex
         nested_list = []
+
+        # Dela upp svaret rad för rad
         for line in maintenancecost.strip().split("\n"):
             if ":" in line:
-                # Dela upp titeln och beloppet vid det första kolon, hantera mellanrum noggrant
-                title, amount = line.split(
-                    ":", 1
-                )  # '1' gör att vi bara delar på första kolon
+                title, amount = line.split(":", 1)
                 try:
+                    # Försök omvandla beloppet till ett heltal
+                    amount_clean = amount.strip().replace(" ", "")
                     nested_list.append(
-                        [
-                            title.strip().replace(" ", ""),
-                            int(amount.strip().replace(" ", "")),
-                        ]
-                    )  # Ta bort mellanrum från beloppet
-                except ValueError:
-                    # Om omvandlingen till int misslyckas (t.ex. om beloppet inte är ett heltal)
-                    print(f"Fel vid omvandling av belopp på raden: '{line}'")
+                        [title.strip().replace(" ", ""), int(amount_clean)]
+                    )
+                except ValueError as e:
+                    # Om omvandlingen misslyckas, skriv ut felmeddelande
+                    print(
+                        f"Fel vid omvandling av belopp på raden: '{line}'. Error: {e}"
+                    )
                     continue
 
-    else:
-        print("Hittade inget matchande innehåll.")
-    if not nested_list:
-        print("Ingen giltig data extraherades. Försök igen.")
-        return maintenance()
+        # Kontrollera om data extraherades korrekt
+        if not nested_list:
+            print("Ingen giltig data extraherades. Försök igen.")
+            return None
 
-    # Skriv ut det genererade svaret
+        # Skriv ut resultatet för att verifiera
+        print("Extraherade underhållskostnader:")
+        for entry in nested_list:
+            print(f"{entry[0]}: {entry[1]} SEK")
 
-    # Kontrollera att average_price inte är None innan du returnerar
-    if nested_list is not None:
-        return nested_list  # Returnera medelpriset som ett tal
-    else:
-        return None  # Hantera fallet där siffror inte kunde extraheras korrekt
+        # Returnera den extraherade listan med kostnader
+        return nested_list
+
+    except Exception as e:
+        # Fångar oväntade fel och skriver ut dem för felsökning
+        print(f"Ett oväntat fel inträffade: {e}")
+        return None
 
 
 # år till månad
@@ -897,44 +921,79 @@ def calculate_monthly_costs(data):
 # Tar reda på kostnad per månad
 def get_insurance():
     """
-    Hämtar den genomsnittliga årliga kostnaden för en omfattande bilförsäkring för en specifik bilmodell.
-
-    Skickar en fråga till OpenAI:s GPT-3.5-modell för att få försäkringskostnaden och beräknar därefter
-    månadskostnaden baserat på det årliga priset. Om något fel uppstår under processen, returneras ett
-    felmeddelande.
-
-    Returns:
-    float: Månadskostnaden för försäkringen i svenska kronor, eller ett felmeddelande i JSON-format vid problem.
-
-    Felhantering:
-    - Vid fel i API-anrop eller bearbetning av svar, returneras ett felmeddelande med statuskod 500.
-    - Om det inte går att beräkna ett giltigt pris, returneras ett felmeddelande med statuskod 400.
+    Hämtar den genomsnittliga månatliga kostnaden för bilförsäkringar och hanterar olika format samt felsöker vid behov.
     """
     try:
+        # Förbered prompten för att hämta försäkringskostnader
+        insurance_prompt = f"""
+        Give me only the monthly insurance costs for the following car model in Swedish kronor (SEK), formatted exactly as shown below:
 
-        insurance_prompt = f"What is the average yearly cost of comprehensive insurance for a {global_car_model} in Swedish kronor? Provide the yearly total as a single integer, formatted without spaces, commas, or other delimiters. Do not include any explanations or additional text."
+        - Car model: {global_car_model}.
+        - Provide insurance costs for **liability insurance**, **partial coverage**, and **full coverage**:
+        - For an owner who is **under 25 years old**.
+        - For an owner who is **over 25 years old**.
 
+        Response format (only this format, nothing else):
+        - Liability insurance: [Monthly cost for under 25 years] SEK, [Monthly cost for over 25 years] SEK
+        - Partial coverage: [Monthly cost for under 25 years] SEK, [Monthly cost for over 25 years] SEK
+        - Full coverage: [Monthly cost for under 25 years] SEK, [Monthly cost for over 25 years] SEK
+        """
+
+        # Skicka förfrågan till AI-modellen
         response = contact_ai(insurance_prompt)
-        average_price = response.choices[0].message.content
-        # Använd regex för att hitta innehållet i 'content'
-        average_price = int(average_price)
-        if average_price is None:
-            average_price = 0
-            return jsonify({"error": "Could not calculate average price"}), 400
 
-        if average_price != 0:
-            # Beräkna månadskostnaden
-            average_price_month = average_price / 12
-        else:
-            average_price_month = 0
+        # Hämta råsvaret från AI:n
+        raw_prices = response.choices[0].message.content.strip()
+        print("Raw response from AI:", repr(raw_prices))  # Debug: Rådata från AI
 
-        # Returnera den beräknade månadskostnaden som JSON
-        return average_price_month
+        # Uppdaterad regex som hanterar radbrytningar och extra mellanrum
+        pattern = r"Liability insurance:\s*([\d,]+)\s*SEK,\s*([\d,]+)\s*SEK\s*.*?Partial coverage:\s*([\d,]+)\s*SEK,\s*([\d,]+)\s*SEK\s*.*?Full coverage:\s*([\d,]+)\s*SEK,\s*([\d,]+)\s*SEK"
+        match = re.search(pattern, raw_prices, re.DOTALL)
+
+        if not match:
+            print(
+                "Regex match failed, raw prices:", repr(raw_prices)
+            )  # Debug: Misslyckad regex-match
+            return {"error": "Could not parse the response from AI."}
+
+        # Extrahera och konvertera priser, ta bort kommatecken från tal
+        liability_under_25 = int(match.group(1).replace(",", ""))
+        liability_over_25 = int(match.group(2).replace(",", ""))
+        partial_under_25 = int(match.group(3).replace(",", ""))
+        partial_over_25 = int(match.group(4).replace(",", ""))
+        full_under_25 = int(match.group(5).replace(",", ""))
+        full_over_25 = int(match.group(6).replace(",", ""))
+
+        # Skapa en lista med priserna
+        insurance_costs = [
+            {
+                "Liability insurance": {
+                    "under_25": liability_under_25,
+                    "over_25": liability_over_25,
+                }
+            },
+            {
+                "Partial coverage": {
+                    "under_25": partial_under_25,
+                    "over_25": partial_over_25,
+                }
+            },
+            {
+                "Full coverage": {
+                    "under_25": full_under_25,
+                    "over_25": full_over_25,
+                }
+            },
+        ]
+
+        # Skriv ut extraherade värden för felsökning
+        print("Parsed insurance costs:", insurance_costs)  # Debug: Extraherade priser
+        return insurance_costs
 
     except Exception as e:
-        # Fångar oväntade fel och returnerar ett felmeddelande
-        print("Ett fel uppstod:", e)
-        return jsonify({"error": str(e)}), 500
+        # Fångar oväntade fel och skriver ut dem
+        print(f"Ett oväntat fel inträffade: {e}")
+        return {"error": str(e)}
 
 
 # Dagens bensinkostnader
@@ -1127,6 +1186,19 @@ def car_cost_month():
         # Fetch insurance data
         try:
             insurance = get_insurance()
+
+            liability_under_25 = insurance[0]["Liability insurance"]["under_25"]
+            liability_over_25 = insurance[0]["Liability insurance"]["over_25"]
+            partial_under_25 = insurance[1]["Partial coverage"]["under_25"]
+            partial_over_25 = insurance[1]["Partial coverage"]["over_25"]
+            full_under_25 = insurance[2]["Full coverage"]["under_25"]
+            full_over_25 = insurance[2]["Full coverage"]["over_25"]
+            print(f"Liability Insurance (Under 25): {liability_under_25} SEK")
+            print(f"Liability Insurance (Over 25): {liability_over_25} SEK")
+            print(f"Partial Coverage (Under 25): {partial_under_25} SEK")
+            print(f"Partial Coverage (Over 25): {partial_over_25} SEK")
+            print(f"Full Coverage (Under 25): {full_under_25} SEK")
+            print(f"Full Coverage (Over 25): {full_over_25} SEK")
         except Exception as e:
             return jsonify({"error": f"Failed to fetch insurance data: {str(e)}"}), 500
 
@@ -1140,7 +1212,7 @@ def car_cost_month():
 
         # Calculate total cost
         try:
-            tot_cost = calc_tot_cost(insurance, tax_month, tot_maintenance)
+            tot_cost = calc_tot_cost(full_over_25, tax_month, tot_maintenance)
             if global_besbruk == "Error":
                 car_besbruk = 4.5
             else:
@@ -1148,14 +1220,27 @@ def car_cost_month():
             # Sammanställ data för den aktuella bilen
             car_info = {
                 "regnummer": reg_plate,
+                "car_name": global_car_model,
                 "total_cost": round(tot_cost),
                 "tot_maintenance": round(tot_maintenance),
                 "maintenance_month": round(maintenance_month),
                 "repairs_month": round(repairs_month),
                 "tirecost_month": round(tirecost),
-                "insurance": round(insurance),
+                "insurance": {
+                    "liability": {
+                        "under_25": round(liability_under_25),
+                        "over_25": round(liability_over_25),
+                    },
+                    "partial": {
+                        "under_25": round(partial_under_25),
+                        "over_25": round(partial_over_25),
+                    },
+                    "full": {
+                        "under_25": round(full_under_25),
+                        "over_25": round(full_over_25),
+                    },
+                },
                 "car_tax": round(tax_month),
-                "car_name": global_car_model,
                 "fuel_consumption": car_besbruk,
                 "fuel_type": fuel_type,
                 "fuel_price": right_fuel_price,
