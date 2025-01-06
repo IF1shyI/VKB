@@ -20,6 +20,7 @@ export async function getinfo() {
 
         if (response.ok) {
         const data = await response.json();
+        console.log(data)
         return data
         } else {
         console.error("Fel vid utloggning:", await response.text());

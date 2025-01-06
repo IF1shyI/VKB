@@ -212,7 +212,7 @@ def read_from_md_file(FILE):
     Ignorerar rader som inte kan dekrypteras.
     """
     if not os.path.exists(FILE):
-        return
+        return []
 
     decrypted_data = []
     with open(FILE, "r") as file:
@@ -227,9 +227,11 @@ def read_from_md_file(FILE):
             print(f"Fel vid dekryptering av rad: {line.strip()} - {str(e)}")
             # Ignorera trasiga rader och fortsätt
             continue
-    real_data = make_list_from_string(decrypted_data)
+    if len(decrypted_data) != 0:
+        real_data = make_list_from_string(decrypted_data)
+        decrypted_data = real_data
 
-    return real_data
+    return decrypted_data
 
 
 def make_list_from_string(data):
@@ -307,6 +309,8 @@ def profileinfo():
         # Verifiera JWT-token
         data = get_user_by_jwt(token)
         data.pop("id", None)
+        data.pop("password", None)
+        data.pop("tier", None)
         return data
     except Exception as e:
         return jsonify({"message": f"Något gick fel: {str(e)}"}), 500
@@ -376,7 +380,16 @@ def save_user_data(data):
 
         for user in users:
             try:
+                print(f"Bearbetar användare: {user}")  # Lägg till detta för felsökning
+
                 user_fields = user.split(", ")
+
+                # Kontrollera längden på user_fields och skriv ut den om det behövs
+                print(f"User fields: {user_fields}")
+
+                if len(user_fields) < 8:
+                    print(f"Felaktig användardata: {user}")  # Lägg till denna kontroll
+                    continue  # Hoppa över felaktiga rader
 
                 user_id = user_fields[0].split(": ")[1]
                 user_name = user_fields[1].split(": ")[1]
@@ -385,6 +398,7 @@ def save_user_data(data):
                 user_mail = user_fields[4].split(": ")[1]
                 user_firstname = user_fields[5].split(": ")[1]
                 user_lastname = user_fields[6].split(": ")[1]
+                user_news = user_fields[7].split(": ")[1]
 
                 # Kontrollera om användar-ID matchar
                 if user_id == data.get("id"):
@@ -397,6 +411,7 @@ def save_user_data(data):
                     email = data.get("email", user_mail)
                     firstname = data.get("firstname", user_firstname)
                     lastname = data.get("lastname", user_lastname)
+                    newsletter = data.get("news", user_news)
 
                     # Formatera den uppdaterade användardatan
                     user_data = (
@@ -406,7 +421,8 @@ def save_user_data(data):
                         f"Tier: {tier}, "
                         f"mail: {email}, "
                         f"firstname: {firstname}, "
-                        f"lastname: {lastname}"
+                        f"lastname: {lastname}, "
+                        f"news: {newsletter}"
                     )
 
                     print("Userdata: ", user_data)
@@ -431,7 +447,7 @@ def save_user_data(data):
                 data = content
 
             # Om det inte är sista raden, lägg till ett komma
-            if i < len(users) - 1:
+            if i < len(updated_users) - 1:
                 data += ","
 
             newstring += data
@@ -480,11 +496,7 @@ def register():
     user_id = str(uuid.uuid4())
 
     # Skapa användardata i klartext
-    user_data = (
-        f"UserID: {user_id}, username: {name}, password: {password}, Tier: {tier}, mail: {mail}, firstname: "
-        ", lastname: "
-        ""
-    )
+    user_data = f"UserID: {user_id}, username: {name}, password: {password}, Tier: {tier}, mail: {mail}, firstname: , lastname: , news: True"
 
     users.append(user_data)
 
@@ -578,6 +590,96 @@ def logout():
 
     except Exception as e:
         return jsonify({"message": f"Något gick fel: {str(e)}"}), 500
+
+
+###########################################################################################################################
+#                                                   Newsletter
+###########################################################################################################################
+@app.route("/togglenews", methods=["POST"])
+def toggle_news():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"message": "Ingen token tillhandahållen"}), 401
+
+    token = auth_header.split(" ")[1]
+
+    # Hämta JWT-användardata
+    user_data = get_user_by_jwt(token)
+    print("userdata jwt token: ", user_data)
+
+    users = read_from_md_file(DATA_FILE)
+    new_data = []
+
+    for user in users:
+        user_fields = user.split(", ")
+
+        if len(user_fields) < 8:
+            print(f"Felaktig data: {user}")
+            continue  # Hoppa över felaktiga rader
+
+        user_id = user_fields[0].split(": ")[1]
+        user_name = user_fields[1].split(": ")[1]
+        user_psw = user_fields[2].split(": ")[1]
+        user_tier = user_fields[3].split(": ")[1]
+        user_mail = user_fields[4].split(": ")[1]
+        user_firstname = user_fields[5].split(": ")[1]
+        user_lastname = user_fields[6].split(": ")[1]
+        user_news = user_fields[7].split(": ")[1]
+
+        if user_id == user_data["id"]:
+            # Uppdatera nyhetsinställningen för den inloggade användaren
+            if user_news == "True":
+                updated_user = (
+                    f"UserID: {user_id}, "
+                    f"username: {user_name}, "
+                    f"password: {user_psw}, "
+                    f"Tier: {user_tier}, "
+                    f"mail: {user_mail}, "
+                    f"firstname: {user_firstname}, "
+                    f"lastname: {user_lastname}, "
+                    f"news: False"
+                )
+            else:
+                updated_user = (
+                    f"UserID: {user_id}, "
+                    f"username: {user_name}, "
+                    f"password: {user_psw}, "
+                    f"Tier: {user_tier}, "
+                    f"mail: {user_mail}, "
+                    f"firstname: {user_firstname}, "
+                    f"lastname: {user_lastname}, "
+                    f"news: True"
+                )
+
+            new_data.append(updated_user)
+        else:
+            # Lägg till oförändrade användare
+            new_data.append(user)
+
+    # Bygg om strängen för att skriva tillbaka till filen
+    newstring = ""
+    for i, content in enumerate(new_data):
+        if not content.startswith("'") or not content.endswith("'"):
+            data = f"'{content}'"
+        else:
+            data = content
+
+        if i < len(new_data) - 1:
+            data += ","
+
+        newstring += data
+
+    print("toggle news string: ", newstring)
+    encrypted_data = encrypt_data(newstring)
+
+    # Skriv tillbaka hela listan till filen
+    write_to_md_file(encrypted_data, DATA_FILE)
+    return jsonify({"message": "Bytte nyheter korrekt"}), 200
+
+
+###########################################################################################################################
+#                                                   annat
+###########################################################################################################################
 
 
 @app.route("/checksession", methods=["GET"])
@@ -884,6 +986,7 @@ def get_user_by_jwt(token):
                 user_psw = user_fields[2].split(": ")[1]
                 user_tier = user_fields[3].split(": ")[1]
                 user_email = user_fields[4].split(": ")[1]
+                user_news = user_fields[7].split(": ")[1]
 
                 # Ta bort ']' om det finns i e-postadressen
                 if user_email.endswith("]"):
@@ -910,6 +1013,12 @@ def get_user_by_jwt(token):
                 if lastname.endswith('"'):
                     lastname = lastname[:-1]
 
+                if user_news.endswith("]"):
+                    user_news = user_news[:-1]
+
+                if user_news.endswith('"'):
+                    user_news = user_news[:-1]
+
                 if user_name == username:
                     # Returnera användardatan, inkludera firstname och lastname endast om de finns
                     user_data = {
@@ -920,6 +1029,7 @@ def get_user_by_jwt(token):
                         "tier": user_tier,
                         "firstname": "",
                         "lastname": "",
+                        "news": user_news,
                     }
 
                     # Lägg till firstname och lastname om de finns

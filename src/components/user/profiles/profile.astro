@@ -6,15 +6,15 @@
       <form id="settings-form">
         <div class="form-group">
           <label for="first-name">Förnamn</label>
-          <input type="text" id="first-name" value="" />
+          <input type="text" id="first-name" value="" pattern="^[^\s]+$" />
         </div>
         <div class="form-group">
           <label for="last-name">Efternamn</label>
-          <input type="text" id="last-name" value="" />
+          <input type="text" id="last-name" value="" pattern="^[^\s]+$" />
         </div>
         <div class="form-group">
           <label for="username">Användarnamn</label>
-          <input type="text" id="username" value="" />
+          <input type="text" id="username" value="" pattern="^[^\s]+$" />
         </div>
         <div class="form-group">
           <label for="email">Primär e-post</label>
@@ -87,6 +87,7 @@
 <script type="module" is:inline>
   import { getinfo } from "/js/user/profile/getinfo.js";
   import { updatedata } from "/js/user/profile/updateinfo.js";
+  import { changenews } from "/js/user/profile/changenews.js";
 
   document.addEventListener("DOMContentLoaded", async function () {
     const firstname = document.getElementById("first-name");
@@ -94,6 +95,7 @@
     const username = document.getElementById("username");
     const email = document.getElementById("email");
     const picture_username = document.getElementById("picture_username");
+    const newsletter = document.getElementById("newsletter");
     let firstnamedata = "";
     let lastnamedata = "";
     try {
@@ -103,6 +105,10 @@
       }
       if (data["lastname"]) {
         lastnamedata = data["lastname"];
+      }
+
+      if (data["news"] == "True") {
+        document.getElementById("newsletter").checked = true;
       }
 
       firstname.value = firstnamedata;
@@ -175,6 +181,10 @@
     cancelButton.addEventListener("click", () => {
       // Dölja varningskontainern utan att göra några ändringar
       warningContainer.style.display = "none";
+    });
+
+    newsletter.addEventListener("click", () => {
+      changenews();
     });
   });
 </script>
