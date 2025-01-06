@@ -1004,15 +1004,25 @@ def update_tier():
     if not user_found:
         return jsonify({"message": "Användare ej hittad"}), 404
 
-    # Kryptera den uppdaterade användardatan
-    encrypted_data = encrypt_data(
-        updated_data
-    )  # Här krypteras hela listan av användardata
+    newstring = ""
 
-    # Skriv tillbaka den uppdaterade och krypterade användardatan i filen
-    write_to_md_file(
-        [encrypted_data], DATA_FILE
-    )  # Skicka listan av krypterade strängar
+    for i, content in enumerate(updated_data):
+        # Kolla om innehållet redan har ' i början och slutet
+        if not content.startswith("'") or not content.endswith("'"):
+            data = f"'{content}'"
+        else:
+            data = content
+
+        # Om det inte är sista raden, lägg till ett komma
+        if i < len(users) - 1:
+            data += ","
+
+        newstring += data
+
+    encrypted_data = encrypt_data(newstring)
+
+    # Skriv tillbaka hela listan till filen
+    write_to_md_file(encrypted_data, DATA_FILE)
 
     return jsonify({"message": f"Tier uppdaterad till {new_tier}."}), 200
 
