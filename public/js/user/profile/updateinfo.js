@@ -14,6 +14,7 @@ export async function updatedata(data) {
     const lastname = data["last-name"] ? data["last-name"] : undefined;
     const username = data["username"] ? data["username"] : undefined;
     const email = data.email ? data.email : undefined;
+    const success_update = document.getElementById("success_update");
 
     console.log("hej",data["first-name"], firstname)
 
@@ -36,7 +37,7 @@ export async function updatedata(data) {
         // Hantera svar från servern
         if (response.ok) {
             const result = await response.json();
-            console.log("Profiluppdatering lyckades:", result);
+            success_update.textContent="Dina uppgifter är nu uppdaterade."
         } else {
             console.error("Fel vid uppdatering av profil:", await response.text());
         }

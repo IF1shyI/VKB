@@ -411,11 +411,8 @@ def save_user_data(data):
 
                     print("Userdata: ", user_data)
 
-                    # Kryptera användardata
-                    encrypted_data = encrypt_data(user_data)
-
                     # Lägg till uppdaterad data till listan
-                    updated_users.append(encrypted_data)
+                    updated_users.append(user_data)
                 else:
                     # Lägg till befintlig data för användare som inte matchar
                     updated_users.append(user)
@@ -424,7 +421,23 @@ def save_user_data(data):
                 continue
 
         # Skriv tillbaka hela listan till filen
-        write_to_md_file(updated_users, DATA_FILE)
+        newstring = ""
+
+        for i, content in enumerate(updated_users):
+            # Kolla om innehållet redan har ' i början och slutet
+            if not content.startswith("'") or not content.endswith("'"):
+                data = f"'{content}'"
+            else:
+                data = content
+
+            # Om det inte är sista raden, lägg till ett komma
+            if i < len(users) - 1:
+                data += ","
+
+            newstring += data
+
+        encrypted_data = encrypt_data(newstring)
+        write_to_md_file(encrypted_data, DATA_FILE)
         print("Användardata har sparats.")
     except Exception as e:
         print(f"Fel vid bearbetning av användardata: {str(e)}")
