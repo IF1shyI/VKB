@@ -88,6 +88,7 @@
   import { getinfo } from "/js/user/profile/getinfo.js";
   import { updatedata } from "/js/user/profile/updateinfo.js";
   import { changenews } from "/js/user/profile/changenews.js";
+  import { logout } from "/js/user/logout.js";
 
   document.addEventListener("DOMContentLoaded", async function () {
     const firstname = document.getElementById("first-name");
@@ -172,6 +173,7 @@
       // Gör ändringen
       console.log("Användarnamn ändrat till:", newUsername);
       updatedata(changedData);
+      logout();
       // Lägg till kod för att uppdatera användarnamnet på servern eller där det behövs
       // Dölja varningskontainern
       warningContainer.style.display = "none";

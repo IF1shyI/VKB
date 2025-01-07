@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-async function logout() {
+export async function logout() {
   const jwtToken = localStorage.getItem("jwt");
   try {
         // Skicka en begäran till backend för att verifiera JWT och logga ut

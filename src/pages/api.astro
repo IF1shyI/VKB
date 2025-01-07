@@ -1,0 +1,233 @@
+---
+import ContactForm from "../components/user/feedback/ContactForm.astro";
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/all/header.astro";
+---
+
+<Layout title="API">
+  <Header />
+  <div class="container">
+    <section class="api-details">
+      <h2 class="api-title">API exempel</h2>
+      <div class="info-text-compile">
+        <p class="info-text-api">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Officiis
+          consectetur dolorem sit, illo veniam esse quaerat, laborum ipsam
+          laboriosam quo commodi corrupti! Voluptates blanditiis aperiam, quis
+          nobis veritatis corporis maiores nesciunt exercitationem, numquam a id
+          sint in, minus illo odit enim? Odit sapiente culpa adipisci est
+          veritatis eum, voluptatibus reiciendis! Perspiciatis error molestias
+          facere sapiente incidunt commodi cumque laudantium beatae atque? Error
+          soluta id maxime inventore est aperiam earum dolore commodi
+          cupiditate, distinctio asperiores voluptas sit sunt neque omnis
+          mollitia fuga illo animi cum vero, aliquam perspiciatis, in suscipit
+          excepturi. Earum qui esse mollitia nobis laboriosam dolor aperiam
+          eveniet inventore.
+        </p>
+        <p class="info-text-api">Data innehåller:</p>
+        <ul class="ul-text">
+          <li>Information om objekt</li>
+          <li>Prisinformation</li>
+          <li>
+            Försäkringskostnader
+            <ul>
+              <li>Trafik</li>
+              <li>Halv</li>
+              <li>Hel</li>
+            </ul>
+          </li>
+          <li>Sökmöjligheter</li>
+        </ul>
+      </div>
+
+      <div class="api-box">
+        <div class="white-cover"></div>
+        <!-- Status Indicators -->
+        <div class="status-indicators">
+          <span class="dot bg-danger"></span>
+          <span class="dot bg-warning"></span>
+          <span class="dot bg-success"></span>
+        </div>
+
+        <!-- JSON Content -->
+        <pre>
+        &#123;
+        <span class="text-primary">"regnummer"</span>: <span class="text-success">"ABC123"</span>,
+        <span class="text-primary">"car_name"</span>: <span class="text-success">"Skoda Yeti 1.4 TSI Manuell, 122hk, 2015"</span>,
+        <span class="text-primary">"total_cost"</span>: <span class="text-success">10000</span>,
+        <span class="text-primary">"tot_maintenance"</span>: <span class="text-success">3000</span>,
+        <span class="text-primary">"maintenance_month"</span>: <span class="text-success">250</span>,
+        <span class="text-primary">"repairs_month"</span>: <span class="text-success">150</span>,
+        <span class="text-primary">"tirecost_month"</span>: <span class="text-success">50</span>,
+        <span class="text-primary">"insurance"</span>: &#123;
+            <span class="text-primary">"liability"</span>: &#123;
+            <span class="text-primary">"under_25"</span>: <span class="text-success">500</span>,
+            <span class="text-primary">"over_25"</span>: <span class="text-success">300</span>
+            &#125;,
+            <span class="text-primary">"partial"</span>: &#123;
+            <span class="text-primary">"under_25"</span>: <span class="text-success">700</span>,
+            <span class="text-primary">"over_25"</span>: <span class="text-success">400</span>
+            &#125;,
+            <span class="text-primary">"full"</span>: &#123;
+            <span class="text-primary">"under_25"</span>: <span class="text-success">1000</span>,
+            <span class="text-primary">"over_25"</span>: <span class="text-success">800</span>
+            &#125;
+        &#125;,
+        <span class="text-primary">"car_tax"</span>: <span class="text-success">150</span>,
+        <span class="text-primary">"fuel_consumption"</span>: <span class="text-success">"5.6"</span>,
+        <span class="text-primary">"fuel_type"</span>: <span class="text-success">"Bensin"</span>,
+        <span class="text-primary">"fuel_price"</span>: <span class="text-success">19.5</span>,
+        <span class="text-primary">"Co2_emission"</span>: <span class="text-success">120</span>
+        &#125;
+        </pre>
+      </div>
+    </section>
+
+    <section class="contact-form">
+      <ContactForm />
+    </section>
+  </div>
+</Layout>
+
+<style>
+  :root {
+    --container_height_api: 720px;
+  }
+  .container {
+    width: 80%;
+    margin: 0 auto;
+  }
+
+  .api-title {
+    position: relative;
+
+    width: 100%;
+    height: fit-content;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 150%;
+      width: 100px;
+      height: 15px;
+      margin-left: var(--margin-xs);
+
+      background-color: var(--guld);
+    }
+  }
+
+  .info-text-compile {
+    display: flex;
+    flex-direction: column;
+
+    height: var(--container_height_api) !important;
+    width: 42%;
+    min-width: 200px;
+    height: fit-content;
+
+    font-size: 20px;
+
+    margin-top: var(--margin-xxl);
+  }
+
+  .info-text-api {
+    width: 100%;
+  }
+
+  .ul-text {
+    width: 100%;
+  }
+
+  .api-details pre {
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+  }
+
+  .api-details {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  /* API Box Container */
+  .api-box {
+    position: relative;
+    background: var(--svart);
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    font-size: 14px;
+    line-height: 1.6;
+
+    width: 50%;
+    min-width: 550px;
+    height: var(--container_height_api);
+
+    margin: var(--margin-xxl);
+  }
+
+  /* Status Indicators */
+  .status-indicators {
+    margin-bottom: 10px;
+  }
+
+  .dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+
+  .bg-danger {
+    background-color: #ff4d4f; /* Röd */
+  }
+
+  .bg-warning {
+    background-color: #ffc107; /* Gul */
+  }
+
+  .bg-success {
+    background-color: #52c41a; /* Grön */
+  }
+
+  /* JSON Syntax Highlighting */
+  pre {
+    background: #2e2e2e;
+    color: #f8f8f2;
+    padding: 15px;
+    border-radius: 5px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  .text-primary {
+    color: #61dafb; /* Blå */
+  }
+
+  .text-success {
+    color: #50fa7b; /* Grön */
+  }
+
+  .text-warning {
+    color: #f1fa8c; /* Gul */
+  }
+
+  .white-cover {
+    position: absolute;
+    right: 15px;
+    bottom: 30px;
+    width: calc(100% - 30px);
+    height: calc(100% - 80px);
+
+    border-radius: 8px;
+
+    background: linear-gradient(135deg, transparent 30%, var(--vit) 60%);
+  }
+
+  ul {
+    list-style-type: disc;
+    padding-left: 20px;
+  }
+</style>

@@ -277,6 +277,70 @@ def verify_api_key(input_key, file_path="api_keys.md"):
 #######################################################################################
 
 
+@app.route("/apibalance", methods=["POST"])
+def get_api_balance(file_path="api_keys.md"):
+    try:
+        api_key = request.args.get("key")
+
+        if not api_key:
+            return (
+                jsonify(
+                    {
+                        "error": "Obligatoriska parametrar saknas. Kontrollera att 'api_key' är inkluderad."
+                    }
+                ),
+                400,
+            )
+
+        is_valid = verify_api_key(api_key)
+
+        if is_valid:
+            if not os.path.exists(file_path):
+                print(f"Filen {file_path} finns inte.")
+                return None
+
+            with open(file_path, "r") as file:
+                content = file.read()
+
+            # Mönster för att hitta användare med "monthly" som betalningsmetod
+            pattern = re.compile(
+                r"## User: (.+?)\n.*?-\s\*\*Payment method\*\*: (.+?)*?-\s\*\*API Key \(Hashed\)\*: (.+?)\n",
+                re.DOTALL,
+            )
+
+            # Hitta alla matchningar
+            matches = pattern.findall(content)
+
+            hashed_input_key = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+
+            if matches:
+
+                for user_name, hashed_api_key in matches:
+                    if hashed_api_key == hashed_input_key:
+
+                        # Här kan du lägga till logik för att beräkna fakturakostnaden för användaren
+                        total_cost = calc_invoice_cost(
+                            user_name
+                        )  # Anpassa denna funktion vid behov
+                        total_requests = get_total_requests_made(user_name)
+                        response = {
+                            "api_key": api_key,
+                            "usage": {
+                                "total_requests": total_requests,
+                                "cost_per_request": cost_per_request,
+                                "total_cost": total_cost,
+                            },
+                            "currency": "SEK",
+                            "message": f"Din totala kostnad för denna period är {total_cost:.2f} SEK baserat på {total_requests} anrop.",
+                        }
+                        return jsonify(response), 200
+
+    except Exception:
+
+        # Returnera generiskt felmeddelande
+        return jsonify({"error": "Något gick fel. Försök igen senare."}), 500
+
+
 def update_api_request_count(api_key, file_path="api_requests.md"):
     """
     Uppdaterar antalet API-förfrågningar och hanterar reset vid månadsskifte.
@@ -599,6 +663,29 @@ def calc_invoice_cost(user_name, file_path="api_requests.md"):
         requests_made = int(match.group(1))  # Extrahera och konvertera till ett heltal
         cost = requests_made * cost_per_request
         return cost
+    else:
+        print(f"Inga Requests Made hittades för användaren {user_name}.")
+        return None
+
+
+def get_total_requests_made(user_name, file_path="api_requests.md"):
+    if not os.path.exists(file_path):
+        print(f"Filen {file_path} finns inte.")
+        return None
+
+    with open(file_path, "r") as file:
+        content = file.read()
+
+    # Regex för att hitta användaren och deras "Requests Made"
+    pattern = re.compile(
+        rf"## User: {re.escape(user_name)}\n.*?- \*\*Requests Made\*\*: (\d+)",
+        re.DOTALL,  # Tillåter att matchningen går över flera rader
+    )
+
+    match = pattern.search(content)
+    if match:
+        requests_made = int(match.group(1))  # Extrahera och konvertera till ett heltal
+        return requests_made
     else:
         print(f"Inga Requests Made hittades för användaren {user_name}.")
         return None
