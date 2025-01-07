@@ -235,7 +235,6 @@ def read_from_md_file(FILE):
 
 
 def make_list_from_string(data):
-    print("datastring: ", data)
 
     # Kontrollera om data är en lista, och om så, gör om till en sträng
     if isinstance(data, list):
@@ -249,7 +248,6 @@ def make_list_from_string(data):
     # Rensa bort ' från första och sista elementet om det finns
     split_data = [item.strip("'") for item in split_data]
 
-    print("splitdata: ", split_data)
     return split_data
 
 
@@ -975,8 +973,6 @@ def get_user_by_jwt(token):
             print("Inga användare hittades i filen.")
             return None
 
-        print("get user by jwt users: ", users)
-
         for user in users:
             try:
                 user_fields = user.split(", ")
@@ -1103,7 +1099,16 @@ def update_tier():
         # Om användaren matchar den från token, uppdatera tier
         if user_name == username_from_token:
             user_found = True
-            updated_user_data = f"UserID: {user_id}, username: {user_name}, password: {user_fields[2].split(': ')[1]}, Tier: {new_tier}, mail: {user_fields[4].split(': ')[1]}"
+            updated_user_data = (
+                f"UserID: {user_id}, "
+                f"username: {user_name}, "
+                f"password: {user_fields[2].split(': ')[1]}, "
+                f"Tier: {new_tier}, "
+                f"mail: {user_fields[4].split(': ')[1]}, "
+                f"firstname: {user_fields[5].split(': ')[1]}, "
+                f"lastname: {user_fields[6].split(': ')[1]}, "
+                f"news: {user_fields[7].split(': ')[1]}"
+            )
             updated_data.append(
                 updated_user_data
             )  # Lägg till den uppdaterade användaren
@@ -1115,16 +1120,13 @@ def update_tier():
         return jsonify({"message": "Användare ej hittad"}), 404
 
     newstring = ""
-
     for i, content in enumerate(updated_data):
-        # Kolla om innehållet redan har ' i början och slutet
         if not content.startswith("'") or not content.endswith("'"):
             data = f"'{content}'"
         else:
             data = content
 
-        # Om det inte är sista raden, lägg till ett komma
-        if i < len(users) - 1:
+        if i < len(updated_data) - 1:
             data += ","
 
         newstring += data
