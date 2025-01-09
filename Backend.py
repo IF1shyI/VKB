@@ -482,9 +482,15 @@ def register():
     for user_data in users:
         user_fields = user_data.split(", ")
         existing_name = user_fields[1].split(": ")[1]  # Extract 'username' field
-        if existing_name == name:
+        existing_mail = user_fields[4].split(": ")[1]
+        if existing_name == name or mail == existing_mail:
             return (
-                jsonify({"message": "Användarnamn är redan taget", "success": False}),
+                jsonify(
+                    {
+                        "message": "Användarnamn eller mail är redan taget",
+                        "success": False,
+                    }
+                ),
                 409,
             )
         else:
@@ -809,6 +815,7 @@ def create_admin(username):
         admin_data = ast.literal_eval(
             admin_data
         )  # Omvandla strängen till en dictionary
+        print("admindata: ", admin_data)
         admin_id = admin_data.get("Name")  # Extract 'Name' field
         if admin_id == username:
             return (

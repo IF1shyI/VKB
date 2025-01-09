@@ -818,9 +818,15 @@ def get_car_info_with_playwright(reg_plate):
             # Logga in och spara sessionen
             login_and_save_session(p)
             # Skapa ett nytt kontext med den nyligen sparade sessionen
-            context = p.chromium.launch(headless=True).new_context(
-                storage_state=SESSION_FILE
-            )
+            try:
+                context = p.chromium.launch(headless=True).new_context(
+                    storage_state=SESSION_FILE
+                )
+            except Exception as e:
+                return (
+                    jsonify({"error": "Try again later or invalid vehicle info"}),
+                    400,
+                )
 
         page = context.new_page()
 
@@ -870,7 +876,11 @@ def get_car_info_with_playwright(reg_plate):
         fskatt_class = page.query_selector_all(".idva_float")
         for text in fskatt_class:
             dmedel = text.inner_text()
-            if dmedel.startswith("Diesel") or dmedel.startswith("Bensin"):
+            if (
+                dmedel.startswith("Diesel")
+                or dmedel.startswith("Bensin")
+                or dmedel.startswith("El")
+            ):
                 drivmedel = dmedel
                 break
 
@@ -896,10 +906,34 @@ def get_car_info_with_playwright(reg_plate):
         if co2 == "Error":
             co2 = 130
 
+        if drivmedel == "El":
+            print("Testar nytt nu")
+            try:
+                # Get the battery capacity text
+                kWh = page.locator(
+                    '//div[contains(text(), "Batterikapacitet")]/span'
+                ).text_content()
+                # Process the cleaned value
+                process_kwh(kWh)
+            except Exception as e:
+                print(f"Error occurred: {e}")
+
         # Stäng webbläsaren
         context.close()
 
         return page_content
+
+
+def process_kwh(kWh):
+    global batterycapacity
+    print("Hej hej")
+    # Remove unwanted characters and convert to float
+    kWh_cleaned = re.sub(r"(&nbsp;|kWh)", "", kWh).strip()  # Remove &nbsp; and kWh
+    try:
+        batterycapacity = float(kWh_cleaned)  # Convert to float
+        print(f"Battery Capacity: {batterycapacity} kWh")
+    except ValueError:
+        print("Error: Unable to convert the value to float")
 
 
 def contact_ai(promt):
@@ -1127,7 +1161,12 @@ def get_fuel_prices():
         return jsonify({"error": str(e)}), 500
 
 
-def get_electricity_price(year, month, day, price_class="SE3"):
+#######################################################################################
+#                                      ELPRIS
+#######################################################################################
+
+
+def get_electricity_price(year, month, day, price_class):
     """
     Hämtar elpriser från API:t på elprisetjustnu.se baserat på angivet datum och prisklass.
 
@@ -1160,6 +1199,11 @@ def get_electricity_price(year, month, day, price_class="SE3"):
         return None
 
 
+#######################################################################################
+#                                    Bensinkostnad
+#######################################################################################
+
+
 def get_fuel_type(vehicle_info):
     """
     Identifierar bränsletypen för ett fordon baserat på en given sträng.
@@ -1168,33 +1212,81 @@ def get_fuel_type(vehicle_info):
     det använder bensin, diesel eller något annat bränsle.
 
     Parametrar:
-    vehicle_info (str): En sträng som beskriver fordonet, t.ex. "Bensin | E85, 1.6 I4" eller
-                         "Diesel (HVO100-kompatibel), 2.0 I4".
+    vehicle_info (str): En sträng som beskriver fordonet, t.ex. "Bensin | E85, 1.6 I4" eller "Diesel (HVO100-kompatibel), 2.0 I4".
 
     Returvärde:
     str: Bränsletypen, antingen "Bensin", "Diesel" eller "Okänt" om ingen matchning finns.
     """
+    print("yesyes banaba: ", vehicle_info)
     # Matcha om "Bensin" eller "Diesel" finns i strängen
     if re.search(r"\bBensin\b", vehicle_info, re.IGNORECASE):
         return "Bensin"
     elif re.search(r"\bDiesel\b", vehicle_info, re.IGNORECASE):
         return "Diesel"
+    elif re.search(r"\bEL\b", vehicle_info, re.IGNORECASE):
+        return "El"
     else:
         return "Okänt"
 
 
 def get_relative_fuelprice(allgasprice, fuel_type):
+
+    print("fueltype: ", fuel_type)
     if fuel_type == "Diesel":
         return allgasprice["dieselPrice"]
     if fuel_type == "Bensin":
         return allgasprice["petrolPrice"]
     if fuel_type == "El":
         today = datetime.today()
-        prices = get_electricity_price(today.year, today.month, today.day)
-        if prices:
-            print(f"Dagens elpriser: {prices}")
+        electricalprice_north = get_electricity_price(
+            today.year, today.month, today.day, "SE1"
+        )
+        electricalprice_north_middle = get_electricity_price(
+            today.year, today.month, today.day, "SE2"
+        )
+        electricalprice_south_middle = get_electricity_price(
+            today.year, today.month, today.day, "SE3"
+        )
+        electricalprice_south = get_electricity_price(
+            today.year, today.month, today.day, "SE4"
+        )
+
+        electricity_prices = [
+            {"region": "north", "price": electricalprice_north[0]},
+            {"region": "north_middle", "price": electricalprice_north_middle[0]},
+            {"region": "south_middle", "price": electricalprice_south_middle[0]},
+            {"region": "south", "price": electricalprice_south[0]},
+        ]
+        if electricity_prices:
+            new_data = cost_0_100(electricity_prices)
+            return new_data
         else:
             return "Could not get power price"
+
+
+def cost_0_100(prices):
+
+    print("prices: ", prices)
+
+    # Lista för att lagra kostnader per region
+    updated_prices = []
+
+    # Beräkna kostnaden per region
+    for entry in prices:
+        cost = entry["price"]["SEK_per_kWh"] * batterycapacity
+        # Lägg till kostnaden för varje region till listan
+        updated_prices.append(
+            {
+                entry["region"]: {
+                    "price": float(f"{entry['price']['SEK_per_kWh']:.2f}"),
+                    "cost_battery": float(f"{cost:.1f}"),
+                }
+            }
+        )
+
+    # Returnera den uppdaterade listan
+    print("updated prices: ", updated_prices)
+    return updated_prices
 
 
 def get_tire_cost(data):
@@ -1304,35 +1396,65 @@ def car_cost_month():
                 car_besbruk = 4.5
             else:
                 car_besbruk = global_besbruk
-            # Sammanställ data för den aktuella bilen
-            car_info = {
-                "regnummer": reg_plate,
-                "car_name": global_car_model,
-                "total_cost": round(tot_cost),
-                "tot_maintenance": round(tot_maintenance),
-                "maintenance_month": round(maintenance_month),
-                "repairs_month": round(repairs_month),
-                "tirecost_month": round(tirecost),
-                "insurance": {
-                    "liability": {
-                        "under_25": round(liability_under_25),
-                        "over_25": round(liability_over_25),
+
+            if fuel_type != "El":
+                # Sammanställ data för den aktuella bilen
+                car_info = {
+                    "regnummer": reg_plate,
+                    "car_name": global_car_model,
+                    "total_cost": round(tot_cost),
+                    "tot_maintenance": round(tot_maintenance),
+                    "maintenance_month": round(maintenance_month),
+                    "repairs_month": round(repairs_month),
+                    "tirecost_month": round(tirecost),
+                    "insurance": {
+                        "liability": {
+                            "under_25": round(liability_under_25),
+                            "over_25": round(liability_over_25),
+                        },
+                        "partial": {
+                            "under_25": round(partial_under_25),
+                            "over_25": round(partial_over_25),
+                        },
+                        "full": {
+                            "under_25": round(full_under_25),
+                            "over_25": round(full_over_25),
+                        },
                     },
-                    "partial": {
-                        "under_25": round(partial_under_25),
-                        "over_25": round(partial_over_25),
+                    "car_tax": round(tax_month),
+                    "fuel_consumption": car_besbruk,
+                    "fuel_type": fuel_type,
+                    "fuel_price": right_fuel_price,
+                    "Co2_emission": co2,
+                }
+            else:
+                car_info = {
+                    "regnummer": reg_plate,
+                    "car_name": global_car_model,
+                    "total_cost": round(tot_cost),
+                    "tot_maintenance": round(tot_maintenance),
+                    "maintenance_month": round(maintenance_month),
+                    "repairs_month": round(repairs_month),
+                    "tirecost_month": round(tirecost),
+                    "insurance": {
+                        "liability": {
+                            "under_25": round(liability_under_25),
+                            "over_25": round(liability_over_25),
+                        },
+                        "partial": {
+                            "under_25": round(partial_under_25),
+                            "over_25": round(partial_over_25),
+                        },
+                        "full": {
+                            "under_25": round(full_under_25),
+                            "over_25": round(full_over_25),
+                        },
                     },
-                    "full": {
-                        "under_25": round(full_under_25),
-                        "over_25": round(full_over_25),
-                    },
-                },
-                "car_tax": round(tax_month),
-                "fuel_consumption": car_besbruk,
-                "fuel_type": fuel_type,
-                "fuel_price": right_fuel_price,
-                "Co2_emission": co2,
-            }
+                    "car_tax": round(tax_month),
+                    "fuel_type": fuel_type,
+                    "powerprice": right_fuel_price,
+                    "Co2_emission": 0,
+                }
 
             # Spara data till JSON
             save_to_json(car_info, "car_costs.json")
