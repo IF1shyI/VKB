@@ -28,23 +28,22 @@ async function Results() {
       console.log("Data: ", cardata_display)
       
       const tier = await getUserTier();
+      
 
       if (cardata_display.fuel_type!="El"){
+        const totalFuelCost =
+            ((milage * 10) / 100) *
+            cardata_display.fuel_consumption *
+            cardata_display.fuel_price;
         const tot_pris_real = totalFuelCost + cardata_display.total_cost;
         totpris_display.textContent = tot_pris_real + " KR";
+        
 
         if (tier == "privat" || tier==null) {
         //maintenance
         maintenance_display_service.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
 
         tire_cost_display.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
-
-        //fuel
-        const totalFuelCost = Math.round(
-          ((milage*10) / 100) *
-          cardata_display.fuel_consumption *
-          cardata_display.fuel_price
-        );
         
         localStorage.setItem("tot_fuel_cost", totalFuelCost);
         tot_bkostnad.textContent = totalFuelCost + " KR";
@@ -57,7 +56,7 @@ async function Results() {
 
         //other
         car_name.textContent = cardata_display.car_name;
-        insurance_display.textContent = cardata_display.insurance["full"]["over_25"] + " KR";
+        insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
 
         emission_display.textContent =
           Co2_Emission_calc(milage, cardata_display.Co2_emission) + " KG";
@@ -68,11 +67,6 @@ async function Results() {
           tire_cost_display.textContent = cardata_display.tirecost_month + " KR";
 
           //fuel
-          const totalFuelCost =
-            ((milage * 10) / 100) *
-            cardata_display.fuel_consumption *
-            cardata_display.fuel_price;
-          console.log(totalFuelCost);
           localStorage.setItem("tot_fuel_cost", totalFuelCost);
           tot_bkostnad.textContent = totalFuelCost + " KR";
 
@@ -82,7 +76,7 @@ async function Results() {
             cardata_display.fuel_consumption + " L/100km";
 
           //other
-          insurance_display.textContent = cardata_display.insurance + " KR";
+          insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
 
           console.log(cardata_display.Co2_emission)
           emission_display.textContent =
@@ -101,7 +95,7 @@ async function Results() {
           maintenance_display_service.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
           tire_cost_display.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
 
-          insurance_display.textContent = cardata_display.insurance["full"]["over_25"] + " KR";
+          insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
 
         } else{
           const northMiddlePrice = cardata_display.powerprice.find(
@@ -119,7 +113,7 @@ async function Results() {
             cardata_display.maintenance_month + " KR";
           tire_cost_display.textContent = cardata_display.tirecost_month + " KR";
 
-          insurance_display.textContent = cardata_display.insurance["full"]["over_25"] + " KR";
+          insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
         }
       }
       car_name.textContent = cardata_display.car_name;
