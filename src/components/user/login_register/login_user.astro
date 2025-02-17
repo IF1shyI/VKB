@@ -7,38 +7,39 @@
   href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/1.0.2/tailwind.min.css"
 />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<div class="holder">
+  <form id="loginForm">
+    <h1>Logga in</h1>
+    <div class="form-group">
+      <label for="Username">Användarnamn</label>
+      <input
+        type="text"
+        id="Username"
+        spellcheck="false"
+        required
+        placeholder="Användarnamn"
+        autocomplete="on"
+      />
+      <label for="password">Lösenord</label>
+      <input
+        type="password"
+        id="password"
+        required
+        placeholder="Lösenord"
+        autocomplete="off"
+      />
+      <button type="submit" class="submitbtn">Logga in</button>
+    </div>
+  </form>
 
-<form id="loginForm">
-  <h1>Logga in</h1>
-  <div class="form-group">
-    <label for="Username">Användarnamn</label>
-    <input
-      type="text"
-      id="Username"
-      spellcheck="false"
-      required
-      placeholder="Användarnamn"
-      autocomplete="on"
-    />
-    <label for="password">Lösenord</label>
-    <input
-      type="password"
-      id="password"
-      required
-      placeholder="Lösenord"
-      autocomplete="off"
-    />
-    <button type="submit" class="submitbtn">Logga in</button>
+  <div class="loginlink">
+    Har du inget konto? <a href="/register">Registrera dig</a>
   </div>
-</form>
 
-<div class="loginlink">
-  Har du inget konto? <a href="/register">Registrera dig</a>
+  <div id="SucsessDIV"></div>
+
+  <div id="google-login" class="mt-4"></div>
 </div>
-
-<div id="SucsessDIV"></div>
-
-<div id="google-login" class="mt-4"></div>
 
 <script src="/js/user/login.js" is:inline></script>
 
@@ -47,6 +48,12 @@
     --valid: hsl(140 80% 40%);
     --invalid: hsl(10 80% 40%);
     --input: hsl(0 0% 0%);
+  }
+
+  .holder {
+    height: 100vh;
+    place-items: center;
+    align-content: center;
   }
   body {
     min-height: 100vh;

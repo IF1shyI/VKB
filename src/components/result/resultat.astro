@@ -1,0 +1,68 @@
+---
+import ExtraData from "./extra_data.astro";
+---
+
+<script type="module" src="/js/search/result.js" is:inline></script>
+<script src="/js/search/animation.js" is:inline></script>
+
+<div class="result-container">
+  <h1 class="tot-wrapper">
+    Total per månad: <br /><mark><div class="tot-sum" id="tot_pris"></div></mark
+    >
+  </h1>
+
+  <h2 class="co2-wrapper">
+    Co2 utsläpp: <div id="emission_display"></div>
+  </h2>
+  <!-- <button onclick="window.location.href='/tips'">Spara pengar</button> -->
+  <ExtraData />
+  <!-- <h3 id="car_name"></h3> -->
+</div>
+
+<style>
+  :root {
+    --res_fs: 25px;
+    --tot-fs: 150px;
+    --other-fs: 30px;
+  }
+  .result-container {
+    display: flex;
+
+    height: calc(100vh - var(--header-sz));
+    place-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: var(--other-fs);
+    flex-direction: column;
+  }
+
+  .tot-wrapper,
+  .co2-wrapper {
+    margin: 0;
+  }
+
+  .tot-sum {
+    color: green;
+    font-size: var(--tot-fs);
+    font-weight: bold;
+  }
+
+  .co2-wrapper {
+    font-size: var(--res_fs);
+    display: flex;
+    flex-direction: row;
+
+    #emission_display {
+      color: red;
+      margin-left: var(--margin-xs);
+    }
+  }
+
+  @media (max-width: 600px) {
+    :root {
+      --res_fs: 15px;
+      --tot-fs: 80px;
+      --other-fs: 10px;
+    }
+  }
+</style>

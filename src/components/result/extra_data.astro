@@ -1,0 +1,139 @@
+<div class="dropdown-wrapper">
+  <div class="dropdown-content">
+    <div class="dropdown-text">Detaljerad information</div>
+    <img src="./bilder/arrow_down.svg" alt="" />
+  </div>
+  <div class="dropdown-items">
+    <div class="data-ram">
+      <h3>Försäkring</h3>
+      <div class="info" id="insurance_display"></div>
+    </div>
+    <div class="data-ram">
+      <h3>Bensinkostnad</h3>
+      <div class="info" id="tot_bkostnad"></div>
+    </div>
+    <div class="data-ram">
+      <h3>Skatt per månad</h3>
+      <div class="info" id="skatt"></div>
+    </div>
+    <div class="data-ram">
+      <h3>Totalt Underhåll</h3>
+      <div class="info" id="maintenance_display"></div>
+    </div>
+    <div class="data-ram">
+      <h3 id="dmedeltyp"></h3>
+      <div class="info" id="bkostnad"></div>
+    </div>
+    <div class="data-ram">
+      <h3 id="switch_display">Bensinförbrukning</h3>
+      <div class="info" id="bbruk_display"></div>
+    </div>
+    <div class="data-ram">
+      <h3>Underhåll service</h3>
+      <div class="info" id="maintenance_display_service"></div>
+    </div>
+    <div class="data-ram">
+      <h3>Underhåll däck</h3>
+      <div class="info" id="maintenance_display_tire"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/search/dropdown.js" is:inline></script>
+
+<style>
+  :root {
+    --dd-fs: 30px;
+    --data-fs: 30px;
+  }
+  .dropdown-wrapper {
+    position: relative;
+    background-color: #fff;
+    width: 80vw;
+    max-width: 800px;
+    height: 40px;
+    border-radius: 5px;
+    margin-top: var(--margin-l);
+
+    user-select: none;
+  }
+
+  .dropdown-wrapper:hover {
+    background-color: lightgray;
+  }
+
+  .dropdown-content {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+
+    .dropdown-text {
+      height: fit-content;
+      max-height: 100%;
+      text-align: start;
+      margin-left: 20px;
+      color: black;
+
+      font-weight: 500;
+      font-size: var(--dd-fs);
+    }
+
+    img {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+    }
+  }
+
+  .dropdown-items {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    background-color: #fff;
+    color: black;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+
+    /* Låter dropdownen expandera utan att överlappa */
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0px;
+    transition: height 0.4s ease-in-out;
+  }
+
+  .dropdown-items.open {
+    max-height: 800px; /* Anpassa efter innehåll */
+    opacity: 1;
+    padding: 10px;
+  }
+
+  .info {
+    color: black;
+    font-weight: 500;
+    font-size: var(--data-fs);
+
+    button {
+      width: 50%;
+      height: 30px;
+      margin-bottom: 5px;
+    }
+  }
+
+  .data-ram h3 {
+    font-size: var(--data-fs);
+  }
+
+  .data-ram:nth-child(n + 3) {
+    border-top: 2px solid var(--gra);
+    padding-top: 10px;
+  }
+
+  @media (max-width: 600px) {
+    :root {
+      --dd-fs: 20px;
+      --data-fs: 20px;
+    }
+  }
+</style>

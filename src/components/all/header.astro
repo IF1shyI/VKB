@@ -28,38 +28,45 @@
   </nav>
 </header>
 <script is:inline>
+  document.addEventListener("DOMContentLoaded", async () => {
+  const loginContainer = document.getElementById("login-container");
+  const menu = document.querySelector(".menu");
+  const menuIcon = document.querySelector(".menu-icon");
+  const navButtons = document.querySelectorAll(".nav-button");
+
   function toggleMenu() {
-    var nav_buttons = document.getElementsByClassName("nav-button");
-    var menu = document.querySelector(".menu");
     menu.classList.toggle("show");
-    if (nav_buttons) {
-      nav_buttons.classList.toggle("hidden");
-    } else {
-      console.error("Menu element not found!");
-    }
+
+    // Animera synlighet för knapparna i menyn
+    navButtons.forEach((btn, index) => {
+      if (menu.classList.contains("show")) {
+        btn.style.opacity = "0";
+        setTimeout(() => {
+          btn.style.opacity = "1";
+        }, index * 50); // Fördröjning för en smooth fade-in-effekt
+      } else {
+        btn.style.opacity = "0";
+      }
+    });
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    const loginContainer = document.getElementById("login-container");
+  menuIcon.addEventListener("click", toggleMenu);
 
-    // Kontrollera om JWT finns i localStorage
-    const jwtToken = localStorage.getItem("jwt");
+  // Kontrollera om JWT-token finns
+  const jwtToken = localStorage.getItem("jwt");
 
-    if (jwtToken) {
-      try {
-        // Skicka en begäran till backend för att verifiera JWT och få användarinfo
-        const response = await fetch("http://127.0.0.1:5000/checksession", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern
-          },
-        });
+  if (jwtToken) {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/checksession", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-
-          // Om token är giltig och användarnamn finns, uppdatera knappen
-          if (data.username) {
+      if (response.ok) {
+        const data = await response.json();
+        if (data.username) {
             loginContainer.innerHTML = `
               <button class="login" onclick="window.location.href='/profile'" data-astro-cid-5dsaiak7>
                 <img src="/bilder/login_icon.svg" alt="" class="login_img" data-astro-cid-5dsaiak7/>
@@ -67,18 +74,16 @@
               </button>
             `;
           }
-        } else {
-          // Om token inte är giltig, ta bort den
-          localStorage.removeItem("jwt");
-        }
-      } catch (error) {
-        console.error("Fel vid validering av session:", error);
+      } else {
         localStorage.removeItem("jwt");
       }
+    } catch (error) {
+      console.error("Fel vid validering av session:", error);
+      localStorage.removeItem("jwt");
     }
-  });
+  }
+});
 </script>
-
 <style>
   :root {
     --login_button_width: 130px;
@@ -89,8 +94,8 @@
   header {
     width: 100%;
     height: var(--header-sz);
-    /* background-color: var(--svart); */
-    background-color: transparent;
+    background: linear-gradient(to right, #000000, #333333);
+
     display: flex;
     position: relative; /* Lägger till relativ position för att hantera absolut positionering av knappen */
 

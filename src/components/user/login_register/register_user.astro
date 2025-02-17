@@ -7,48 +7,49 @@
   href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/1.0.2/tailwind.min.css"
 />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-<form id="registerForm">
-  <h1>Skapa Konto</h1>
-  <div class="form-group">
-    <label for="name">Användarnamn</label>
-    <input
-      type="text"
-      id="name"
-      required
-      placeholder="Användarnamn"
-      autocomplete="off"
-      maxlength="10"
-    />
-    <label for="email">Email</label>
-    <input
-      type="email"
-      id="email"
-      required
-      placeholder="exempel@test.com"
-      autocomplete="off"
-    />
-    <label for="password">Lösenord</label>
-    <input
-      type="password"
-      id="password"
-      required
-      placeholder="Lösenord"
-      autocomplete="off"
-    />
-    <label for="password2">Lösenord</label>
-    <input
-      type="password"
-      id="password2"
-      required
-      placeholder="Skriv lösenord igen"
-      autocomplete="off"
-    />
-    <button type="submit" class="submitbtn">Registrera</button>
-  </div>
-</form>
-<div class="loginlink">Har du redan konto? <a href="/login">Logga in</a></div>
-<div id="SucsessDIV"></div>
+<div class="holder">
+  <form id="registerForm">
+    <h1>Skapa Konto</h1>
+    <div class="form-group">
+      <label for="name">Användarnamn</label>
+      <input
+        type="text"
+        id="name"
+        required
+        placeholder="Användarnamn"
+        autocomplete="off"
+        maxlength="10"
+      />
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        required
+        placeholder="exempel@test.com"
+        autocomplete="off"
+      />
+      <label for="password">Lösenord</label>
+      <input
+        type="password"
+        id="password"
+        required
+        placeholder="Lösenord"
+        autocomplete="off"
+      />
+      <label for="password2">Lösenord</label>
+      <input
+        type="password"
+        id="password2"
+        required
+        placeholder="Skriv lösenord igen"
+        autocomplete="off"
+      />
+      <button type="submit" class="submitbtn">Registrera</button>
+    </div>
+  </form>
+  <div class="loginlink">Har du redan konto? <a href="/login">Logga in</a></div>
+  <div id="SucsessDIV"></div>
+</div>
 
 <script src="/js/user/register.js" is:inline></script>
 
@@ -57,6 +58,12 @@
     --valid: hsl(140 80% 40%);
     --invalid: hsl(10 80% 40%);
     --input: hsl(0 0% 0%);
+  }
+
+  .holder {
+    height: 100vh;
+    place-items: center;
+    align-content: center;
   }
   body {
     min-height: 100vh;

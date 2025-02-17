@@ -1,0 +1,41 @@
+{
+    "car": [
+        {
+            "brand": "Car.info",
+            "series": "Test",
+            "model": "Do Not Delete",
+            "generation": "1st Generation",
+            "model_gen_engine": null,
+            "car_name": "Car.info Do Not Delete 2.0 TDI AWD DCT, 136hk, 2014",
+            "chassis": "Cabriolet",
+            "engine": "2.0 TDI AWD",
+            "engine_type": "Laddhybrid Diesel",
+            "horsepower": 136,
+            "engine_start_year": 0,
+            "engine_end_year": null,
+            "model_year": 2014,
+            "trim_package": "Ultimate",
+            "licence_plate": "VVV999",
+            "vin": "CARINFO12AB123456",
+            "vehicle_type": "car",
+            "engine_name": "2.0 TDI AWD (100 kW)",
+            "body_code": "",
+            "sales_name": "Do Not Delete",
+            "attribute_values": {
+                "1298": {
+                    "name": "Fordonsskatt",
+                    "values": [
+                        12345
+                    ]
+                },
+                "540": {
+                    "name": "Bränsleförbrukning: Blandad",
+                    "values": [
+                        40
+                    ]
+                }
+            }
+        }
+    ],
+    "MC": []
+}

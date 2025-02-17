@@ -1469,40 +1469,6 @@ def car_cost_month():
         return jsonify({"error": "Not a valid key"}), 401
 
 
-@app.route("/car_info_parts", methods=["GET"])
-def car_info_parts():
-    reg_plate = request.args.get("reg_plate")
-    api_key = request.args.get("key")
-    is_valid = verify_api_key(api_key)
-
-    if is_valid:
-        existing_car = search_by_regnumber(reg_plate, "car_parts_info.json")
-        if existing_car:
-            update_api_request_count(api_key)
-            return jsonify(existing_car)
-
-        try:
-            page_content = get_car_info_with_playwright(reg_plate)
-            if page_content is None:
-                return jsonify({"error": "Could not retrieve data"}), 500
-        except Exception as e:
-            return jsonify({"error": f"Failed to fetch car data: {str(e)}"}), 500
-
-        # Process car information using BeautifulSoup
-        soup = BeautifulSoup(page_content, "html.parser")
-        h1_tag = soup.find("h1")
-
-        if not h1_tag or h1_tag.text.strip() == "Kaffepaus":
-            return jsonify({"error": "Try again later or invalid vehicle info"}), 400
-
-        car_model = (
-            h1_tag.find("a").text.strip() if h1_tag.find("a") else "No model found"
-        )
-        global global_car_model
-        global_car_model = car_model
-        save_to_json(car_info, "car_parts_info.json")
-
-
 @app.route("/create_api_key", methods=["POST"])
 def create_key():
     """

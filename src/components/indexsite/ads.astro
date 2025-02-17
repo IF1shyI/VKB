@@ -1,6 +1,8 @@
-<div id="ad_container" class="ad_container ad1">Annons 1</div>
-<div id="ad_container" class="ad_container ad2">Annons 2</div>
-<div id="ad_container" class="ad_container ad3">Annons 3</div>
+<div class="ad-wrapper">
+  <div id="ad_container" class="ad_container ad1">Annons 1</div>
+  <div id="ad_container" class="ad_container ad2">Annons 2</div>
+  <div id="ad_container" class="ad_container ad3">Annons 3</div>
+</div>
 
 <script type="module">
   import { getUserTier } from "./js/user/usertier.js";
@@ -25,6 +27,10 @@
 </script>
 
 <style>
+  .ad-wrapper {
+    position: relative;
+    height: 400px;
+  }
   .ad_container {
     position: absolute;
     background-color: #fff;
@@ -53,5 +59,22 @@
 
     width: 50%;
     height: 150px;
+  }
+
+  @media (max-width: 1200px) {
+    :root {
+      --SEO-ts: 12px;
+      --SEO-h2: 20px;
+      --SEO-h3: 15px;
+    }
+
+    .ad1,
+    .ad2 {
+      display: none;
+    }
+
+    .ad3 {
+      width: 80vw;
+    }
   }
 </style>

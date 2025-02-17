@@ -1,5 +1,5 @@
 <h1>Miljövänliga och kostnadseffektiva tips för att minska utsläpp</h1>
-<button onclick="window.location.href='/shop'"
+<button class="info-btn" onclick="window.location.href='/shop'"
   >Miljövänliga och billiga bildelar</button
 >
 <ol>
@@ -98,6 +98,14 @@
   </li>
 </ol>
 
+<div class="tips-contaner">
+  <a class="tips-a" href="/">
+    <div class="tips-send-btn">
+      📌 Klicka här för att ta reda på hur mycket du kan spara!
+    </div>
+  </a>
+</div>
+
 <style>
   h1 {
     font-size: calc(var(--sz) * 1.2);
@@ -148,7 +156,8 @@
     font-size: 1.5rem;
     font-weight: bold;
 
-    width: 400px;
+    width: 80%;
+    max-width: 400px;
     height: calc(var(--header-btn-sz) * 1.2);
     background-color: var(--orange);
     border-radius: 1rem;
@@ -157,6 +166,7 @@
 
     display: flex;
     justify-content: center;
+    align-items: center;
 
     cursor: pointer;
 
@@ -166,6 +176,31 @@
     &&:hover {
       background-color: var(--gra);
       cursor: pointer;
+    }
+  }
+
+  .tips-contaner {
+    width: calc(99vw - (var(--margin-s) * 2));
+    display: flex;
+    justify-content: center;
+    margin: var(--margin-xxl) var(--margin-s);
+  }
+
+  .tips-a {
+    text-decoration: none;
+    color: var(--guld);
+  }
+  .tips-send-btn {
+    font-size: 30px;
+    &:hover {
+      color: blue;
+      cursor: pointer;
+    }
+  }
+
+  @media (max-width: 600px) {
+    button {
+      font-size: 15px;
     }
   }
 </style>

@@ -1,0 +1,79 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/all/header.astro";
+---
+
+<Layout title="Cookies Policy">
+  <Header />
+  <section class="cookies-container">
+    <h1>Cookies Policy</h1>
+    <p>
+      Denna webbplats använder cookies för att förbättra användarupplevelsen.
+      Genom att använda vår webbplats godkänner du användningen av cookies
+      enligt denna policy.
+    </p>
+
+    <h2>Vad är cookies?</h2>
+    <p>
+      Cookies är små textfiler som lagras på din enhet när du besöker en
+      webbplats. De hjälper oss att förstå hur du använder vår webbplats och kan
+      användas för att förbättra din upplevelse.
+    </p>
+
+    <h2>Hur vi använder cookies</h2>
+    <ul>
+      <li>
+        <strong>Nödvändiga cookies:</strong> Krävs för att webbplatsen ska fungera
+        korrekt.
+      </li>
+      <li>
+        <strong>Analytiska cookies:</strong> Hjälper oss att analysera besökarbeteende
+        för att förbättra webbplatsen.
+      </li>
+      <li>
+        <strong>Marknadsföringscookies:</strong> Används för att anpassa annonser
+        och kampanjer.
+      </li>
+    </ul>
+
+    <h2>Hantering av cookies</h2>
+    <p>
+      Du kan hantera eller radera cookies i din webbläsare. Observera att vissa
+      funktioner på webbplatsen kan sluta fungera om du blockerar cookies.
+    </p>
+
+    <h2>Mer information</h2>
+    <p>
+      Om du har frågor om vår cookies policy, kontakta oss på <a
+        href="mailto:support@example.com">support@example.com</a
+      >.
+    </p>
+  </section>
+
+  <style>
+    .cookies-container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      text-align: left;
+    }
+
+    h1,
+    h2 {
+      color: var(--guld);
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</Layout>

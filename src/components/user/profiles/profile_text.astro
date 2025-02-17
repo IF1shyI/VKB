@@ -1,6 +1,6 @@
 <div class="text_container">
   <h1 class="h1_profile">Allmänna kontoinställningar</h1>
-  <button id="admin_btn" onclick="window.location.href='/admin'">Admin</button>
+  <!-- <button id="admin_btn" onclick="window.location.href='/admin'">Admin</button> -->
   <button
     id="logout_button"
     class="logout_button"
@@ -18,7 +18,7 @@
   .logout_button {
     position: absolute;
     top: 0;
-    right: 8%;
+    right: 0;
     width: 200px;
     aspect-ratio: 4/1;
     font-size: 1.8rem;
@@ -35,11 +35,22 @@
     right: 30%;
     top: 0;
 
-    width: 200px;
+    width: 100px;
     aspect-ratio: 4/1;
 
-    font-size: 1.8rem;
+    font-size: 10px;
 
     display: none;
+  }
+
+  @media (max-width: 700px) {
+    .h1_profile {
+      margin-top: 100px;
+    }
+    .logout_button {
+      top: -70px;
+      right: 50%;
+      transform: translateX(50%);
+    }
   }
 </style>

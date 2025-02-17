@@ -55,7 +55,7 @@ async function Results() {
           "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
 
         //other
-        car_name.textContent = cardata_display.car_name;
+        // car_name.textContent = cardata_display.car_name;
         insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
 
         emission_display.textContent =
@@ -116,7 +116,7 @@ async function Results() {
           insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
         }
       }
-      car_name.textContent = cardata_display.car_name;
+      // car_name.textContent = cardata_display.car_name;
       fuel_type_display.textContent = cardata_display.fuel_type;
       emission_display.textContent =
             Co2_Emission_calc(milage, cardata_display.Co2_emission) + " KG";
