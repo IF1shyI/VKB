@@ -1,12 +1,12 @@
-from app.models import db, APIKey
+from app.models import db, API
 
 
-def create_api_key(user_name):
-    new_key = APIKey(user_name=user_name)
+def create_api_key(user_name, user_mail):
+    new_key = API(user_name=user_name, user_mail=user_mail)
     db.session.add(new_key)
     db.session.commit()
     return new_key.api_key
 
 
 def verify_api_key(api_key):
-    return APIKey.query.filter_by(api_key=api_key).first() is not None
+    return API.query.filter_by(api_key=api_key).first() is not None

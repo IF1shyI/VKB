@@ -1,0 +1,54 @@
+{
+    "Personbil": [
+        {
+            "year": "2011",
+            "type": "Personbil",
+            "fuel_type": [
+                "Bensin",
+                "Etanol"
+            ],
+            "drive_wheels": "2WD",
+            "horsepower": 120.0,
+            "fuel_consumption": 6.0,
+            "co2_emission": 139.0,
+            "monthly_tax": 55.67,
+            "make": "Ford",
+            "model": "Focus",
+            "reg": "cwj801",
+            "insurance": 416.67,
+            "maintenance": [
+                {
+                    "tires": 174
+                },
+                {
+                    "service": 195
+                }
+            ]
+        }
+    ],
+    "Motorcykel": [
+        {
+            "year": "1983",
+            "type": "Motorcykel",
+            "fuel_type": [
+                "Bensin"
+            ],
+            "horsepower": 44.0,
+            "fuel_consumption": 4,
+            "co2_emission": 0,
+            "monthly_tax": 0.0,
+            "make": "Honda",
+            "model": "CB 400 N",
+            "reg": "lun086",
+            "insurance": 250.0,
+            "maintenance": [
+                {
+                    "tires": 174
+                },
+                {
+                    "service": 195
+                }
+            ]
+        }
+    ]
+}

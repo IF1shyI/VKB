@@ -12,5 +12,5 @@ def create_key():
     if not user_name or not user_mail:
         return jsonify({"error": "user_name and user_mail are required"}), 400
 
-    api_key = create_api_key(user_name)
+    api_key = create_api_key(user_name, user_mail)
     return jsonify({"api_key": api_key}), 200

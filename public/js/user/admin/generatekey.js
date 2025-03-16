@@ -7,7 +7,7 @@ async function handleGenerateKey(userName, userEmail, userOption, userSum) {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:4000/create_api_key", {
+      const response = await fetch("http://127.0.0.1:4000/auth/create_api_key", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -20,8 +20,8 @@ async function handleGenerateKey(userName, userEmail, userOption, userSum) {
       }
 
       const data = await response.json();
-      console.log("API-nyckel skapad:", data.raw_key);
-      key_display.textContent = "Din API-nyckel: " + data.raw_key;
+      console.log("API-nyckel skapad:", data.api_key);
+      key_display.textContent = "Din API-nyckel: " + data.api_key;
     } catch (error) {
       console.error("Ett fel uppstod:", error);
     }

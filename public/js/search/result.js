@@ -20,117 +20,68 @@ async function Results() {
 
     const milage = localStorage.getItem("milage");
     const savedCarDataString = localStorage.getItem("cardata");
+    const carInfo = JSON.parse(savedCarDataString);
 
     const switch_display=document.getElementById("switch_display")
 
-    if (savedCarDataString) {
-      let cardata_display = JSON.parse(savedCarDataString);
-      console.log("Data: ", cardata_display)
-      
-      const tier = await getUserTier();
+    if (carInfo) {
+      console.log("Data: ", carInfo)
       
 
-      if (cardata_display.fuel_type!="El"){
-        const totalFuelCost =
-            ((milage * 10) / 100) *
-            cardata_display.fuel_consumption *
-            cardata_display.fuel_price;
-        const tot_pris_real = totalFuelCost + cardata_display.total_cost;
-        totpris_display.textContent = tot_pris_real + " KR";
+      if (carInfo.fuel_type!="El"){
+        const totalFuelCost =Math.round(((milage * 10) / 100) *
+            carInfo.fuel_consumption *
+            carInfo.fuel_price);
         
 
-        if (tier == "privat" || tier==null) {
+        
         //maintenance
-        maintenance_display_service.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
+        let tot_maintenance = 0;  // För att hålla summan av alla underhållskostnader
 
-        tire_cost_display.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
+        // Iterera genom underhållslistan
+        for (let i = 0; i < carInfo.maintenance.length; i++) {
+            if (carInfo.maintenance[i].tires) {
+                tot_maintenance += carInfo.maintenance[i].tires;  // Lägg till däckkostnaden
+            }
+            if (carInfo.maintenance[i].service) {
+                tot_maintenance += carInfo.maintenance[i].service;  // Lägg till servicekostnaden
+            }
+        }
+
+        // Visa totala underhållskostnaden
+        maintenance_display.textContent = tot_maintenance + " KR";
+
+        // Visa specifik servicekostnad (om det finns)
+        maintenance_display_service.textContent = carInfo.maintenance[1].service + " KR";  // Servicekostnaden (index 1)
+
+        // Visa specifik däckkostnad (om det finns)
+        tire_cost_display.textContent = carInfo.maintenance[0].tires + " KR";  // Däckkostnaden (index 0)
+
+        const tot_pris_real = Math.round(totalFuelCost + tot_maintenance + carInfo.insurance + carInfo.monthly_tax);
+        totpris_display.textContent = tot_pris_real + " KR";
         
         localStorage.setItem("tot_fuel_cost", totalFuelCost);
         tot_bkostnad.textContent = totalFuelCost + " KR";
 
-        fuel_cost_display.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
+        fuel_cost_display.textContent = carInfo.fuel_price + " KR/L";
 
 
-        fuel_consumption_display.innerHTML =
-          "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
+        fuel_consumption_display.textContent = carInfo.fuel_consumption + " l/100km";
 
         //other
         // car_name.textContent = cardata_display.car_name;
-        insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
+        insurance_display.textContent = carInfo.insurance + " KR";
+
+        skatt_display.textContent = carInfo.monthly_tax + " KR";
+
+        fuel_type_display.textContent = carInfo.fuel_type[0];
 
         emission_display.textContent =
-          Co2_Emission_calc(milage, cardata_display.Co2_emission) + " KG";
-        } else {
-          //maintenance
-          maintenance_display_service.textContent =
-            cardata_display.maintenance_month + " KR";
-          tire_cost_display.textContent = cardata_display.tirecost_month + " KR";
-
-          //fuel
-          localStorage.setItem("tot_fuel_cost", totalFuelCost);
-          tot_bkostnad.textContent = totalFuelCost + " KR";
-
-          fuel_cost_display.textContent = cardata_display.fuel_price + " KR/L";
-
-          fuel_consumption_display.textContent =
-            cardata_display.fuel_consumption + " L/100km";
-
-          //other
-          insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
-
-          console.log(cardata_display.Co2_emission)
-          emission_display.textContent =
-            Co2_Emission_calc(milage, cardata_display.Co2_emission) + " KG";
-        }
-      } else{
-        switch_display.textContent = "Kostnad ladda 0-100%"
-        
-        const tot_pris_real=cardata_display.total_cost + cardata_display.insurance["full"]["over_25"]
-        totpris_display.textContent = tot_pris_real + " KR";
-
-        if (tier == "privat" || tier==null){
-          fuel_cost_display.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
-          fuel_consumption_display.innerHTML =
-          "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
-          maintenance_display_service.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
-          tire_cost_display.innerHTML = "<button onclick=\"window.location.href='/abonemang'\">Lås upp</button>";
-
-          insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
-
-        } else{
-          const northMiddlePrice = cardata_display.powerprice.find(
-            (entry) => entry.north_middle
-          )?.north_middle.price;
-
-          const northMiddle0_100 = cardata_display.powerprice.find(
-            (entry) => entry.north_middle
-          )?.north_middle.cost_battery;
-
-          fuel_cost_display.textContent = northMiddlePrice + " KR/kWh";
-          fuel_consumption_display.textContent= northMiddle0_100 + " KR"
-
-          maintenance_display_service.textContent =
-            cardata_display.maintenance_month + " KR";
-          tire_cost_display.textContent = cardata_display.tirecost_month + " KR";
-
-          insurance_display.textContent = cardata_display.insurance["liability"]["over_25"] + " KR";
-        }
+          Co2_Emission_calc(milage, carInfo.co2_emission) + " KG";
       }
-      // car_name.textContent = cardata_display.car_name;
-      fuel_type_display.textContent = cardata_display.fuel_type;
-      emission_display.textContent =
-            Co2_Emission_calc(milage, cardata_display.Co2_emission) + " KG";
-      maintenance_display.textContent =
-          cardata_display.tot_maintenance + " KR";
-      skatt_display.textContent = cardata_display.car_tax + " KR";
-      } else {
-        console.log("No car details found in local storage.");
-        window.location.href='/'
-      }
+    }
 
-      
-  }
-
+}
   function Co2_Emission_calc(milage, CO2_emission) {
     console.log("miltal och C02 utsläpp: ",milage, CO2_emission)
     const int_milage = parseInt(milage);

@@ -30,7 +30,7 @@ async function Do_search(inputValue) {
 
     try {
         // Skicka GET-begäran till Flask-API:t
-        const carResponse = await fetch(`http://127.0.0.1:4000/carcost?reg_plate=${inputValue}&key=VKBilen-1736020869.979689`, {
+        const carResponse = await fetch(`http://127.0.0.1:4000/car/test?reg_plate=${inputValue}&key=VKBilen-1736020869.979689`, {
             method: "GET",
         });
 
@@ -49,11 +49,12 @@ async function Do_search(inputValue) {
         } else {
             // API-svaret innehåller bilinformation
             console.log(carData);
-            localStorage.setItem('cardata', JSON.stringify(carData));
-            console.log('Car data saved to localStorage:', carData);
-            carInfoDiv.innerHTML = `
-                <p>${carData.car_name ? carData.car_name : 'Hittar inte bilmodell. Försök igen senare'}</p>
-            `;
+            data = getCarInfo(carData)
+            localStorage.setItem('cardata', JSON.stringify(data));
+            console.log('Car data saved to localStorage:', data);
+            let make = data.make || "Okänd";
+            let model = data.model || "Okänd";
+            carInfoDiv.innerText = make + " " + model;
         }
 
         // Kontrollera om användaren ska kunna fortsätta
@@ -201,4 +202,22 @@ async function Calc() {
         localStorage.setItem('milage', milage_num)
         window.location.href='/resultat'
     }
+}
+
+function getCarInfo(carData) {
+    let carInfo;
+
+    // Check if carData.data is an array or an object
+    if (Array.isArray(carData.data)) {
+        // If it's an array, access the first element
+        carInfo = carData.data[0].car_info;
+    } else if (carData.data && carData.data.car_info) {
+        // If it's an object, access car_info directly
+        carInfo = carData.data.car_info;
+    } else {
+        // Handle the case when car_info is not found
+        console.error("Car info is not available in the expected format.");
+    }
+
+    return carInfo;
 }
