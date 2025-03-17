@@ -1,5 +1,4 @@
-<label class="reg-num-label" for="reg-number">Reg nummer:</label>
-<div class="input-wrapper">
+<div class="input-wrapper reg-input-wrapper">
   <div class="blue-strip">
     <img src="/bilder/stars.svg" alt="Stars" class="stars-circle" />
     <div class="country-code">S</div>
@@ -11,18 +10,11 @@
     placeholder="ABC123"
     maxlength="6"
   />
-  <div class="arrow-knapp" onclick="Search()">
-    <img
-      src="/bilder/arrow_r.svg"
-      alt="arrow"
-      class="sok-knapp"
-      id="sok-knapp"
-    />
-  </div>
 </div>
 <div id="loading-message" class="loading">Hämtar data...</div>
 <div class="car-info" id="car-info"></div>
-<div class="step-two">
+
+<div class="step-two hidden">
   <div class="car-info" id="car-info"></div>
   <label class="mile-label" for="milage-input"
     >Hur många mil per månad tänte du åka?:</label
@@ -53,19 +45,20 @@
 <script type="module" src="/js/search/sok.js" is:inline></script>
 
 <style>
+  :root {
+    --input-fs: 4rem;
+    --country-code-fs: 2rem;
+    --loading-fs: 4rem;
+    --ml-fs: 2rem;
+  }
   .hidden {
     display: none !important;
   }
   .input-wrapper {
-    position: absolute;
+    position: relative;
     width: var(--input-sok-sz);
     aspect-ratio: 4/1;
-    padding-right: 4rem;
     border-radius: 4px;
-
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
 
     overflow: hidden;
 
@@ -81,7 +74,7 @@
     left: 0;
     top: 0;
 
-    font-size: 2rem;
+    font-size: var(--input-fs);
     font-weight: 600;
 
     text-align: center;
@@ -90,27 +83,6 @@
     text-transform: uppercase;
     padding: 0;
     border: 0;
-  }
-
-  .reg-num-label {
-    position: absolute;
-    top: 20%;
-    left: 50%;
-
-    transform: translate(-50%, -50%);
-  }
-  .sok-knapp {
-    position: absolute;
-    left: var(--input-sok-sz);
-    background-color: var(--guld_2);
-    top: 50%;
-    transform: translateY(-50%);
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: right center;
-    height: 100%;
-    cursor: pointer;
-    z-index: 60;
   }
 
   img:hover {
@@ -128,68 +100,18 @@
     left: 50%;
     transform: translate(-50%, -50%);
 
-    font-size: 2rem;
+    font-size: var(--loading-fs);
 
     font-family: var(--font);
-    color: var(--kontrast);
+    color: white;
+    font-weight: bold;
   }
 
-  .step-two {
-    display: none;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-  }
-  .step-two.show {
-    display: flex;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-
-    top: 0;
-    left: 0;
-  }
-
-  .car-info {
-    position: absolute;
-    width: 100%;
-    height: fit-content;
-
-    top: 110%;
-    left: 0;
-
-    font-family: var(--font);
-    font-size: 1.5rem;
-
-    background: linear-gradient(to bottom, #0f0f0f, #444444);
-
-    box-shadow:
-      0 0 8px rgba(255, 165, 0, 0.5),
-      0 0 16px rgba(255, 165, 0, 0.3),
-      0 0 24px rgba(255, 165, 0, 0.2);
-
-    border-radius: 5px;
-
-    p {
-      margin: 0;
-    }
-  }
-
-  .mile-label {
-    position: absolute;
-    top: 20%;
-    left: 50%;
-
-    transform: translate(-50%, -50%);
-
-    width: 90%;
-    font-size: 1rem;
-  }
   .blue-strip {
     position: absolute;
     left: 0;
     top: 0;
-    z-index: 99999;
+    z-index: 20;
     overflow: hidden;
 
     background: #003399;
@@ -203,7 +125,7 @@
 
   .country-code {
     position: absolute;
-    font-size: 20px;
+    font-size: var(--country-code-fs);
     font-weight: bold;
     bottom: 7px;
   }
@@ -211,64 +133,51 @@
   .stars-circle {
     position: absolute;
     top: 8%;
-    width: 30px;
-    height: 30px;
+    width: 70%;
+    aspect-ratio: 1;
   }
-  @media (max-width: 600px) {
-    .input-wrapper {
-      width: 70%; /* Justera bredden här */
-      height: 25%;
-      padding-right: 2rem; /* Minska padding om nödvändigt */
+
+  .car-info {
+    position: absolute;
+
+    bottom: 30px;
+
+    font-size: 4rem;
+    font-weight: bold;
+  }
+
+  .step-two {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .mile-label {
+    position: relative;
+    font-size: var(--ml-fs);
+    font-weight: 600;
+    z-index: 10;
+    text-align: center;
+    margin-bottom: var(--margin-s);
+  }
+
+  @media (max-width: 550px) {
+    :root {
+      --input-sok-sz: 20rem;
+      --input-fs: 3rem;
+      --country-code-fs: 1.5rem;
+      --loading-fs: 2rem;
+      --ml-fs: 1.2rem;
     }
+  }
 
-    input {
-      font-size: 1.5rem; /* Justera fontstorlek */
-      width: 80%;
-    }
-
-    .reg-num-label,
-    .mile-label {
-      font-size: 0.8rem; /* Justera storleken på etiketterna */
-    }
-
-    img {
-      height: 100%; /* Justera storleken på ikonen */
-      left: 80%; /* Placera om ikonen */
-    }
-
-    .blue-strip {
-      width: 15%;
-
-      .country-code {
-        font-size: 15px;
-      }
-
-      .stars-circle {
-        left: 2px;
-        top: 8px;
-        width: 85%;
-      }
-    }
-
-    .arrow-knapp {
-      position: absolute;
-      right: 0;
-      top: 0;
-
-      width: 20%;
-      height: 100%;
-      img {
-        position: absolute;
-        top: 50%;
-        left: 0;
-
-        width: 100%;
-        height: 100%;
-      }
-    }
-
-    .registration-input {
-      padding-left: 20px;
+  @media (max-width: 350px) {
+    :root {
+      --input-sok-sz: 15rem;
+      --input-fs: 1.5rem;
+      --country-code-fs: 1rem;
+      --loading-fs: 0.5rem;
+      --ml-fs: 0.6rem;
     }
   }
 </style>

@@ -62,28 +62,29 @@ import Footer from "../components/footer.astro";
     --red: #ff0000;
     --gra: #2e2d2f;
 
+    /* Color palette */
+
+    --primary-clr: #28646c;
+    --cp-50: #effcfb;
+    --cp-100: #d7f6f5;
+    --cp-200: #b4edec;
+    --cp-300: #80e0df;
+    --cp-400: #45cacb;
+    --cp-500: #29aeb1;
+    --cp-600: #258d95;
+    --cp-700: #24717a;
+    --cp-800: #28646c;
+    --cp-900: #234e56;
+    --cp-950: #12343a;
+
     /* Font */
     --font: "Inter", sans-serif;
 
     /* Size */
     --header-sz: 4rem;
     --header-btn-sz: calc(var(--header-sz) * 0.5);
-    --input-sok-sz: 18rem;
+    --input-sok-sz: 30rem;
     --sz: 2rem;
-  }
-
-  @media (prefers-color-scheme: light) {
-    :root {
-      --primary-clr: #fff;
-    }
-  }
-
-  /* Stilar för mörkt tema */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --primary-clr: rgb(0, 0, 0);
-      --sec-clr: #fff;
-    }
   }
   html {
     font-family: var(--font);
@@ -107,25 +108,49 @@ import Footer from "../components/footer.astro";
 
   body {
     margin: 0;
-    background-color: var(--primary-clr);
+    background-color: var(--black);
     color: #fff;
-    /* height: 100vh;
-    width: 100vw; */
     text-rendering: optimizeLegibility;
   }
 
   button {
-    color: var(--guld);
+    position: relative;
+    color: #fff;
     text-decoration: none;
-    margin-right: var(--margin-s);
     font-weight: bold;
-
-    background-color: var(--orange);
+    background: linear-gradient(var(--cp-500), var(--cp-600));
+    border: 2px solid var(--cp-700);
+    box-shadow:
+      rgba(255, 255, 255, 0.25) 0px 2px 0px 0px inset,
+      var(--cp-600) 0px 2px 4px 0px;
     border-radius: 1rem;
-
     text-align: center;
+    padding: 8px 24px;
+    user-select: none;
+    overflow: hidden;
+    transition: border-color 0.3s ease-in-out;
+    z-index: 1; /* Ensures the text stays above the overlay */
   }
+
+  /* Gradient overlay */
+  button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(var(--cp-600), var(--cp-700));
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: -1; /* Moves the gradient behind the text */
+  }
+
+  /* Fade in the gradient overlay on hover */
+  button:hover::before {
+    opacity: 1;
+  }
+
+  /* Smooth border transition */
   button:hover {
+    border-color: var(--cp-800);
     cursor: pointer;
   }
 

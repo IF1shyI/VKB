@@ -2,12 +2,30 @@ import { getUserTier } from '../user/usertier.js';
 // Definiera "data" som en global variabel
 let data = {}; // Tomt objekt för att hålla bilinformationen
 
+const btn = document.getElementById("search-car");
+btn.addEventListener('click', () =>{
+    const inputValue = document.getElementById('reg-number').value;
+
+    if (btn.classList.contains('calc')){
+        Calc();
+        exit
+    }
+
+    // Kontrollera om längden är exakt 6 tecken och om användaren tryckte på Enter
+    if (inputValue.length === 6) {
+        hidebtn();
+        Search(); // Anropa din Search-funktion
+
+    }
+})
+
 // Lyssna på "keyup"-händelsen istället för "keydown"
 document.getElementById('reg-number').addEventListener('keyup', function (event) {
     const inputValue = event.target.value;
 
     // Kontrollera om längden är exakt 6 tecken och om användaren tryckte på Enter
     if (inputValue.length === 6 && event.key === 'Enter') {
+        hidebtn();
         Search(); // Anropa din Search-funktion
     }
 });
@@ -22,6 +40,12 @@ document.getElementById('milage-input').addEventListener('keyup', function (even
 
 let mskatt = 0;
 let totMaintenance;
+
+function hidebtn(){
+    btn.classList.add('calc')
+    btn.style.display = "none"
+    btn.textContent = "Räkna ut"
+}
 
 async function Do_search(inputValue) {
     const carInfoDiv = document.getElementById('car-info');
@@ -143,9 +167,10 @@ async function Search() {
                     console.log("Användaren kan söka via JWT!");
                     // Gör sökningen via JWT
                     await Do_search(inputValue);
+                    btn.style.display = "block"
                 } else {
                     console.log("Användaren kan inte söka via JWT.");
-                    carInfoDiv.innerHTML = '<p>Slut på sökningar, testa senare igen.</p>' +'<button onclick="window.location.href=\'/abonemang\'">Köp fler sökningar</button>';
+                    carInfoDiv.innerHTML = '<p>Slut på sökningar, testa senare igen.</p>';
                 }
             }
         } catch (error) {
@@ -165,31 +190,13 @@ async function Search() {
 function toggleStep() {
     console.log("Försöker toggla klass på elementet .step-two");
     const stepTwoElement = document.querySelector('.step-two');
+    const reginput = document.querySelector(".reg-input-wrapper");
     
     if (stepTwoElement) {
-        stepTwoElement.classList.toggle('show');
-        console.log("Klass togglades på .step-two");
+        stepTwoElement.classList.toggle('hidden');
+        reginput.classList.toggle('hidden');
     } else {
         console.error("Element med klassen 'step-two' hittades inte");
-    }
-    console.log("Försöker toggla klass på elementet .input-wrapper");
-    const stepTwo = document.querySelector('.input-wrapper');
-    
-    if (stepTwo) {
-        stepTwo.classList.toggle('hide');
-        console.log("Klass togglades på .input-wrapper");
-    } else {
-        console.error("Element med klassen 'input-wrapper' hittades inte");
-    }
-    console.log("Försöker toggla klass på elementet .reg-num-label");
-
-    const stepTwolable = document.querySelector('.reg-num-label');
-    
-    if (stepTwolable) {
-        stepTwolable.classList.toggle('hide');
-        console.log("Klass togglades på .reg-num-label");
-    } else {
-        console.error("Element med klassen '.reg-num-label' hittades inte");
     }
 }
 
