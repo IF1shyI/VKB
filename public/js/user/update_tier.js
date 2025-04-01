@@ -11,7 +11,7 @@ async function Update_tier(new_tier) {
     }
 
     try {
-        const response = await fetch("http://127.0.0.1:5000/update_tier", {
+        const response = await fetch("https://backend.vkbilen.se/update_tier", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

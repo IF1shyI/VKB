@@ -10,7 +10,7 @@ export async function changenews() {
 
     try {
         // Skicka en begäran till backend för att uppdatera profilen
-        const response = await fetch("http://127.0.0.1:5000/togglenews", {
+        const response = await fetch("https://backend.vkbilen.se/togglenews", {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern

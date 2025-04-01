@@ -7,7 +7,7 @@ async function handleGenerateKey(userName, userEmail, userOption, userSum) {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:4000/auth/create_api_key", {
+      const response = await fetch("http://api.vkbilen.se/auth/create_api_key", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -92,3 +92,19 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("Elementen finns inte i DOM.");
     }
 });
+
+// Hämta referenser till element
+  const dropdown = document.getElementById("paymentMethod");
+  const sumInputDiv = document.getElementById("sumInput");
+
+  // Lyssna på förändringar i dropdown-menyn
+  dropdown.addEventListener("change", function () {
+    // Kolla om användaren har valt "Valbar summa"
+    if (dropdown.value === "sum") {
+      // Visa input-fältet
+      sumInputDiv.style.display = "block";
+    } else {
+      // Dölja input-fältet om något annat är valt
+      sumInputDiv.style.display = "none";
+    }
+  });

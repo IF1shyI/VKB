@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Här används rätt variabelnamn
       try {
         // Skicka en begäran till backend för att verifiera JWT och logga ut
-        const response = await fetch("http://127.0.0.1:5000/logout", {
+        const response = await fetch("https://backend.vkbilen.se/logout", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern
@@ -34,7 +34,7 @@ export async function logout() {
   const jwtToken = localStorage.getItem("jwt");
   try {
         // Skicka en begäran till backend för att verifiera JWT och logga ut
-        const response = await fetch("http://127.0.0.1:5000/logout", {
+        const response = await fetch("https://backend.vkbilen.se/logout", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern

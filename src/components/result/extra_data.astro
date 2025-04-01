@@ -1,7 +1,13 @@
 <div class="dropdown-wrapper">
   <div class="dropdown-content">
     <div class="dropdown-text">Detaljerad information</div>
-    <img src="./bilder/arrow_down.svg" alt="" />
+    <div class="tilde">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <path
+          d="M233.4 105.4c12.5-12.5 32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L256 173.3 86.6 342.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l192-192z"
+        ></path>
+      </svg>
+    </div>
   </div>
   <div class="dropdown-items">
     <div class="data-ram">
@@ -67,6 +73,7 @@
     height: 100%;
     display: flex;
     align-items: center;
+    justify-content: space-between;
 
     .dropdown-text {
       height: fit-content;
@@ -128,6 +135,17 @@
   .data-ram:nth-child(n + 3) {
     border-top: 2px solid var(--gra);
     padding-top: 10px;
+  }
+
+  .tilde {
+    height: 100%;
+    aspect-ratio: 1;
+    margin: 5px;
+  }
+
+  .tilde svg {
+    transition: transform 0.3s ease-in-out;
+    transform-origin: center;
   }
 
   @media (max-width: 600px) {

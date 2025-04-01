@@ -11,7 +11,7 @@ export async function getinfo() {
     
     try {
       // Skicka en begäran till backend för att logga ut
-        const response = await fetch("http://127.0.0.1:5000/profileinfo", {
+        const response = await fetch("https://backend.vkbilen.se/profileinfo", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern

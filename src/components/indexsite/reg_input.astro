@@ -1,14 +1,12 @@
 ---
 // import "../css/style.css"; // Importera din CSS-fil i Astro-komponenten
 import Sok from "./sokreg.astro";
-import Ads from "./ads.astro";
 ---
 
 <div class="image-container">
   <h1>Bilens verkliga kostnad på 20 sekunder!</h1>
   <Sok />
   <button id="search-car">Sök</button>
-  <Ads />
 </div>
 
 <style>
@@ -16,12 +14,13 @@ import Ads from "./ads.astro";
     --h1-text-sz: 5rem;
     --search-btn-sz: 30rem;
     --search-btn-fs: 2rem;
+    --loading-msg-sz: 4rem;
   }
   .image-container {
     position: relative;
     display: flex;
-    width: 100%;
-    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
     min-height: 300px;
     background: no-repeat url("/bilder/car_image.webp");
 
@@ -59,11 +58,15 @@ import Ads from "./ads.astro";
     font-size: var(--search-btn-fs);
   }
 
+  #loading-message {
+    font-size: var(--loading-msg-sz);
+  }
   @media (max-width: 550px) {
     :root {
       --h1-text-sz: 3rem;
       --search-btn-sz: 20rem;
       --search-btn-fs: 1.5rem;
+      --loading-msg-sz: 2rem;
     }
   }
 </style>

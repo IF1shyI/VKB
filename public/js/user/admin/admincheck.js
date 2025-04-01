@@ -9,7 +9,7 @@ async function checkadmin() {
     }
     try {
       // Skicka en begäran till backend för att verifiera JWT och få användarinfo
-      const response = await fetch("http://127.0.0.1:5000/admin", {
+      const response = await fetch("https://backend.vkbilen.se/admin", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern

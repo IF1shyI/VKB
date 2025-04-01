@@ -12,7 +12,7 @@ document.getElementById('contactFormElement').addEventListener('submit', async f
 
   try {
     // Skickar POST-förfrågan till API på http://localhost:5000/submit-form
-    const response = await fetch('http://localhost:5000/submit-form', {
+    const response = await fetch('https://backend.vkbilen.se/submit-form', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

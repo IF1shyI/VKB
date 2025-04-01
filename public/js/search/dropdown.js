@@ -3,48 +3,70 @@ document.addEventListener("DOMContentLoaded", function () {
     const dropdownItems = document.querySelector(".dropdown-items");
     const dropdownIcon = document.querySelector(".dropdown-content img");
     const resultContainer = document.querySelector(".result-container");
+    const svgIcon = document.querySelector(".tilde svg");
+
+    // Kontrollera att svgIcon verkligen finns innan vi försöker ändra dess stil
+    if (!svgIcon) {
+        console.error("SVG icon not found!");
+        return; // Avbryt om SVG:n inte finns
+    }
+
+    // Lägg till transition och transform-origin för SVG om den finns
+    svgIcon.style.transition = "transform 0.3s ease-in-out";
+    svgIcon.style.transformOrigin = "center";  // För att rotera runt mitten
 
     dropdownWrapper.addEventListener("click", function (event) {
-        event.stopPropagation(); // Förhindra att klick utanför direkt stänger den
-        
+        event.stopPropagation();
         const isOpen = dropdownItems.classList.contains("open");
-        
+
         if (!isOpen) {
             dropdownItems.classList.add("open");
             dropdownWrapper.style.borderBottomRightRadius = "0";
             dropdownWrapper.style.borderBottomLeftRadius = "0";
 
-            // Sätt transition för margin-bottom i resultContainer via JavaScript
-            resultContainer.style.transition = "margin-bottom 0.3s ease-in-out"; // Detta görs via JavaScript nu
+            resultContainer.style.transition = "margin-bottom 0.3s ease-in-out";
+            resultContainer.style.marginBottom = "0";
 
-            // Börja med att sätta en liten margin på resultContainer så att den "faller ner" i takt med dropdownen
-            resultContainer.style.marginBottom = "0";  // Börja med 0 margin
-
-            // Lägg till en timeout för att vänta på att dropdownen är öppen
             setTimeout(function () {
-                const height = dropdownItems.getBoundingClientRect().height;
-                dropdownItems.style.transition = "height 0.4s ease-in-out";
-                dropdownItems.style.height = `${height}px`; // Sätt höjden på dropdownen dynamiskt
-
-                // Samtidigt, sätt marginBottom på resultContainer till samma höjd som dropdown
+                const height = dropdownItems.scrollHeight;
+                dropdownItems.style.transition = "height 0.4s ease-in-out, opacity 0.3s";
+                dropdownItems.style.height = `${height}px`;
+                dropdownItems.style.opacity = "1";
                 resultContainer.style.marginBottom = `${height}px`;
-            }, 10); // Vänta lite för att dropdownen ska börja röra sig innan höjden sätts
+            }, 10);
         } else {
-            dropdownItems.classList.remove("open");
+            dropdownItems.style.height = "0";
+            dropdownItems.style.opacity = "0";
             dropdownWrapper.style.borderBottomRightRadius = "5px";
             dropdownWrapper.style.borderBottomLeftRadius = "5px";
-            resultContainer.style.marginBottom = "0"; // Återställ margin när dropdown är stängd
+            resultContainer.style.marginBottom = "0";
+
+            setTimeout(() => dropdownItems.classList.remove("open"), 400);
         }
 
-        dropdownIcon.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
-        dropdownIcon.style.transition = "transform 0.3s ease-in-out";
+        // Rotation för ikonen
+        svgIcon.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
+        svgIcon.style.transition = "transform 0.3s ease-in-out";
+
+        // Rotation för SVG
+        if (svgIcon) {
+            svgIcon.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
+            svgIcon.style.transition = "transform 0.3s ease-in-out";
+        }
     });
 
     document.addEventListener("click", function (event) {
         if (!dropdownWrapper.contains(event.target)) {
-            dropdownItems.classList.remove("open");
+            dropdownItems.style.height = "0";
+            dropdownItems.style.opacity = "0";
+            resultContainer.style.marginBottom = "0";
             dropdownIcon.style.transform = "rotate(0deg)";
-            resultContainer.style.marginBottom = "0"; // Återställ margin när dropdown stängs
+            
+            if (svgIcon) {
+                svgIcon.style.transform = "rotate(0deg)";
+            }
+
+            setTimeout(() => dropdownItems.classList.remove("open"), 400);
         }
     });
 });

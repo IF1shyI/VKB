@@ -11,13 +11,15 @@
     maxlength="6"
   />
 </div>
-<div id="loading-message" class="loading">Hämtar data...</div>
+<div id="loading-message" class="loading">
+  Hämtar data<span>.</span><span>.</span><span>.</span>
+</div>
 <div class="car-info" id="car-info"></div>
 
 <div class="step-two hidden">
   <div class="car-info" id="car-info"></div>
   <label class="mile-label" for="milage-input"
-    >Hur många mil per månad tänte du åka?:</label
+    >Hur många mil per månad tänkte du åka?:</label
   >
   <div class="input-wrapper">
     <input
@@ -36,10 +38,6 @@
     </div>
   </div>
   <div id="loading-message" class="loading">Hämtar data...</div>
-  <div id="fuel-find" class="loading">Hämtar bränslepriser...</div>
-  <div id="ins-find" class="loading">Hämtar försäkring...</div>
-  <div id="maintenance-find" class="loading">Räknar på underhåll...</div>
-  <div id="nklar" class="loading">Nästan klar...</div>
 </div>
 
 <script type="module" src="/js/search/sok.js" is:inline></script>
@@ -50,6 +48,7 @@
     --country-code-fs: 2rem;
     --loading-fs: 4rem;
     --ml-fs: 2rem;
+    --car-info-sz: 4rem;
   }
   .hidden {
     display: none !important;
@@ -96,7 +95,7 @@
   .loading {
     display: none;
     position: absolute;
-    top: 80%;
+    bottom: 8%;
     left: 50%;
     transform: translate(-50%, -50%);
 
@@ -105,6 +104,9 @@
     font-family: var(--font);
     color: white;
     font-weight: bold;
+    text-align: center;
+
+    width: 90%;
   }
 
   .blue-strip {
@@ -142,7 +144,7 @@
 
     bottom: 30px;
 
-    font-size: 4rem;
+    font-size: var(--car-info-sz);
     font-weight: bold;
   }
 
@@ -160,7 +162,6 @@
     text-align: center;
     margin-bottom: var(--margin-s);
   }
-
   @media (max-width: 550px) {
     :root {
       --input-sok-sz: 20rem;
@@ -168,6 +169,7 @@
       --country-code-fs: 1.5rem;
       --loading-fs: 2rem;
       --ml-fs: 1.2rem;
+      --car-info-sz: 2rem;
     }
   }
 
@@ -178,6 +180,33 @@
       --country-code-fs: 1rem;
       --loading-fs: 0.5rem;
       --ml-fs: 0.6rem;
+      --car-info-sz: 1rem;
     }
+  }
+
+  @keyframes blink {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .loading span {
+    animation: blink 1.5s infinite;
+  }
+
+  .loading span:nth-child(1) {
+    animation-delay: 0s;
+  }
+  .loading span:nth-child(2) {
+    animation-delay: 0.3s;
+  }
+  .loading span:nth-child(3) {
+    animation-delay: 0.6s;
   }
 </style>

@@ -12,7 +12,17 @@ import Footer from "../components/footer.astro";
 <html lang="sv">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="Astro description" />
+    <meta
+      name="description"
+      content="Få reda på dina verkliga fordonskostnader snabbt och enkelt på VK Bilen. Beräkna försäkring, bränsle och underhåll för din bil på under 20 sekunder. Spara pengar och få koll på din bils ekonomi!"
+    />
+
+    <meta
+      name="keywords"
+      content="fordonskostnader, bilkostnader, bilförsäkring, bränsle, underhåll, bil kalkylator, bil ekonomi, bilägande, spara pengar, bilkostnader kalkylator"
+    />
+
+    <meta name="robots" content="index, follow" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/bilder/logga.svg" />
     <meta name="generator" content={Astro.generator} />
@@ -23,6 +33,15 @@ import Footer from "../components/footer.astro";
       rel="stylesheet"
     />
     <title>{title}</title>
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7456880011104559"
+      crossorigin="anonymous"></script>
+    <meta name="google-adsense-account" content="ca-pub-7456880011104559" />
+    <script
+      src="https://kit.fontawesome.com/eab7245a0e.js"
+      crossorigin="anonymous"
+      is:inline></script>
   </head>
   <body>
     <slot />
@@ -89,6 +108,8 @@ import Footer from "../components/footer.astro";
   html {
     font-family: var(--font);
     background: var(--svart);
+    overflow: -moz-scrollbars-none; /* För Firefox */
+    -ms-overflow-style: none; /* För IE och Edge */
   }
   code {
     font-family:
@@ -111,6 +132,10 @@ import Footer from "../components/footer.astro";
     background-color: var(--black);
     color: #fff;
     text-rendering: optimizeLegibility;
+  }
+
+  body::-webkit-scrollbar {
+    display: none;
   }
 
   button {

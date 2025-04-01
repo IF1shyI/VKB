@@ -74,7 +74,7 @@ async function Results() {
 
         skatt_display.textContent = carInfo.monthly_tax + " KR";
 
-        fuel_type_display.textContent = carInfo.fuel_type[0];
+        fuel_type_display.textContent = carInfo.fuel_type;
 
         emission_display.textContent =
           Co2_Emission_calc(milage, carInfo.co2_emission) + " KG";

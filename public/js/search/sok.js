@@ -54,7 +54,7 @@ async function Do_search(inputValue) {
 
     try {
         // Skicka GET-begäran till Flask-API:t
-        const carResponse = await fetch(`http://127.0.0.1:4000/car/test?reg_plate=${inputValue}&key=VKBilen-1736020869.979689`, {
+        const carResponse = await fetch(`https://api.vkbilen.se/car/cost?reg_plate=${inputValue}`, {
             method: "GET",
         });
 
@@ -76,9 +76,7 @@ async function Do_search(inputValue) {
             data = getCarInfo(carData)
             localStorage.setItem('cardata', JSON.stringify(data));
             console.log('Car data saved to localStorage:', data);
-            let make = data.make || "Okänd";
-            let model = data.model || "Okänd";
-            carInfoDiv.innerText = make + " " + model;
+            carInfoDiv.innerText = data.name;
         }
 
         // Kontrollera om användaren ska kunna fortsätta
@@ -123,55 +121,14 @@ async function Search() {
                 const data = await response.json();
                 console.log('Din IP-adress är:', data.ip);
 
-                // Kontrollera om användaren kan söka baserat på IP
-                const searchResponse = await fetch("http://localhost:5000/can_search_ip?user_ip=" + data.ip, {
-                    method: "GET",
-                });
+                await Do_search(inputValue);
+                btn.style.display = "block"
 
-                const ok_search_data = await searchResponse.json();
-                if (ok_search_data.can_search) {
-                    // Gör sökningen via IP
-                    await Do_search(inputValue);
-                } else {
-                    console.log("Användaren kan inte söka via IP, kollar istället JWT...");
-                    // Om användaren inte kan söka via IP, kolla användartier
-                    const user_tier = await getUserTier();
-                    const tokenResponse = await fetch("http://localhost:5000/can_search?user_tier=" + user_tier, {
-                        method: "GET",
-                        headers: {
-                            Authorization: `Bearer ${jwtToken}`,
-                        },
-                    });
-
-                    const token_search_data = await tokenResponse.json();
-                    if (token_search_data.can_search) {
-                        // Gör sökningen via JWT
-                        await Do_search(inputValue);
-                    } else {
-                        console.log("Användaren kan inte söka via JWT eller IP.");
-                        carInfoDiv.innerHTML = '<p>Slut på sökningar, testa senare igen.</p>' +'<button onclick="window.location.href=\'/abonemang\'">Köp fler sökningar</button>';
-                    }
-                }
+        
             } else {
-                // Om det finns ett JWT-token, kontrollera om användaren kan söka baserat på det
-                const user_tier = await getUserTier();
-                const tokenResponse = await fetch("http://localhost:5000/can_search?user_tier=" + user_tier, {
-                    method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${jwtToken}`,
-                    },
-                });
 
-                const token_search_data = await tokenResponse.json();
-                if (token_search_data.can_search) {
-                    console.log("Användaren kan söka via JWT!");
-                    // Gör sökningen via JWT
-                    await Do_search(inputValue);
-                    btn.style.display = "block"
-                } else {
-                    console.log("Användaren kan inte söka via JWT.");
-                    carInfoDiv.innerHTML = '<p>Slut på sökningar, testa senare igen.</p>';
-                }
+                await Do_search(inputValue);
+                btn.style.display = "block"
             }
         } catch (error) {
             console.error("Fel vid hämtning av data:", error);

@@ -20,7 +20,7 @@ export async function updatedata(data) {
 
     try {
         // Skicka en begäran till backend för att uppdatera profilen
-        const response = await fetch("http://127.0.0.1:5000/updateprofile", {
+        const response = await fetch("https://backend.vkbilen.se/updateprofile", {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${jwtToken}`, // Skicka token i Authorization-headern

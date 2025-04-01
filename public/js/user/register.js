@@ -14,7 +14,7 @@ document.getElementById("registerForm")?.addEventListener("submit", async (e) =>
           <h1 style="color: red;">Lösenord matchar inte</h1>
         `;
       } else{
-        const response = await fetch("http://127.0.0.1:5000/register", {
+        const response = await fetch("https://backend.vkbilen.se/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, password, email }),

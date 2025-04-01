@@ -12,7 +12,7 @@
 
   function resetTimer() {
     clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(showAd, 10000000000); // Show ad after 10s of inactivity
+    inactivityTimer = setTimeout(showAd, 20000); // Show ad after 20s of inactivity
   }
 
   // Event listeners for user activity

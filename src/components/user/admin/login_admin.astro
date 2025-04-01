@@ -1,15 +1,6 @@
 <div id="admin_cover" class="cover"></div>
 
-<script src="/js/user/admin/admincheck.js" is:inline></script>
-
-<script>
-  const data = await checkadmin();
-  if (data.message == "Autentiserad") {
-    document.getElementById("admin_cover").classList.add("hide");
-  } else {
-    window.location.href = "/404"; // Omdirigera till inloggningssidan
-  }
-</script>
+<script type="module" src="./js/user/admin/adminlogin.js" is:inline></script>
 
 <style>
   .cover {

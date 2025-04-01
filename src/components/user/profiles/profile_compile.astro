@@ -11,12 +11,7 @@ import Profile from "./profile.astro";
 <script src="/js/user/checklogin.js" is:inline></script>
 <script src="/js/user/admin/admincheck.js" is:inline></script>
 
-<script>
-  const reply = await checkadmin();
-  if (reply.message == "Autentiserad") {
-    document.getElementById("admin_btn").style.display = "block";
-  }
-</script>
+<script src="./js/user/profile/compile.js" is:inline></script>
 
 <style>
   .profile_container {

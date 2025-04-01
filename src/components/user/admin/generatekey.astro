@@ -33,24 +33,6 @@
   <h3 id="key_display"></h3>
 </div>
 
-<script>
-  // Hämta referenser till element
-  const dropdown = document.getElementById("paymentMethod");
-  const sumInputDiv = document.getElementById("sumInput");
-
-  // Lyssna på förändringar i dropdown-menyn
-  dropdown.addEventListener("change", function () {
-    // Kolla om användaren har valt "Valbar summa"
-    if (dropdown.value === "sum") {
-      // Visa input-fältet
-      sumInputDiv.style.display = "block";
-    } else {
-      // Dölja input-fältet om något annat är valt
-      sumInputDiv.style.display = "none";
-    }
-  });
-</script>
-
 <script src="/js/user/admin/generatekey.js" is:inline></script>
 
 <style>
