@@ -56,9 +56,11 @@ async function Do_search(inputValue) {
         // Skicka GET-begäran till Flask-API:t
         const carResponse = await fetch(`https://api.vkbilen.se/car/cost?reg_plate=${inputValue}`, {
             method: "GET",
+            credentials: "include"
         });
 
         if (!carResponse.ok) {
+            console.error("API call failed:", carResponse.status, await carResponse.text());
             throw new Error(`Network response was not ok: ${carResponse.statusText}`);
         }
 
